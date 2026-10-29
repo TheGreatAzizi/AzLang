@@ -7,7 +7,9 @@ const path = require('path');
 const az = require('./azlang.js');
 
 const root = __dirname;
-const source = fs.readFileSync(path.join(root, 'site', 'site.az'), 'utf8');
+const source = fs
+  .readFileSync(path.join(root, 'site', 'site.az'), 'utf8')
+  .replace(/\r\n?/g, '\n');
 
 const chunks = [];
 const result = az.run(source, {
