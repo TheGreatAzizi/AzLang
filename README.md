@@ -287,7 +287,7 @@ This repository is ready for GitHub Pages. The workflow in `.github/workflows/pa
 3. assembles the deployable site in `_site/` and uploads it as a Pages artifact,
 4. deploys it with the official GitHub Pages actions.
 
-If Pages is not enabled yet, the workflow asks GitHub to enable it. You can also open **Settings → Pages** in the repository and choose **GitHub Actions** as the source. After the first successful workflow run the site is available at <https://thegreatazizi.github.io/AzLang/>.
+If Pages is not enabled yet, open **Settings → Pages** in the repository and choose **GitHub Actions** as the source. After the first successful workflow run the site is available at <https://thegreatazizi.github.io/AzLang/>.
 
 ## License
 
