@@ -1,0 +1,78 @@
+# Inventory: classes, lists, maps, JSON, and errors
+
+class Item
+  fun init(name, quantity, price)
+    this.name = name
+    this.quantity = quantity
+    this.price = price
+  end
+
+  fun value()
+    return this.quantity * this.price
+  end
+
+  fun label()
+    return "{this.name} x{this.quantity} @ {this.price}"
+  end
+end
+
+class Inventory
+  fun init()
+    this.items = []
+  end
+
+  fun add(item)
+    if item.quantity < 0
+      throw {message: "Quantity cannot be negative", code: "bad_quantity"}
+    end
+    append(this.items, item)
+    return this
+  end
+
+  fun total_value()
+    let total = 0
+    for item in this.items
+      total += item.value()
+    end
+    return round(total, 2)
+  end
+
+  fun report()
+    say "Inventory report"
+    say "----------------"
+    for item in this.items
+      say "- {item.label()} = {round(item.value(), 2)}"
+    end
+    say "Total: {this.total_value()}"
+  end
+end
+
+let store = new Inventory()
+store.add(new Item("Keyboard", 4, 49.99))
+store.add(new Item("Mouse", 10, 19.50))
+store.add(new Item("Monitor", 3, 189.00))
+
+store.report()
+say ""
+
+# Higher-order helpers over the item list
+let names = map(store.items, item => item.name)
+say "Products: {join(names, ', ')}"
+
+let expensive = filter(store.items, item => item.price > 40)
+say "Expensive: {map(expensive, item => item.name)}"
+
+# Errors are values; catch and handle them
+try
+  store.add(new Item("Broken", -1, 10))
+catch problem
+  say "Could not add item: {problem.message} ({problem.code})"
+end
+
+# Export the summary as JSON
+let summary = {
+  products: len(store.items),
+  total: store.total_value(),
+  names: names
+}
+say json_encode(summary)

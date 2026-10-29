@@ -1,0 +1,14 @@
+# Hello, world!
+# Run this file with:  node azlang.js examples/hello.az
+
+say "Hello, world!"
+say "سلام! AzLang fully supports Persian text."   # Unicode strings just work
+
+let name = "friend"
+let year = 2026
+
+say "Welcome, {name}!"
+say "This year is {year}."
+
+# Strings can be joined with + or embedded with { }
+say "Goodbye, " + name + "!"

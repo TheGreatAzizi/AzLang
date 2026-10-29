@@ -1,0 +1,10 @@
+# Generated Pages artifact
+_site/
+
+# Dependencies (the project itself has none)
+node_modules/
+
+# Logs and editor clutter
+*.log
+Thumbs.db
+.DS_Store

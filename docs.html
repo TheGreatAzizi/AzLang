@@ -1,0 +1,3791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AzLang Documentation — Learn the language from scratch</title>
+<meta name="description" content="The complete English guide to AzLang 2.0: syntax, variables, types, loops, functions, collections, classes, exceptions, pattern matching, built-ins, and embedding.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%237c5cff'/%3E%3Cstop offset='1' stop-color='%2321d4b4'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)'/%3E%3Cpath d='M24 18l22 14-22 14z' fill='white'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #05070e;
+    --bg-2: #080c16;
+    --panel: #0b1020;
+    --line: rgba(255, 255, 255, 0.075);
+    --line-strong: rgba(255, 255, 255, 0.14);
+    --text: #eef3ff;
+    --muted: #9aa9c7;
+    --dim: #64718d;
+    --accent: #7c5cff;
+    --accent-soft: rgba(124, 92, 255, 0.12);
+    --teal: #21d4b4;
+    --gold: #ffcb6b;
+    --danger: #ff6b81;
+    --green: #a9e88f;
+    --orange: #f78c6c;
+    --mono: "Cascadia Code", "JetBrains Mono", "Fira Code", Consolas, "Courier New", monospace;
+    --ui: "Inter", "Segoe UI", system-ui, -apple-system, Tahoma, sans-serif;
+    --header: 64px;
+    --sidebar: 268px;
+    --content: 900px;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: calc(var(--header) + 26px); }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--ui);
+    font-size: 15.5px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  ::selection { background: rgba(124, 92, 255, 0.4); color: #fff; }
+  a { color: #8fe6d3; text-decoration: none; }
+  a:hover { text-decoration: underline; text-underline-offset: 3px; }
+  button { font: inherit; }
+
+  .backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(900px 600px at 90% -10%, rgba(124, 92, 255, 0.13), transparent 60%),
+      radial-gradient(700px 500px at 10% 100%, rgba(33, 212, 180, 0.055), transparent 60%),
+      linear-gradient(180deg, #060a13 0%, #05070e 45%, #04060b 100%);
+  }
+
+  /* ---------- header ---------- */
+  header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--header);
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 0 22px;
+    background: rgba(5, 8, 15, 0.82);
+    border-bottom: 1px solid var(--line);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+  }
+
+  .brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; }
+  .brand:hover { text-decoration: none; }
+  .mark {
+    width: 31px;
+    height: 31px;
+    border-radius: 9px;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(140deg, #8b6cff, #5b8cff 55%, #21d4b4 135%);
+    box-shadow: 0 8px 20px -8px rgba(124, 92, 255, .9), inset 0 1px 0 rgba(255,255,255,.35);
+    color: #fff;
+  }
+  .mark svg { width: 14px; height: 14px; margin-left: 1px; }
+  .brand-name { font-size: 16px; font-weight: 760; letter-spacing: -0.3px; color: var(--text); }
+  .brand-name span { color: var(--teal); }
+  .doc-tag {
+    font-size: 9.5px;
+    font-weight: 750;
+    letter-spacing: .7px;
+    text-transform: uppercase;
+    color: #b8aaff;
+    background: rgba(124,92,255,.12);
+    border: 1px solid rgba(124,92,255,.22);
+    padding: 3px 7px;
+    border-radius: 5px;
+    margin-left: 2px;
+  }
+
+  .header-links { display: flex; align-items: center; gap: 20px; margin-left: 10px; }
+  .header-links a { font-size: 12.5px; color: var(--muted); text-decoration: none; }
+  .header-links a:hover { color: var(--text); }
+
+  .search {
+    margin-left: auto;
+    position: relative;
+    width: min(280px, 34vw);
+  }
+  .search svg {
+    position: absolute;
+    left: 11px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 14px;
+    height: 14px;
+    color: var(--dim);
+    pointer-events: none;
+  }
+  .search input {
+    width: 100%;
+    height: 35px;
+    padding: 0 44px 0 32px;
+    border-radius: 9px;
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,.035);
+    color: var(--text);
+    font-family: var(--ui);
+    font-size: 12px;
+    outline: none;
+    transition: border-color .16s, background .16s;
+  }
+  .search input:focus { border-color: rgba(124,92,255,.55); background: rgba(124,92,255,.07); }
+  .search input::placeholder { color: var(--dim); }
+  .search .slash {
+    position: absolute;
+    right: 9px;
+    top: 50%;
+    transform: translateY(-50%);
+    font: 9px var(--ui);
+    color: var(--dim);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 1px 5px;
+    pointer-events: none;
+  }
+
+  .menu-btn {
+    display: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 9px;
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,.04);
+    color: var(--text);
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+  }
+  .menu-btn svg { width: 17px; height: 17px; }
+
+  /* ---------- sidebar ---------- */
+  .sidebar {
+    position: fixed;
+    top: var(--header);
+    bottom: 0;
+    left: 0;
+    width: var(--sidebar);
+    z-index: 40;
+    overflow-y: auto;
+    padding: 22px 14px 40px;
+    background: rgba(6, 10, 18, 0.72);
+    border-right: 1px solid var(--line);
+    backdrop-filter: blur(12px);
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,.12) transparent;
+  }
+  .sidebar::-webkit-scrollbar { width: 8px; }
+  .sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,.10); border-radius: 10px; }
+
+  .nav-group { margin-bottom: 20px; }
+  .nav-label {
+    font-size: 9px;
+    font-weight: 750;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #4f5d78;
+    padding: 0 12px;
+    margin-bottom: 7px;
+  }
+  .doc-nav a {
+    display: block;
+    padding: 5px 12px;
+    margin: 1px 0;
+    border-left: 2px solid transparent;
+    border-radius: 0 7px 7px 0;
+    color: #93a2c0;
+    font-size: 12.5px;
+    line-height: 1.55;
+    text-decoration: none;
+    transition: color .14s, background .14s, border-color .14s;
+  }
+  .doc-nav a:hover { color: var(--text); background: rgba(255,255,255,.035); text-decoration: none; }
+  .doc-nav a.active {
+    color: #cfc4ff;
+    border-left-color: var(--accent);
+    background: linear-gradient(90deg, rgba(124,92,255,.13), transparent);
+  }
+  .no-results {
+    display: none;
+    padding: 10px 12px;
+    font-size: 11.5px;
+    color: var(--dim);
+  }
+  .no-results.show { display: block; }
+
+  /* ---------- main ---------- */
+  .main {
+    margin-left: var(--sidebar);
+    padding: calc(var(--header) + 40px) 44px 110px;
+    display: flex;
+    justify-content: center;
+  }
+  .doc { width: 100%; max-width: var(--content); min-width: 0; }
+
+  .doc-hero { padding-bottom: 10px; }
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 11px;
+    border-radius: 999px;
+    border: 1px solid rgba(33,212,180,.2);
+    background: rgba(33,212,180,.055);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: .5px;
+    text-transform: uppercase;
+    color: #8fe6d3;
+  }
+  .pill .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--teal); box-shadow: 0 0 8px var(--teal); }
+
+  .doc-hero h1 {
+    margin: 18px 0 16px;
+    font-size: clamp(36px, 4.4vw, 52px);
+    line-height: 1.07;
+    letter-spacing: -1.8px;
+    font-weight: 790;
+  }
+  .doc-hero h1 em {
+    font-style: normal;
+    background: linear-gradient(100deg, #c7bfff 0%, #8c76ff 45%, #63e6cd 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .doc-hero p { margin: 0 0 16px; color: var(--muted); font-size: 16.5px; line-height: 1.85; max-width: 700px; }
+  .hero-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .meta-chip {
+    font-size: 11px;
+    color: #8fa0c0;
+    padding: 5px 10px;
+    border-radius: 7px;
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,.025);
+  }
+  .meta-chip code { color: #c9d6ef; }
+
+  .doc-section { padding-top: 58px; margin-top: 44px; border-top: 1px solid var(--line); }
+  .doc-section:first-of-type { border-top: 0; }
+
+  h2 {
+    position: relative;
+    margin: 0 0 18px;
+    font-size: 30px;
+    line-height: 1.22;
+    letter-spacing: -0.9px;
+    font-weight: 760;
+    scroll-margin-top: calc(var(--header) + 26px);
+  }
+  h3 {
+    position: relative;
+    margin: 34px 0 12px;
+    font-size: 19px;
+    line-height: 1.35;
+    letter-spacing: -0.35px;
+    font-weight: 700;
+    scroll-margin-top: calc(var(--header) + 26px);
+  }
+  h4 { margin: 24px 0 8px; font-size: 14.5px; font-weight: 700; letter-spacing: .1px; }
+  .anchor {
+    margin-left: 8px;
+    font-size: .62em;
+    color: #4d5a74;
+    opacity: 0;
+    text-decoration: none;
+    vertical-align: 2px;
+    transition: opacity .15s, color .15s;
+  }
+  h2:hover .anchor, h3:hover .anchor, .anchor:focus { opacity: 1; }
+  .anchor:hover { color: var(--teal); text-decoration: none; }
+
+  p { margin: 0 0 14px; color: #b3c0da; }
+  strong { color: #e8eefc; font-weight: 650; }
+  ul, ol { margin: 0 0 16px; padding-left: 23px; color: #b3c0da; }
+  li { margin: 5px 0; }
+  li::marker { color: #6d7c9d; }
+  hr { border: 0; border-top: 1px solid var(--line); margin: 30px 0; }
+
+  code {
+    font-family: var(--mono);
+    font-size: .84em;
+    padding: 2px 6px;
+    border-radius: 5px;
+    background: rgba(124, 92, 255, 0.10);
+    border: 1px solid rgba(124, 92, 255, 0.14);
+    color: #d4c9ff;
+    white-space: nowrap;
+  }
+  h2 code, h3 code { font-size: .72em; }
+  p code, li code, td code { overflow-wrap: break-word; }
+
+  kbd {
+    font-family: var(--ui);
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid var(--line-strong);
+    background: rgba(255,255,255,.045);
+    color: #b6c4e0;
+    white-space: nowrap;
+  }
+
+  /* ---------- code blocks ---------- */
+  .codeblock {
+    margin: 18px 0 22px;
+    border-radius: 12px;
+    border: 1px solid var(--line-strong);
+    background: #080d18;
+    overflow: hidden;
+    box-shadow: 0 24px 50px -38px #000;
+  }
+  .cb-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 36px;
+    padding: 0 12px;
+    border-bottom: 1px solid var(--line);
+    background: rgba(255,255,255,.025);
+  }
+  .cb-dots { display: flex; gap: 5px; margin-right: 2px; }
+  .cb-dots i { width: 7px; height: 7px; border-radius: 50%; background: #2b3550; }
+  .cb-dots i:nth-child(1) { background: #ff6b81; opacity: .75; }
+  .cb-dots i:nth-child(2) { background: #ffcb6b; opacity: .75; }
+  .cb-dots i:nth-child(3) { background: #59e0a0; opacity: .75; }
+  .cb-file { font: 10.5px var(--mono); color: #7384a6; }
+  .cb-lang {
+    margin-left: auto;
+    font-size: 8.5px;
+    font-weight: 750;
+    letter-spacing: .8px;
+    color: #6f7f9f;
+    text-transform: uppercase;
+  }
+  .cb-copy {
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,.03);
+    color: #8292b2;
+    border-radius: 6px;
+    height: 24px;
+    padding: 0 8px;
+    font-size: 9.5px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: .15s;
+  }
+  .cb-copy:hover { color: var(--text); background: rgba(255,255,255,.08); }
+  .cb-copy svg { width: 11px; height: 11px; }
+
+  pre {
+    margin: 0;
+    padding: 17px 19px;
+    overflow-x: auto;
+    font: 12.7px/1.88 var(--mono);
+    color: #d7e2f7;
+    tab-size: 2;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,.14) transparent;
+  }
+  pre::-webkit-scrollbar { height: 9px; }
+  pre::-webkit-scrollbar-thumb { background: rgba(255,255,255,.12); border-radius: 10px; }
+  pre code { padding: 0; border: 0; background: none; color: inherit; font-size: inherit; white-space: pre; }
+
+  .tok-com { color: #536383; font-style: italic; }
+  .tok-str { color: #a9e88f; }
+  .tok-interp { color: #ffcb6b; }
+  .tok-num { color: #f78c6c; }
+  .tok-kw { color: #c792ea; }
+  .tok-builtin { color: #82aaff; }
+  .tok-fn { color: #5fd8c8; }
+  .tok-op { color: #89ddff; }
+  .tok-punc { color: #6b7c9c; }
+  .tok-cls { color: #ffd479; }
+  .tok-ident { color: #d7e2f7; }
+  .tok-raw { color: #a9e88f; }
+
+  /* ---------- callouts ---------- */
+  .note {
+    margin: 20px 0;
+    padding: 14px 17px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    background: linear-gradient(180deg, rgba(124,92,255,.075), rgba(124,92,255,.025));
+    color: #b9c5de;
+    font-size: 13.5px;
+    line-height: 1.75;
+  }
+  .note p { margin: 0; color: inherit; font-size: inherit; }
+  .note p + p { margin-top: 8px; }
+  .note .note-title {
+    display: block;
+    font-size: 9.5px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #b8aaff;
+    margin-bottom: 5px;
+  }
+  .note.tip { border-left-color: var(--teal); background: linear-gradient(180deg, rgba(33,212,180,.07), rgba(33,212,180,.02)); }
+  .note.tip .note-title { color: #7cead6; }
+  .note.warn { border-left-color: var(--gold); background: linear-gradient(180deg, rgba(255,203,107,.07), rgba(255,203,107,.02)); }
+  .note.warn .note-title { color: var(--gold); }
+  .note.danger { border-left-color: var(--danger); background: linear-gradient(180deg, rgba(255,107,129,.07), rgba(255,107,129,.02)); }
+  .note.danger .note-title { color: #ff9bab; }
+
+  /* ---------- tables ---------- */
+  .table-wrap { margin: 18px 0 22px; overflow-x: auto; border: 1px solid var(--line); border-radius: 11px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12.7px; min-width: 460px; }
+  th {
+    text-align: left;
+    padding: 9px 13px;
+    font-size: 9.5px;
+    font-weight: 750;
+    letter-spacing: .8px;
+    text-transform: uppercase;
+    color: #7f8fae;
+    background: rgba(255,255,255,.03);
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  td {
+    padding: 9px 13px;
+    border-bottom: 1px solid rgba(255,255,255,.045);
+    color: #aebbd5;
+    vertical-align: top;
+    line-height: 1.65;
+  }
+  tr:last-child td { border-bottom: 0; }
+  tbody tr:hover td { background: rgba(255,255,255,.018); }
+  td code { white-space: nowrap; }
+  td:first-child { color: #d4def2; white-space: nowrap; }
+  td:first-child code { color: #cfc4ff; }
+
+  /* ---------- cards / feature grid ---------- */
+  .cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 11px; margin: 18px 0 24px; }
+  .card {
+    padding: 16px 17px;
+    border-radius: 11px;
+    border: 1px solid var(--line);
+    background: linear-gradient(180deg, rgba(255,255,255,.028), rgba(255,255,255,.006));
+  }
+  .card h4 { margin: 0 0 5px; font-size: 13px; color: #e3eaf9; }
+  .card p { margin: 0; font-size: 12px; line-height: 1.7; color: #94a3c2; }
+
+  /* ---------- next / prev ---------- */
+  .next-links {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 11px;
+    margin-top: 34px;
+  }
+  .next-link {
+    padding: 14px 17px;
+    border-radius: 11px;
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,.022);
+    text-decoration: none;
+    transition: .17s;
+  }
+  .next-link:hover { border-color: rgba(124,92,255,.35); background: rgba(124,92,255,.07); text-decoration: none; }
+  .next-link span { display: block; font-size: 9.5px; letter-spacing: .8px; text-transform: uppercase; color: var(--dim); margin-bottom: 3px; }
+  .next-link b { font-size: 13px; color: #dce6f9; font-weight: 600; }
+  .next-link.right { text-align: right; }
+
+  /* ---------- footer ---------- */
+  .doc-footer {
+    margin-top: 70px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+    font-size: 11.5px;
+    color: var(--dim);
+    align-items: center;
+  }
+  .doc-footer .grow { flex: 1; }
+  .doc-footer a { color: #8fa0c0; text-decoration: none; }
+  .doc-footer a:hover { color: var(--text); }
+
+  /* ---------- toast ---------- */
+  .toast {
+    position: fixed;
+    bottom: 22px;
+    left: 50%;
+    transform: translate(-50%, 16px);
+    z-index: 80;
+    padding: 9px 15px;
+    border-radius: 9px;
+    border: 1px solid rgba(33,212,180,.25);
+    background: rgba(10, 26, 27, 0.96);
+    color: #9ff0df;
+    font-size: 11.5px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s, transform .2s;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    box-shadow: 0 18px 40px -18px #000;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  .toast svg { width: 13px; height: 13px; }
+
+  /* ---------- back to top ---------- */
+  .to-top {
+    position: fixed;
+    right: 22px;
+    bottom: 22px;
+    z-index: 45;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    border: 1px solid var(--line-strong);
+    background: rgba(12, 18, 31, 0.9);
+    color: var(--muted);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(8px);
+    transition: .2s;
+    backdrop-filter: blur(10px);
+  }
+  .to-top.show { opacity: 1; pointer-events: auto; transform: none; }
+  .to-top:hover { color: var(--text); border-color: rgba(124,92,255,.5); }
+  .to-top svg { width: 15px; height: 15px; }
+
+  /* ---------- mobile ---------- */
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: var(--header) 0 0;
+    z-index: 35;
+    background: rgba(3, 6, 12, 0.62);
+    backdrop-filter: blur(3px);
+  }
+
+  @media (max-width: 1080px) {
+    .main { margin-left: 0; padding-left: 30px; padding-right: 30px; }
+    .sidebar {
+      transform: translateX(-102%);
+      transition: transform .24s cubic-bezier(.2,.8,.3,1);
+      width: 280px;
+      background: #070b14;
+      box-shadow: 30px 0 70px -30px #000;
+    }
+    .sidebar.open { transform: none; }
+    .menu-btn { display: inline-flex; }
+    .sidebar-overlay.show { display: block; }
+    .header-links { display: none; }
+    .search { width: min(300px, 42vw); }
+  }
+
+  @media (max-width: 760px) {
+    .main { padding: calc(var(--header) + 28px) 18px 90px; }
+    .doc-hero h1 { letter-spacing: -1.2px; }
+    .doc-hero p { font-size: 15px; }
+    h2 { font-size: 25px; }
+    h3 { font-size: 17.5px; }
+    .cards { grid-template-columns: 1fr; }
+    .next-links { grid-template-columns: 1fr; }
+    .next-link.right { text-align: left; }
+    .search { display: none; }
+    .doc-tag { display: none; }
+    .doc-section { padding-top: 42px; margin-top: 34px; }
+    pre { font-size: 11.6px; padding: 14px 15px; }
+    table { font-size: 11.8px; }
+    td, th { padding: 8px 10px; }
+    .to-top { right: 14px; bottom: 14px; }
+  }
+
+  @media (max-width: 440px) {
+    .brand-name { font-size: 15px; }
+    .main { padding-left: 14px; padding-right: 14px; }
+  }
+
+  @media print {
+    header, .sidebar, .to-top, .cb-copy, .sidebar-overlay, .backdrop { display: none !important; }
+    body { background: #fff; color: #111; }
+    .main { margin: 0; padding: 0; }
+    .doc { max-width: none; }
+    p, li, td { color: #222; }
+    h1, h2, h3, h4, strong { color: #000; }
+    .codeblock { border-color: #ccc; box-shadow: none; }
+    .cb-head { background: #f4f4f4; }
+    pre { background: #fafafa; color: #111; white-space: pre-wrap; }
+    a { color: #0645ad; }
+  }
+</style>
+</head>
+<body>
+<div class="backdrop"></div>
+
+<header>
+  <button class="menu-btn" id="menuBtn" aria-label="Toggle navigation" aria-expanded="false">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+  </button>
+  <a class="brand" href="index.html" aria-label="AzLang home">
+    <span class="mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.1v13.8c0 .8.9 1.3 1.6.9l10.3-6.9c.6-.4.6-1.3 0-1.7L9.6 4.2C8.9 3.8 8 4.3 8 5.1Z" fill="currentColor"/></svg></span>
+    <span class="brand-name">Az<span>Lang</span></span>
+    <span class="doc-tag">Docs 2.0</span>
+  </a>
+  <div class="header-links">
+    <a href="index.html">Home</a>
+    <a href="ide.html">Studio</a>
+    <a href="#examples">Examples</a>
+  </div>
+  <div class="search">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input id="docSearch" type="search" placeholder="Search the guide" aria-label="Search documentation" autocomplete="off">
+    <span class="slash">/</span>
+  </div>
+</header>
+
+<aside class="sidebar" id="sidebar" aria-label="Documentation navigation">
+  <div class="doc-nav" id="docNav">
+    <div class="nav-group">
+      <div class="nav-label">Getting started</div>
+      <a href="#intro">Introduction</a>
+      <a href="#install">Install &amp; run</a>
+      <a href="#first-program">Your first program</a>
+      <a href="#cli">Command line</a>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-label">The language</div>
+      <a href="#syntax">Syntax &amp; structure</a>
+      <a href="#variables">Variables &amp; constants</a>
+      <a href="#types">Values &amp; types</a>
+      <a href="#operators">Operators</a>
+      <a href="#strings">Strings</a>
+      <a href="#conditions">Conditions</a>
+      <a href="#loops">Loops</a>
+      <a href="#functions">Functions</a>
+      <a href="#lists">Lists</a>
+      <a href="#maps">Maps</a>
+      <a href="#classes">Classes</a>
+      <a href="#exceptions">Exceptions</a>
+      <a href="#matching">Pattern matching</a>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-label">Reference</div>
+      <a href="#builtins">Built-in functions</a>
+      <a href="#builtins-core">· Core</a>
+      <a href="#builtins-math">· Math</a>
+      <a href="#builtins-text">· Text</a>
+      <a href="#builtins-collections">· Lists &amp; maps</a>
+      <a href="#builtins-functional">· Functional</a>
+      <a href="#builtins-json">· JSON</a>
+      <a href="#errors">Errors &amp; debugging</a>
+      <a href="#embedding">Embedding AzLang</a>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-label">More</div>
+      <a href="#examples">Example programs</a>
+      <a href="#style">Style guide</a>
+      <a href="#faq">FAQ</a>
+      <a href="#changelog">Changelog</a>
+    </div>
+
+    <div class="no-results" id="noResults">No sections match your search.</div>
+  </div>
+</aside>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<main class="main">
+  <div class="doc">
+
+    <div class="doc-hero">
+      <span class="pill"><span class="dot"></span> AzLang 2.0 · Language reference</span>
+      <h1>Everything you need to<br><em>write real programs.</em></h1>
+      <p>
+        This guide starts from the first line of code and goes all the way to classes,
+        exceptions, pattern matching, and embedding the interpreter in your own tools.
+        Every feature in the language is covered here.
+      </p>
+      <div class="hero-meta">
+        <span class="meta-chip"><code>.az</code> source files</span>
+        <span class="meta-chip">Node.js 18+ · Browser</span>
+        <span class="meta-chip">Zero dependencies</span>
+        <span class="meta-chip">English diagnostics</span>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         INTRODUCTION
+         ============================================================ -->
+    <article class="doc-section" id="intro">
+      <h2>Introduction</h2>
+      <p>
+        AzLang is a small, dynamically typed programming language designed to make the
+        first steps in programming feel clear — while still teaching the ideas that
+        professional languages use every day. It reads like Python, but every block has
+        an explicit <code>end</code>, so structure is always visible.
+      </p>
+      <p>
+        Version 2.0 is a complete language: variables, collections, functions, closures,
+        classes and inheritance, exceptions, pattern matching, JSON, and more than seventy
+        built-in functions. The entire runtime is a single dependency-free JavaScript file
+        that runs in Node.js and in any modern browser.
+      </p>
+
+      <div class="cards">
+        <div class="card">
+          <h4>Designed for learners</h4>
+          <p>One keyword per concept. No braces, no semicolons required, no boilerplate. You can explain a whole program out loud.</p>
+        </div>
+        <div class="card">
+          <h4>Designed to grow</h4>
+          <p>Classes, inheritance, closures, lambdas, and pattern matching mean you never have to switch languages to learn more.</p>
+        </div>
+        <div class="card">
+          <h4>Designed to help</h4>
+          <p>Errors are written in plain English, with the exact line, a hint, and often a “did you mean?” suggestion.</p>
+        </div>
+        <div class="card">
+          <h4>Designed to be free</h4>
+          <p>No packages, no build step, no network access. A text editor and a browser are enough — or one <code>node</code> command.</p>
+        </div>
+      </div>
+
+      <h3>What's new in 2.0</h3>
+      <ul>
+        <li><strong>Classes and inheritance</strong> with <code>class</code>, <code>extends</code>, <code>new</code>, <code>this</code>, and <code>super</code>.</li>
+        <li><strong>Exceptions</strong> with <code>try</code>, <code>catch</code>, and <code>throw</code>.</li>
+        <li><strong>Pattern matching</strong> with <code>match</code>, <code>case</code>, <code>default</code>, and the <code>_</code> wildcard.</li>
+        <li><strong>Lambdas</strong>, default parameters, and destructuring loops.</li>
+        <li><strong>Raw strings</strong> and multi-line strings.</li>
+        <li><strong>JSON</strong>, sorting, higher-order helpers, and dozens of new built-ins.</li>
+        <li><strong>A new Studio IDE</strong> with examples, error highlighting, autosave, and file support.</li>
+        <li><strong>Full Unicode</strong>: Persian text, identifiers, and digits work naturally.</li>
+      </ul>
+
+      <div class="note tip">
+        <span class="note-title">Try it first</span>
+        <p>Open the <a href="ide.html">AzLang Studio</a>, press <kbd>Ctrl</kbd> + <kbd>Enter</kbd>, and come back when you want the details. The Studio needs no installation.</p>
+      </div>
+    </article>
+
+    <!-- ============================================================
+         INSTALL
+         ============================================================ -->
+    <article class="doc-section" id="install">
+      <h2>Install &amp; run</h2>
+      <p>
+        AzLang has no package manager, no compiler, and no configuration files. It is a
+        single JavaScript file, <code>azlang.js</code>, plus the HTML pages for the Studio
+        and this guide.
+      </p>
+
+      <h3>Requirements</h3>
+      <ul>
+        <li><strong>Browser:</strong> any modern browser (Chrome, Edge, Firefox, Safari).</li>
+        <li><strong>Command line:</strong> Node.js 18 or newer. No npm packages are used.</li>
+        <li><strong>Files:</strong> save source code as UTF-8. The extension is <code>.az</code>.</li>
+      </ul>
+
+      <h3>Three ways to run a program</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Way</th><th>How</th><th>Best for</th></tr></thead>
+          <tbody>
+            <tr><td>AzLang Studio</td><td>Open <code>ide.html</code>, write code, press <kbd>Ctrl</kbd> + <kbd>Enter</kbd></td><td>Learning, quick experiments, sharing a screen</td></tr>
+            <tr><td>Command line</td><td><code>node azlang.js examples/hello.az</code></td><td>Real files, scripts, automation</td></tr>
+            <tr><td>Interactive shell</td><td><code>node azlang.js</code></td><td>Trying one line at a time</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Project files</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>File</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><code>azlang.js</code></td><td>The complete language: lexer, parser, interpreter, built-ins, and CLI.</td></tr>
+            <tr><td><code>ide.html</code></td><td>AzLang Studio — the browser editor and runner.</td></tr>
+            <tr><td><code>index.html</code></td><td>The introduction site.</td></tr>
+            <tr><td><code>docs.html</code></td><td>This guide.</td></tr>
+            <tr><td><code>examples/</code></td><td>Eight ready-to-run programs.</td></tr>
+            <tr><td><code>tests.js</code></td><td>Test suite: <code>node tests.js</code>.</td></tr>
+            <tr><td><code>examples.js</code></td><td>Generated bundle used by the Studio.</td></tr>
+            <tr><td><code>build-examples.js</code></td><td>Regenerates <code>examples.js</code> from <code>examples/</code>.</td></tr>
+            <tr><td><code>server.js</code></td><td>Optional local web server: <code>node server.js</code>.</td></tr>
+            <tr><td><code>azlang.bat</code>, <code>IDE.bat</code></td><td>Windows shortcuts for the CLI and the Studio.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>
+        To preview the site and Studio over HTTP, run <code>node server.js</code> and open
+        <code>http://127.0.0.1:4173</code>. The pages also work when opened directly from
+        disk; everything is local.
+      </p>
+
+      <div class="note">
+        <span class="note-title">No internet required</span>
+        <p>There are no CDNs, web fonts, or external scripts. Once the files are on your computer, the whole project works offline.</p>
+      </div>
+    </article>
+
+    <!-- ============================================================
+         FIRST PROGRAM
+         ============================================================ -->
+    <article class="doc-section" id="first-program">
+      <h2>Your first program</h2>
+      <p>Create a file named <code>hello.az</code> with these lines:</p>
+
+      <pre class="az-code" data-file="hello.az"><code># My first AzLang program
+say "Hello, world!"
+
+let name = "Ada"
+say "Welcome, {name}!"</code></pre>
+
+      <p>Run it with <code>node azlang.js hello.az</code>, or paste it into the Studio. The output is:</p>
+
+      <pre class="az-code" data-file="output" data-lang="Output"><code>Hello, world!
+Welcome, Ada!</code></pre>
+
+      <p>Three ideas are already at work:</p>
+      <ul>
+        <li><code>say</code> prints a value and adds a new line.</li>
+        <li><code>let</code> creates a variable. Names are case-sensitive.</li>
+        <li>Inside a string, <code>{name}</code> inserts the current value of <code>name</code>. This is called <strong>interpolation</strong>.</li>
+        <li>Everything after <code>#</code> is a comment and is ignored.</li>
+      </ul>
+
+      <h3>A slightly bigger example</h3>
+      <pre class="az-code" data-file="guess.az"><code>let secret = 7
+let guess = 7
+
+if guess == secret
+  say "You found it!"
+elif guess &gt; secret
+  say "Too high."
+else
+  say "Too low."
+end</code></pre>
+
+      <p>
+        Blocks begin with a keyword such as <code>if</code> and end with <code>end</code>.
+        Indentation is not required by the language, but two spaces per level make the
+        structure easy to read — and the Studio indents automatically.
+      </p>
+    </article>
+
+    <!-- ============================================================
+         CLI
+         ============================================================ -->
+    <article class="doc-section" id="cli">
+      <h2>Command line</h2>
+      <p>The CLI is part of <code>azlang.js</code>. Its general form is:</p>
+
+      <pre class="az-code" data-file="terminal" data-lang="Shell"><code>node azlang.js &lt;file.az&gt;
+node azlang.js
+node azlang.js -e "say 6 * 7"
+node azlang.js --check &lt;file.az&gt;</code></pre>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Command</th><th>What it does</th></tr></thead>
+          <tbody>
+            <tr><td><code>node azlang.js file.az</code></td><td>Runs a program. Exit code is <code>0</code> on success and <code>1</code> on an error.</td></tr>
+            <tr><td><code>node azlang.js</code></td><td>Starts the interactive shell (REPL). Variables persist between lines.</td></tr>
+            <tr><td><code>node azlang.js -e "code"</code></td><td>Runs a snippet directly. Useful for one-liners.</td></tr>
+            <tr><td><code>node azlang.js --check file.az</code></td><td>Parses the file and reports syntax errors without running anything.</td></tr>
+            <tr><td><code>node azlang.js -h</code></td><td>Shows help.</td></tr>
+            <tr><td><code>node azlang.js -v</code></td><td>Prints the version.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>The interactive shell</h3>
+      <pre class="az-code" data-file="terminal" data-lang="Shell"><code>$ node azlang.js
+AzLang 2.0 - type .exit to quit
+az&gt; let x = 6 * 7
+az&gt; say x
+42
+az&gt; fun double(n)
+...   return n * 2
+... end
+az&gt; double(21)
+42
+az&gt; .exit</code></pre>
+
+      <p>
+        The shell keeps one session, so variables and functions survive from line to line.
+        When a block is open, the prompt changes to <code>...</code> until you type
+        <code>end</code>. Type <code>.exit</code> (or <code>exit</code>) to leave.
+      </p>
+
+      <h3>Checking syntax only</h3>
+      <pre class="az-code" data-file="terminal" data-lang="Shell"><code>$ node azlang.js --check examples/tour.az
+OK: examples/tour.az (52 top-level statements)</code></pre>
+
+      <p>
+        Set the environment variable <code>AZLANG_VERBOSE=1</code> to print timing and step
+        counts after a run. This is handy when comparing implementations of the same
+        algorithm.
+      </p>
+
+      <div class="note">
+        <span class="note-title">Reading input</span>
+        <p><code>input("Question: ")</code> reads one line from standard input. Programs can be piped: <code>echo 42 | node azlang.js examples/guessing-game.az</code>. At end of input, <code>input</code> returns an empty string.</p>
+      </div>
+
+      <h3>Windows shortcuts</h3>
+      <p>
+        <code>azlang.bat</code> accepts a dragged-and-dropped <code>.az</code> file and runs it.
+        <code>IDE.bat</code> opens the Studio in your default browser. Both are convenience
+        wrappers around the commands above, not separate tools.
+      </p>
+    </article>
+
+    <!-- ============================================================
+         SYNTAX
+         ============================================================ -->
+    <article class="doc-section" id="syntax">
+      <h2>Syntax &amp; structure</h2>
+      <p>
+        A program is a sequence of statements. Statements normally end at a new line; a
+        semicolon can separate two statements on one line. Blocks are opened by a keyword
+        and closed by <code>end</code>. Curly braces are used only for maps, never for
+        blocks.
+      </p>
+
+      <pre class="az-code" data-file="structure.az"><code>let a = 1; let b = 2
+say a + b
+
+if a &lt; b
+  say "a is smaller"
+end</code></pre>
+
+      <h3>Identifiers</h3>
+      <p>
+        A name may start with a letter (any Unicode letter) or an underscore, followed by
+        letters, digits (including Persian and Arabic-Indic digits), marks, or underscores.
+        Names are case-sensitive: <code>total</code>, <code>Total</code>, and <code>TOTAL</code>
+        are three different variables.
+      </p>
+
+      <pre class="az-code" data-file="names.az"><code>let user_name = "Ada"
+let maxScore = 100
+let شهر = "Tehran"        # Unicode identifiers are allowed
+let _private = true
+
+say user_name, maxScore
+say شهر</code></pre>
+
+      <h3>Keywords</h3>
+      <p>These words are reserved and cannot be used as variable names:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Category</th><th>Keywords</th></tr></thead>
+          <tbody>
+            <tr><td>Values</td><td><code>true</code> <code>false</code> <code>null</code></td></tr>
+            <tr><td>Variables</td><td><code>let</code> <code>const</code></td></tr>
+            <tr><td>Output</td><td><code>say</code></td></tr>
+            <tr><td>Conditions</td><td><code>if</code> <code>elif</code> <code>else</code> <code>end</code></td></tr>
+            <tr><td>Loops</td><td><code>while</code> <code>for</code> <code>in</code> <code>repeat</code> <code>break</code> <code>continue</code></td></tr>
+            <tr><td>Functions</td><td><code>fun</code> <code>return</code></td></tr>
+            <tr><td>Logic</td><td><code>and</code> <code>or</code> <code>not</code></td></tr>
+            <tr><td>Classes</td><td><code>class</code> <code>extends</code> <code>new</code> <code>this</code> <code>super</code></td></tr>
+            <tr><td>Errors</td><td><code>try</code> <code>catch</code> <code>throw</code></td></tr>
+            <tr><td>Matching</td><td><code>match</code> <code>case</code> <code>default</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Comments</h3>
+      <p>
+        A comment starts with <code>#</code> and runs to the end of the line. There are no
+        block comments; use one <code>#</code> line per comment line. Comments inside strings
+        are just text.
+      </p>
+
+      <pre class="az-code" data-file="comments.az"><code># This is a full-line comment
+let price = 20   # ...and this is a trailing comment
+say "The # symbol is plain text inside a string"</code></pre>
+
+      <h3>Blocks and indentation</h3>
+      <p>
+        Every block has an explicit closer. Indentation is free-form, but the Studio and all
+        examples use two spaces. You cannot use <code>end</code> as a variable, and every
+        opener needs exactly one <code>end</code> — the parser will tell you the line where
+        one is missing.
+      </p>
+
+      <pre class="az-code" data-file="blocks.az"><code>fun classify(n)
+  if n &lt; 0
+    return "negative"
+  elif n == 0
+    return "zero"
+  else
+    return "positive"
+  end
+end
+
+say classify(-5)
+say classify(0)
+say classify(5)</code></pre>
+
+      <h3>Statements at a glance</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Statement</th><th>Form</th></tr></thead>
+          <tbody>
+            <tr><td>Binding</td><td><code>let name = value</code> · <code>const NAME = value</code></td></tr>
+            <tr><td>Assignment</td><td><code>name = value</code> · <code>list[i] = value</code> · <code>obj.key = value</code></td></tr>
+            <tr><td>Output</td><td><code>say value, value, ...</code> · <code>say(value, ...)</code></td></tr>
+            <tr><td>Condition</td><td><code>if cond ... elif cond ... else ... end</code></td></tr>
+            <tr><td>Loops</td><td><code>while cond ... end</code> · <code>for x in items ... end</code> · <code>repeat n ... end</code></td></tr>
+            <tr><td>Function</td><td><code>fun name(params) ... end</code> · <code>return value</code></td></tr>
+            <tr><td>Class</td><td><code>class Name ... end</code> · <code>class Name extends Parent ... end</code></td></tr>
+            <tr><td>Errors</td><td><code>try ... catch err ... end</code> · <code>throw value</code></td></tr>
+            <tr><td>Matching</td><td><code>match value ... case x ... default ... end</code></td></tr>
+            <tr><td>Loop control</td><td><code>break</code> · <code>continue</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note">
+        <span class="note-title">Single-file programs</span>
+        <p>AzLang has no <code>import</code>, no modules, and no package system. A program is one file. This is deliberate: it keeps projects and the mental model small. Build reusable helpers as functions and classes in the same file.</p>
+      </div>
+    </article>
+
+    <!-- ============================================================
+         VARIABLES
+         ============================================================ -->
+    <article class="doc-section" id="variables">
+      <h2>Variables &amp; constants</h2>
+      <p>
+        Use <code>let</code> to create a variable and <code>const</code> to create a constant.
+        A variable must be created before it is read or assigned; there is no implicit global
+        variable creation.
+      </p>
+
+      <pre class="az-code" data-file="variables.az"><code>let count = 0
+count = count + 1
+count += 4
+say count
+
+const MAX_ITEMS = 100
+say MAX_ITEMS
+
+let name = "Ada"
+say "Hello, {name}"</code></pre>
+
+      <h3>Assignment is a statement</h3>
+      <p>
+        Unlike expressions, an assignment does not produce a value. You cannot write
+        <code>let a = let b = 1</code> or <code>if (x = 1)</code>. This avoids a whole family
+        of beginner mistakes. <code>=</code> assigns; <code>==</code> compares.
+      </p>
+
+      <h3>Compound assignment</h3>
+      <p>All of these read the current value, apply the operation, and store the result:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Operator</th><th>Equivalent to</th><th>Works with</th></tr></thead>
+          <tbody>
+            <tr><td><code>+=</code></td><td><code>x = x + value</code></td><td>numbers, strings, lists, maps</td></tr>
+            <tr><td><code>-=</code></td><td><code>x = x - value</code></td><td>numbers</td></tr>
+            <tr><td><code>*=</code></td><td><code>x = x * value</code></td><td>numbers, strings, lists</td></tr>
+            <tr><td><code>/=</code></td><td><code>x = x / value</code></td><td>numbers</td></tr>
+            <tr><td><code>//=</code></td><td><code>x = x // value</code></td><td>numbers</td></tr>
+            <tr><td><code>%=</code></td><td><code>x = x % value</code></td><td>numbers</td></tr>
+            <tr><td><code>**=</code></td><td><code>x = x ** value</code></td><td>numbers</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <pre class="az-code" data-file="compound.az"><code>let total = 10
+total += 5      # 15
+total *= 2      # 30
+total //= 4     # 7
+total **= 2     # 49
+say total
+
+let greeting = "Hello"
+greeting += ", world"
+say greeting
+
+let items = [1]
+items += [2, 3]
+say items</code></pre>
+
+      <h3>Constants</h3>
+      <p>
+        <code>const</code> creates a binding that cannot be reassigned. Reading it is normal;
+        assigning to it raises an error with a hint. Constants are still subject to the
+        language's normal value semantics: a constant list can have items appended, because
+        the binding is not changing, only the list's contents.
+      </p>
+
+      <pre class="az-code" data-file="constants.az"><code>const LIMIT = 10
+say LIMIT * 2
+
+# This is an error:
+# LIMIT = 20
+
+const colors = ["red"]
+append(colors, "blue")   # allowed: the list itself is mutated
+say colors</code></pre>
+
+      <h3>Scope</h3>
+      <p>
+        AzLang uses <strong>function scope</strong>, not block scope. An <code>if</code>,
+        <code>for</code>, <code>while</code>, <code>try</code>, or <code>match</code> block
+        does <em>not</em> create a new variable scope. A variable created inside a block
+        remains visible after the block.
+      </p>
+      <p>
+        Functions and methods create a fresh local scope, with the defining environment as
+        their parent. This is what makes closures work: an inner function can read and update
+        variables from the function that created it.
+      </p>
+
+      <pre class="az-code" data-file="scope.az"><code>if true
+  let message = "created inside if"
+end
+say message        # still visible: blocks do not create scopes
+
+fun make_counter()
+  let count = 0
+  fun next()
+    count += 1
+    return count
+  end
+  return next
+end
+
+let tick = make_counter()
+say tick(), tick(), tick()   # 1 2 3</code></pre>
+
+      <div class="note warn">
+        <span class="note-title">Declare before use</span>
+        <p>Reading a variable that does not exist is a runtime error, not <code>null</code>. Assigning to an undeclared name is also an error. This catches typos early; the message even suggests the closest existing name.</p>
+      </div>
+
+      <h3>Naming conventions</h3>
+      <ul>
+        <li><code>snake_case</code> for variables and functions: <code>user_name</code>, <code>total_price</code>.</li>
+        <li><code>UPPER_SNAKE_CASE</code> for constants: <code>MAX_ITEMS</code>.</li>
+        <li><code>PascalCase</code> for classes: <code>BankAccount</code>, <code>Shape</code>.</li>
+        <li>Boolean names read naturally: <code>is_ready</code>, <code>has_items</code>.</li>
+        <li>Persian and other Unicode names are allowed, but keep a project consistent.</li>
+      </ul>
+    </article>
+
+    <!-- ============================================================
+         TYPES
+         ============================================================ -->
+    <article class="doc-section" id="types">
+      <h2>Values &amp; types</h2>
+      <p>
+        AzLang is dynamically typed: a variable can hold any value, and the value knows its
+        own type. Use <code>type(value)</code> to get a lowercase type name as a string.
+      </p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Type</th><th>Literals / creation</th><th>Example</th></tr></thead>
+          <tbody>
+            <tr><td>number</td><td>digits, optional decimal point</td><td><code>42</code> · <code>3.14</code> · <code>۱۲۳</code></td></tr>
+            <tr><td>string</td><td><code>"..."</code>, <code>'...'</code>, <code>"""..."""</code>, raw strings</td><td><code>"hello"</code> · <code>r'{"a": 1}'</code></td></tr>
+            <tr><td>boolean</td><td><code>true</code>, <code>false</code></td><td><code>true</code></td></tr>
+            <tr><td>null</td><td><code>null</code></td><td><code>null</code></td></tr>
+            <tr><td>list</td><td><code>[item, item, ...]</code></td><td><code>[1, "two", true]</code></td></tr>
+            <tr><td>map</td><td><code>{key: value, ...}</code></td><td><code>{name: "Ada", age: 36}</code></td></tr>
+            <tr><td>function</td><td><code>fun</code> declarations and <code>=&gt;</code> lambdas</td><td><code>x =&gt; x * 2</code></td></tr>
+            <tr><td>class</td><td><code>class Name ... end</code></td><td><code>class Point</code></td></tr>
+            <tr><td>instance</td><td><code>new ClassName(...)</code></td><td><code>new Point(1, 2)</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <pre class="az-code" data-file="types.az"><code>say type(42)          # number
+say type("AzLang")    # string
+say type(true)        # boolean
+say type(null)        # null
+say type([1, 2])      # list
+say type({a: 1})      # map
+say type(x =&gt; x)      # function
+
+class Point
+end
+say type(Point)              # class
+say type(new Point())        # instance</code></pre>
+
+      <h3>Numbers</h3>
+      <p>
+        There is one numeric type. Integers and decimals are both JavaScript-style double
+        precision numbers, but display is polished: whole values print without a trailing
+        <code>.0</code>, and floating-point noise is rounded for display
+        (<code>0.1 + 0.2</code> prints <code>0.3</code>).
+      </p>
+      <ul>
+        <li>Persian (<code>۱۲۳</code>) and Arabic-Indic (<code>١٢٣</code>) digits are accepted anywhere a number literal is expected, including decimals.</li>
+        <li>Division by zero is an error, not <code>Infinity</code>. Modulo by zero is also an error.</li>
+        <li>Numbers can be converted with <code>num()</code>, <code>int()</code>, <code>str()</code>, and <code>bool()</code>.</li>
+        <li>There are no hexadecimal, binary, or exponent literals. Use <code>num("...")</code> only for plain decimal strings.</li>
+      </ul>
+
+      <h3>Truthiness</h3>
+      <p>Conditions do not require a boolean. These values count as <strong>false</strong>:</p>
+      <ul>
+        <li><code>false</code></li>
+        <li><code>null</code></li>
+        <li><code>0</code> (and any zero-valued number)</li>
+        <li><code>""</code> (an empty string)</li>
+        <li><code>[]</code> (an empty list)</li>
+        <li><code>{}</code> (an empty map)</li>
+      </ul>
+      <p>Everything else is true, including non-empty strings, non-empty collections, functions, classes, and instances.</p>
+
+      <pre class="az-code" data-file="truthiness.az"><code>say bool(0), bool(1), bool(""), bool("x")
+# false true false true
+
+say bool([]), bool([0]), bool({}), bool({a: 1})
+# false true false true
+
+if [] 
+  say "never printed"
+end</code></pre>
+
+      <h3>Equality</h3>
+      <p>
+        <code>==</code> and <code>!=</code> compare deeply for lists and maps, so
+        <code>[1, [2]] == [1, [2]]</code> is true. Numbers are compared by value. Strings are
+        compared exactly. Different types are never loosely equal: <code>1 == "1"</code> is
+        false. Instances compare by identity — two separately constructed objects are not
+        equal even if their fields match.
+      </p>
+
+      <h3>Display and representation</h3>
+      <p>
+        <code>say</code> prints strings without quotes. Other values are shown in a readable
+        representation: lists and maps use brackets and quotes, functions show as
+        <code>&lt;fun name&gt;</code>, classes as <code>&lt;class Name&gt;</code>, and instances
+        as <code>ClassName {field: value}</code>. Interpolation uses the same display rules,
+        so <code>"{name}"</code> prints the raw string but <code>"{list}"</code> prints the
+        bracketed form.
+      </p>
+
+      <pre class="az-code" data-file="display.az"><code>say "text"          # text
+say ["a", "b"]      # ["a", "b"]
+say {x: 1}          # {x: 1}
+
+class Point
+  fun init(x, y)
+    this.x = x
+    this.y = y
+  end
+end
+
+say new Point(2, 3)   # Point {x: 2, y: 3}</code></pre>
+    </article>
+
+    <!-- ============================================================
+         OPERATORS
+         ============================================================ -->
+    <article class="doc-section" id="operators">
+      <h2>Operators</h2>
+      <p>Operators are listed from lowest to highest precedence. When in doubt, add parentheses.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Precedence</th><th>Operators</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td>1 (lowest)</td><td><code>or</code></td><td>logical or, short-circuits</td></tr>
+            <tr><td>2</td><td><code>and</code></td><td>logical and, short-circuits</td></tr>
+            <tr><td>3</td><td><code>not</code></td><td>logical negation</td></tr>
+            <tr><td>4</td><td><code>==</code> <code>!=</code> <code>&lt;</code> <code>&lt;=</code> <code>&gt;</code> <code>&gt;=</code> <code>in</code></td><td>comparison and membership</td></tr>
+            <tr><td>5</td><td><code>+</code> <code>-</code></td><td>addition, subtraction, concatenation</td></tr>
+            <tr><td>6</td><td><code>*</code> <code>/</code> <code>//</code> <code>%</code></td><td>multiplication, division, floor division, remainder</td></tr>
+            <tr><td>7</td><td><code>-</code> <code>+</code> (unary)</td><td>negation and numeric identity</td></tr>
+            <tr><td>8</td><td><code>**</code></td><td>exponentiation, right-associative</td></tr>
+            <tr><td>9 (highest)</td><td><code>()</code> <code>[]</code> <code>.</code></td><td>call, index, property access</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Arithmetic</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Expression</th><th>Result</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td><code>7 + 2</code></td><td><code>9</code></td><td>numbers add</td></tr>
+            <tr><td><code>"a" + "b"</code></td><td><code>"ab"</code></td><td>if either side is a string, both are joined</td></tr>
+            <tr><td><code>"n=" + 5</code></td><td><code>"n=5"</code></td><td>numbers are converted automatically</td></tr>
+            <tr><td><code>[1] + [2, 3]</code></td><td><code>[1, 2, 3]</code></td><td>lists concatenate</td></tr>
+            <tr><td><code>{a: 1} + {b: 2}</code></td><td><code>{a: 1, b: 2}</code></td><td>maps merge; right side wins on duplicate keys</td></tr>
+            <tr><td><code>7 - 2</code></td><td><code>5</code></td><td>subtraction needs numbers</td></tr>
+            <tr><td><code>7 / 2</code></td><td><code>3.5</code></td><td>true division</td></tr>
+            <tr><td><code>7 // 2</code></td><td><code>3</code></td><td>floor division; <code>-7 // 2</code> is <code>-4</code></td></tr>
+            <tr><td><code>7 % 2</code></td><td><code>1</code></td><td>remainder; sign follows the divisor</td></tr>
+            <tr><td><code>2 ** 10</code></td><td><code>1024</code></td><td>exponentiation; <code>2 ** 3 ** 2</code> is <code>512</code></td></tr>
+            <tr><td><code>"ab" * 3</code></td><td><code>"ababab"</code></td><td>string repetition</td></tr>
+            <tr><td><code>[1, 2] * 2</code></td><td><code>[1, 2, 1, 2]</code></td><td>list repetition</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <pre class="az-code" data-file="arithmetic.az"><code>say 2 + 3 * 4        # 14
+say (2 + 3) * 4      # 20
+say 2 ** 3 ** 2      # 512
+say -2 ** 2          # -4  (the power happens first)
+say 10 / 3           # 3.333333333333
+say 10 // 3          # 3
+say -10 // 3         # -4
+say 10 % 3           # 1
+say -10 % 3          # 2
+say 0.1 + 0.2        # 0.3 (polished display)</code></pre>
+
+      <h3>Comparison</h3>
+      <p>
+        <code>==</code> and <code>!=</code> work with every type. Ordering comparisons
+        (<code>&lt;</code>, <code>&lt;=</code>, <code>&gt;</code>, <code>&gt;=</code>) require
+        two numbers or two strings; comparing a number with a string is an error.
+      </p>
+
+      <pre class="az-code" data-file="compare.az"><code>say 3 &gt; 2, 3 &gt;= 3, 2 != 5       # true true true
+say "apple" &lt; "banana"            # true
+say [1, 2] == [1, 2]              # true
+say {a: 1} == {a: 1}              # true
+say 1 == "1"                      # false</code></pre>
+
+      <h3>Logic</h3>
+      <p>
+        <code>and</code>, <code>or</code>, and <code>not</code> always return booleans, not
+        the original operands. They short-circuit: the right side is not evaluated when the
+        result is already known.
+      </p>
+
+      <pre class="az-code" data-file="logic.az"><code>say true and false        # false
+say true or false         # true
+say not true              # false
+
+let age = 20
+let has_ticket = true
+if age &gt;= 18 and has_ticket
+  say "Welcome"
+end
+
+# Short-circuit protects the division:
+if age != 0 and 100 / age &gt; 2
+  say "ok"
+end</code></pre>
+
+      <h3>Membership</h3>
+      <p>
+        <code>in</code> checks list items (deep equality), map keys, and substrings. Use
+        <code>not in</code> for the negated form. The right-hand side must be a list, map, or
+        string.
+      </p>
+
+      <pre class="az-code" data-file="membership.az"><code>say 2 in [1, 2, 3]             # true
+say "da" in "Ada"              # true
+say "name" in {name: "Ada"}    # true
+say 5 not in [1, 2]            # true</code></pre>
+
+      <h3>What is not here</h3>
+      <ul>
+        <li>No <code>++</code> or <code>--</code>; write <code>x += 1</code>.</li>
+        <li>No bitwise operators (<code>&amp;</code>, <code>|</code>, <code>^</code>, <code>&lt;&lt;</code>, <code>&gt;&gt;</code>).</li>
+        <li>No ternary <code>?:</code>; use <code>if</code>/<code>else</code> or a small function.</li>
+        <li>No assignment inside expressions, and no chained assignment (<code>a = b = 1</code>).</li>
+      </ul>
+    </article>
+
+    <!-- ============================================================
+         STRINGS
+         ============================================================ -->
+    <article class="doc-section" id="strings">
+      <h2>Strings</h2>
+      <p>
+        Strings use single or double quotes. They support interpolation, escapes, raw
+        literals, and triple-quoted multi-line form. All strings are Unicode: indexing and
+        <code>len</code> work on characters (code points), not on bytes.
+      </p>
+
+      <pre class="az-code" data-file="strings.az"><code>let first = 'single quotes'
+let second = "double quotes"
+say first, second
+
+let name = "Ada"
+say "Hello, " + name</code></pre>
+
+      <h3>Interpolation</h3>
+      <p>
+        Any expression inside <code>{ }</code> is evaluated and inserted. This includes
+        variables, arithmetic, function calls, property access, and nested strings.
+      </p>
+
+      <pre class="az-code" data-file="interpolation.az"><code>let name = "Ada"
+let scores = [90, 95, 100]
+
+say "Hello, {name}!"
+say "Total: {sum(scores)}"
+say "Average: {sum(scores) / len(scores)}"
+say "Upper: {upper(name)}"
+say "Quoted: {upper('abc')}"
+
+# A literal brace is written with a backslash:
+say "Use \{curly braces\} for interpolation"</code></pre>
+
+      <h3>Escape sequences</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Escape</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td><code>\n</code></td><td>new line</td></tr>
+            <tr><td><code>\t</code></td><td>tab</td></tr>
+            <tr><td><code>\r</code></td><td>carriage return</td></tr>
+            <tr><td><code>\0</code></td><td>null character</td></tr>
+            <tr><td><code>\\</code></td><td>backslash</td></tr>
+            <tr><td><code>\"</code></td><td>double quote</td></tr>
+            <tr><td><code>\'</code></td><td>single quote</td></tr>
+            <tr><td><code>\{</code> <code>\}</code></td><td>literal curly braces</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Raw strings</h3>
+      <p>
+        Prefix a string with <code>r</code> to disable escapes and interpolation. Raw strings
+        are perfect for JSON, file paths, and any text full of braces or backslashes. A raw
+        string ends at the first matching quote; it cannot contain that quote.
+      </p>
+
+      <pre class="az-code" data-file="raw.az"><code>let json_text = r'{"name": "Ada", "tags": [1, 2]}'
+let user = json_decode(json_text)
+say user.name
+
+let path = r"C:\Users\Ada\notes.az"
+say path
+
+say r"no {interpolation} and no \n here"</code></pre>
+
+      <div class="note warn">
+        <span class="note-title">JSON and braces</span>
+        <p>In a normal string, <code>{</code> begins interpolation. Always use a raw string for JSON text: <code>json_decode(r'{"a": 1}')</code>.</p>
+      </div>
+
+      <h3>Multi-line strings</h3>
+      <p>
+        Three quotes open a multi-line string. New lines are preserved, and normal
+        interpolation still works. The indentation you type is part of the string.
+      </p>
+
+      <pre class="az-code" data-file="multiline.az"><code>let name = "Ada"
+let letter = """
+Dear {name},
+
+Welcome to AzLang.
+"""
+
+say letter
+say len(letter)</code></pre>
+
+      <h3>Working with strings</h3>
+      <pre class="az-code" data-file="string-ops.az"><code>let s = "  Hello, AzLang  "
+
+say len(s)                 # 17
+say trim(s)                # "Hello, AzLang"
+say upper(trim(s))         # "HELLO, AZLANG"
+say lower(trim(s))         # "hello, azlang"
+say starts(trim(s), "He")  # true
+say ends(trim(s), "ng")    # true
+say find(s, "Az")          # 9
+say replace(s, "AzLang", "world")
+say split("a,b,c", ",")    # ["a", "b", "c"]
+say join(["a", "b"], "-")  # "a-b"
+say chars("Az")            # ["A", "z"]
+
+let word = "AzLang"
+say word[0], word[-1]      # A g
+say slice(word, 2, 5)      # Lan
+say word * 2               # AzLangAzLang</code></pre>
+
+      <p>
+        Strings are immutable: functions like <code>upper</code>, <code>replace</code>, and
+        <code>slice</code> return new strings. Indexing uses zero-based positions, and
+        negative indexes count from the end. There is no slice syntax like <code>[1:3]</code>;
+        use <code>slice(text, start, end)</code>.
+      </p>
+
+      <div class="note tip">
+        <span class="note-title">Numbers and text</span>
+        <p><code>str(x)</code> converts a value to its display string. <code>num(text)</code> parses a decimal string (Persian digits included) and errors on anything that is not a number. <code>int(text)</code> truncates toward zero.</p>
+      </div>
+    </article>
+
+    <!-- ============================================================
+         CONDITIONS
+         ============================================================ -->
+    <article class="doc-section" id="conditions">
+      <h2>Conditions</h2>
+      <p>
+        <code>if</code> runs a block when a condition is truthy. Add any number of
+        <code>elif</code> branches and an optional <code>else</code>. The whole chain closes
+        with one <code>end</code>.
+      </p>
+
+      <pre class="az-code" data-file="conditions.az"><code>let score = 87
+
+if score &gt;= 90
+  say "Excellent"
+elif score &gt;= 80
+  say "Very good"
+elif score &gt;= 70
+  say "Good"
+else
+  say "Keep practicing"
+end</code></pre>
+
+      <p>
+        Conditions are ordinary expressions. Parentheses are allowed but never required.
+        The condition is evaluated only until the result is known, thanks to short-circuit
+        logic.
+      </p>
+
+      <pre class="az-code" data-file="nested.az"><code>let age = 20
+let has_ticket = true
+
+if age &gt;= 18
+  if has_ticket
+    say "Enter"
+  else
+    say "Buy a ticket first"
+  end
+else
+  say "Adults only"
+end</code></pre>
+
+      <h3>Things to remember</h3>
+      <ul>
+        <li>Use <code>elif</code>, not <code>else if</code>. The parser gives a specific hint if you write <code>else if</code>.</li>
+        <li>Assignment is a statement, so <code>if x = 1</code> is not valid. Use <code>==</code> to compare.</li>
+        <li>An empty block is not allowed; put at least one statement (or a comment line) inside.</li>
+        <li>Only the first matching branch runs. There is no fall-through.</li>
+      </ul>
+
+      <h3>There is no <code>?:</code> operator</h3>
+      <p>
+        AzLang deliberately leaves out the ternary conditional. For a quick choice, use an
+        <code>if</code> block or a tiny function. The function form is often clearer anyway:
+      </p>
+
+      <pre class="az-code" data-file="either.az"><code>fun larger(a, b)
+  if a &gt;= b
+    return a
+  end
+  return b
+end
+
+say larger(10, 4)
+
+# Or, for a label:
+fun label(ok)
+  if ok
+    return "yes"
+  end
+  return "no"
+end
+say label(3 &gt; 2)</code></pre>
+    </article>
+
+    <!-- ============================================================
+         LOOPS
+         ============================================================ -->
+    <article class="doc-section" id="loops">
+      <h2>Loops</h2>
+      <p>AzLang has three loop forms: <code>while</code>, <code>for</code>, and <code>repeat</code>.</p>
+
+      <h3>while</h3>
+      <p>The condition is checked before every iteration. Use it when the number of repetitions is unknown.</p>
+
+      <pre class="az-code" data-file="while.az"><code>let count = 3
+
+while count &gt; 0
+  say count
+  count -= 1
+end
+
+say "Liftoff!"</code></pre>
+
+      <h3>for ... in</h3>
+      <p>
+        <code>for</code> walks over a list, a string, a map, or any list produced by helpers
+        such as <code>range</code>. The loop variable is defined in the current scope.
+      </p>
+
+      <pre class="az-code" data-file="for.az"><code># A list
+for fruit in ["apple", "banana", "cherry"]
+  say fruit
+end
+
+# A string, character by character (Unicode aware)
+for letter in "Az"
+  say letter
+end
+
+# A range: start is inclusive, stop is exclusive
+for n in range(1, 4)
+  say n
+end
+
+# A map yields its keys
+for key in {a: 1, b: 2}
+  say key
+end</code></pre>
+
+      <h3>Looping with two values</h3>
+      <p>
+        Name two variables to destructure pairs. This works with maps, <code>enumerate</code>,
+        and <code>zip</code>. A map produces <code>[key, value]</code> pairs directly.
+      </p>
+
+      <pre class="az-code" data-file="destructure.az"><code>let scores = {Ada: 95, Grace: 98}
+
+for name, score in scores
+  say "{name}: {score}"
+end
+
+for index, value in enumerate(["a", "b", "c"])
+  say "{index} = {value}"
+end
+
+for left, right in zip([1, 2, 3], ["one", "two", "three"])
+  say left, right
+end</code></pre>
+
+      <h3>repeat</h3>
+      <p>
+        <code>repeat</code> runs a block a fixed number of times. The count must be a
+        non-negative whole number. It is ideal for simple drills and animations.
+      </p>
+
+      <pre class="az-code" data-file="repeat.az"><code>repeat 3
+  say "Hello!"
+end</code></pre>
+
+      <h3>break and continue</h3>
+      <p>
+        <code>break</code> leaves the innermost loop immediately. <code>continue</code> skips
+        the rest of the current iteration and jumps to the next one. Both are only valid
+        inside a loop.
+      </p>
+
+      <pre class="az-code" data-file="search.az"><code>let numbers = [4, 9, 15, 22, 8]
+
+for n in numbers
+  if n % 2 == 0
+    continue        # skip even numbers
+  end
+  if n &gt; 20
+    break           # stop at the first number above 20
+  end
+  say n
+end</code></pre>
+
+      <h3>FizzBuzz</h3>
+      <p>The classic exercise, expressed with <code>elif</code>:</p>
+
+      <pre class="az-code" data-file="fizzbuzz.az"><code>for n in range(1, 16)
+  if n % 15 == 0
+    say "FizzBuzz"
+  elif n % 3 == 0
+    say "Fizz"
+  elif n % 5 == 0
+    say "Buzz"
+  else
+    say n
+  end
+end</code></pre>
+
+      <div class="note warn">
+        <span class="note-title">Infinite loops are caught</span>
+        <p>A program may execute at most five million interpreter steps by default. A runaway <code>while true</code> stops with a friendly message instead of freezing the browser. The Studio also guards long output.</p>
+      </div>
+
+      <div class="note">
+        <span class="note-title">Loop variables persist</span>
+        <p>Because blocks share the surrounding scope, the loop variable still exists after the loop and holds its last value. If you need a fresh variable, give it a different name or wrap the loop in a function.</p>
+      </div>
+    </article>
+
+    <!-- ============================================================
+         FUNCTIONS
+         ============================================================ -->
+    <article class="doc-section" id="functions">
+      <h2>Functions</h2>
+      <p>
+        Functions are declared with <code>fun</code>, a name, a parameter list, a body, and
+        <code>end</code>. Call them with parentheses. A function without an explicit
+        <code>return</code> returns <code>null</code>.
+      </p>
+
+      <pre class="az-code" data-file="functions.az"><code>fun greet(name)
+  return "Hello, " + name + "!"
+end
+
+say greet("Ada")
+
+fun show_twice(text)
+  say text
+  say text
+  # no return: result is null
+end
+
+let result = show_twice("hi")
+say result        # null</code></pre>
+
+      <h3>Parameters and defaults</h3>
+      <p>
+        Parameters may have default values. Defaults are evaluated at call time, in order,
+        so a later default can use an earlier parameter. Required parameters must come before
+        parameters with defaults.
+      </p>
+
+      <pre class="az-code" data-file="defaults.az"><code>fun power(base, exponent = 2)
+  return base ** exponent
+end
+
+say power(5)        # 25
+say power(2, 10)    # 1024
+
+fun repeat_text(text, times = 1, separator = " ")
+  let parts = []
+  repeat times
+    append(parts, text)
+  end
+  return join(parts, separator)
+end
+
+say repeat_text("ha")
+say repeat_text("ha", 3, "-")
+say repeat_text("ha", 2, "")</code></pre>
+
+      <p>
+        Passing too many arguments, or omitting one without a default, raises a runtime error
+        that names the function and the missing parameter.
+      </p>
+
+      <h3>Return values</h3>
+      <p>
+        <code>return</code> ends the function immediately. It can appear anywhere inside the
+        body, including inside loops and conditionals. Returning no value is the same as
+        returning <code>null</code>.
+      </p>
+
+      <pre class="az-code" data-file="returns.az"><code>fun first_even(numbers)
+  for n in numbers
+    if n % 2 == 0
+      return n
+    end
+  end
+  return null
+end
+
+say first_even([3, 7, 8, 9])   # 8
+say first_even([1, 3, 5])     # null</code></pre>
+
+      <h3>Recursion</h3>
+      <p>
+        A function can call itself. Recursion is limited to 256 nested calls; deeper recursion
+        raises an error instead of overflowing the stack. Always include a base case.
+      </p>
+
+      <pre class="az-code" data-file="recursion.az"><code>fun factorial(n)
+  if n &lt;= 1
+    return 1
+  end
+  return n * factorial(n - 1)
+end
+
+say factorial(6)    # 720
+
+fun fib(n)
+  if n &lt; 2
+    return n
+  end
+  return fib(n - 1) + fib(n - 2)
+end
+
+say fib(10)         # 55</code></pre>
+
+      <h3>First-class functions</h3>
+      <p>
+        Functions are values. You can store them in variables, pass them to other functions,
+        return them, and keep them in lists and maps. A function keeps a reference to the
+        environment where it was created; this is a <strong>closure</strong>.
+      </p>
+
+      <pre class="az-code" data-file="closures.az"><code>fun make_multiplier(factor)
+  fun multiply(value)
+    return value * factor
+  end
+  return multiply
+end
+
+let double = make_multiplier(2)
+let triple = make_multiplier(3)
+
+say double(10)      # 20
+say triple(10)      # 30
+
+fun apply_twice(fn, value)
+  return fn(fn(value))
+end
+
+say apply_twice(double, 3)   # 12</code></pre>
+
+      <h3>Arrow lambdas</h3>
+      <p>
+        For short operations, write <code>parameter =&gt; expression</code> or
+        <code>(a, b) =&gt; expression</code>. A lambda is a single expression whose value is
+        returned automatically; it has no block body. Lambdas capture their environment just
+        like named functions.
+      </p>
+
+      <pre class="az-code" data-file="lambdas.az"><code>let square = x =&gt; x * x
+let add = (a, b) =&gt; a + b
+
+say square(9)       # 81
+say add(2, 3)       # 5
+
+let numbers = [1, 2, 3, 4, 5, 6]
+say map(numbers, n =&gt; n * 10)
+say filter(numbers, n =&gt; n % 2 == 0)
+say reduce(numbers, (total, n) =&gt; total + n, 0)</code></pre>
+
+      <h3>Functions are small programs</h3>
+      <p>
+        Prefer many small, focused functions over one long one. A function that fits on a
+        screen is easy to name, test, and reuse. Build larger behavior by composing helpers
+        such as <code>map</code>, <code>filter</code>, and <code>reduce</code>.
+      </p>
+
+      <div class="note">
+        <span class="note-title">No overloading, no varargs</span>
+        <p>There is exactly one signature per function name; redefining a name replaces the old function. Extra arguments are not collected automatically. Keyword arguments are not supported — pass values by position, or use a map for named options.</p>
+      </div>
+    </article>
+
+    <!-- ============================================================
+         LISTS
+         ============================================================ -->
+    <article class="doc-section" id="lists">
+      <h2>Lists</h2>
+      <p>
+        A list is an ordered, mutable sequence written with square brackets. Lists can hold
+        any mix of values and can be nested.
+      </p>
+
+      <pre class="az-code" data-file="lists.az"><code>let fruits = ["apple", "banana", "cherry"]
+let mixed = [1, "two", true, null, [3, 4]]
+let empty = []
+
+say fruits
+say mixed
+say len(fruits)      # 3
+say fruits[0]        # apple
+say fruits[-1]       # cherry</code></pre>
+
+      <p>
+        Indexes start at zero. Negative indexes count from the end: <code>-1</code> is the
+        last item, <code>-2</code> the one before it. An out-of-range index is a runtime
+        error, never a silent <code>null</code>.
+      </p>
+
+      <h3>Reading and writing</h3>
+      <pre class="az-code" data-file="list-edit.az"><code>let scores = [10, 20, 30]
+
+scores[1] = 25
+say scores              # [10, 25, 30]
+
+scores[0] += 5
+say scores              # [15, 25, 30]
+
+let matrix = [[1, 2], [3, 4]]
+say matrix[1][0]        # 3
+matrix[1][0] = 9
+say matrix              # [[1, 2], [9, 4]]</code></pre>
+
+      <h3>Growing and shrinking</h3>
+      <p>
+        <code>append</code>, <code>prepend</code>, <code>insert</code>, <code>remove</code>,
+        <code>discard</code>, <code>pop</code>, <code>sort</code>, and <code>reverse</code>
+        mutate the list in place. <code>sorted</code>, <code>reversed</code>, and
+        <code>slice</code> return new lists.
+      </p>
+
+      <pre class="az-code" data-file="list-grow.az"><code>let items = [3, 1, 2]
+
+append(items, 4)         # add to the end
+prepend(items, 0)        # add to the front
+insert(items, 2, 99)     # insert before index 2
+say items                # [0, 3, 99, 1, 2, 4]
+
+let removed = pop(items)     # removes and returns the last item
+say removed, items           # 4 [0, 3, 99, 1, 2]
+
+sort(items)
+say items                    # [0, 1, 2, 3, 99]
+
+let descending = sorted(items, "desc")
+say descending               # [99, 3, 2, 1, 0]
+say items                    # unchanged</code></pre>
+
+      <h3>Copies and aliases</h3>
+      <p>
+        Assigning a list to another variable copies the reference, not the items. Both names
+        then point to the same list. Use <code>list(items)</code> or <code>slice(items)</code>
+        to make a shallow copy.
+      </p>
+
+      <pre class="az-code" data-file="aliases.az"><code>let a = [1, 2]
+let b = a
+append(b, 3)
+say a               # [1, 2, 3] — the same list
+
+let c = list(a)
+append(c, 4)
+say a               # [1, 2, 3]
+say c               # [1, 2, 3, 4]</code></pre>
+
+      <h3>Useful list operations</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Task</th><th>Code</th></tr></thead>
+          <tbody>
+            <tr><td>Length</td><td><code>len(items)</code></td></tr>
+            <tr><td>Membership</td><td><code>2 in [1, 2, 3]</code></td></tr>
+            <tr><td>Find an index</td><td><code>index_of(items, value)</code> (or <code>-1</code>)</td></tr>
+            <tr><td>Slice a range</td><td><code>slice(items, 1, 4)</code></td></tr>
+            <tr><td>Reverse a copy</td><td><code>reversed(items)</code></td></tr>
+            <tr><td>Remove duplicates</td><td><code>unique(items)</code></td></tr>
+            <tr><td>Flatten one level</td><td><code>flatten([[1], [2, 3]])</code> → <code>[1, 2, 3]</code></td></tr>
+            <tr><td>Combine</td><td><code>a + b</code> or <code>concat(a, b)</code></td></tr>
+            <tr><td>Transform</td><td><code>map(items, x =&gt; ...)</code></td></tr>
+            <tr><td>Keep some</td><td><code>filter(items, x =&gt; ...)</code></td></tr>
+            <tr><td>Combine into one value</td><td><code>reduce(items, (a, b) =&gt; ..., initial)</code></td></tr>
+            <tr><td>Sort by a key</td><td>Build pairs with <code>map</code>, then <code>sort</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <pre class="az-code" data-file="list-tools.az"><code>let numbers = [5, 3, 8, 1, 9, 2]
+
+say min(numbers)                 # 1
+say max(numbers)                 # 9
+say sum(numbers)                 # 28
+say avg(numbers)                 # 4.666666666667
+say sorted(numbers)              # [1, 2, 3, 5, 8, 9]
+say slice(numbers, 2, 5)         # [8, 1, 9]
+say index_of(numbers, 8)         # 2
+say unique([1, 2, 2, 3, 1])      # [1, 2, 3]
+
+let evens = filter(numbers, n =&gt; n % 2 == 0)
+let doubled = map(numbers, n =&gt; n * 2)
+say evens, doubled
+
+say any(numbers, n =&gt; n &gt; 8)     # true
+say all(numbers, n =&gt; n &gt; 0)     # true
+say find_item(numbers, n =&gt; n &gt; 4)   # 5
+say count(numbers, n =&gt; n &gt; 4)       # 3</code></pre>
+
+      <div class="note">
+        <span class="note-title">No list comprehensions</span>
+        <p>AzLang keeps the syntax small. The <code>map</code>, <code>filter</code>, and <code>reduce</code> helpers cover the same ground and read well with arrow lambdas.</p>
+      </div>
+    </article>
+
+    <!-- ============================================================
+         MAPS
+         ============================================================ -->
+    <article class="doc-section" id="maps">
+      <h2>Maps</h2>
+      <p>
+        A map stores values under keys. Keys are always strings internally: bare names,
+        quoted strings, and numbers in a literal are converted to strings. Maps keep
+        insertion order, which makes them predictable to print and loop over.
+      </p>
+
+      <pre class="az-code" data-file="maps.az"><code>let person = {
+  name: "Ada",
+  age: 36,
+  skills: ["math", "logic"]
+}
+
+say person.name              # Ada
+say person["age"]            # 36
+say person.skills[0]         # math
+say len(person)              # 3</code></pre>
+
+      <p>
+        Dot access is shorthand for string keys. Both <code>person.name</code> and
+        <code>person["name"]</code> read the same entry. Reading a missing key is an error;
+        use <code>get(map, key, default)</code> when a key may be absent.
+      </p>
+
+      <pre class="az-code" data-file="map-edit.az"><code>let scores = {Ada: 95}
+
+scores["Grace"] = 98         # add a new key
+scores.Ada = 96              # update an existing key
+say scores                   # {Ada: 96, Grace: 98}
+
+say get(scores, "Linus", 0)  # 0
+say has(scores, "Ada")       # true
+say "Grace" in scores        # true
+
+remove(scores, "Ada")
+say scores                   # {Grace: 98}</code></pre>
+
+      <div class="note warn">
+        <span class="note-title">Keys are strings</span>
+        <p><code>let ages = {1: "one"}</code> stores the key <code>"1"</code>. Read it with <code>ages["1"]</code> or <code>ages[1]</code>; both work, because bracket access converts the key to a string. Choose consistent key styles to avoid surprises.</p>
+      </div>
+
+      <h3>Iterating over maps</h3>
+      <p>
+        With one loop variable you get keys. With two, you get key/value pairs. The helpers
+        <code>keys</code>, <code>values</code>, and <code>items</code> produce lists when you
+        need to store or transform them.
+      </p>
+
+      <pre class="az-code" data-file="map-loop.az"><code>let ages = {Ada: 36, Grace: 40, Linus: 25}
+
+for name in ages
+  say name
+end
+
+for name, age in ages
+  say "{name} is {age}"
+end
+
+say keys(ages)      # ["Ada", "Grace", "Linus"]
+say values(ages)    # [36, 40, 25]
+say items(ages)     # [["Ada", 36], ["Grace", 40], ["Linus", 25]]</code></pre>
+
+      <h3>Merging and updating</h3>
+      <pre class="az-code" data-file="map-merge.az"><code>let defaults = {theme: "dark", font_size: 14}
+let custom = {font_size: 18, lang: "en"}
+
+let settings = defaults + custom
+say settings
+# {theme: "dark", font_size: 18, lang: "en"}
+
+let target = {a: 1}
+update(target, {b: 2, c: 3})
+say target        # {a: 1, b: 2, c: 3}
+
+set(target, "d", 4)
+say target.d      # 4</code></pre>
+
+      <h3>A small word counter</h3>
+      <p>
+        Maps are the natural choice for counting. Combine them with <code>split</code>,
+        <code>has</code>, and <code>items</code>:
+      </p>
+
+      <pre class="az-code" data-file="count.az"><code>let text = "the cat and the dog and the bird"
+let counts = {}
+
+for word in split(text)
+  if has(counts, word)
+    counts[word] += 1
+  else
+    counts[word] = 1
+  end
+end
+
+for word, n in counts
+  say "{word}: {n}"
+end</code></pre>
+
+      <p>
+        Maps are also the bridge to JSON: <code>json_encode</code> turns any map (including
+        nested lists and maps) into text, and <code>json_decode</code> turns text back into
+        maps and lists. See <a href="#builtins-json">JSON</a>.
+      </p>
+    </article>
+
+    <!-- ============================================================
+         CLASSES
+         ============================================================ -->
+    <article class="doc-section" id="classes">
+      <h2>Classes</h2>
+      <p>
+        Classes bundle data and behavior. A class body contains methods declared with
+        <code>fun</code>. Create an instance with <code>new</code>. Inside methods,
+        <code>this</code> refers to the instance.
+      </p>
+
+      <pre class="az-code" data-file="classes.az"><code>class Point
+  fun init(x, y)
+    this.x = x
+    this.y = y
+  end
+
+  fun length_squared()
+    return this.x ** 2 + this.y ** 2
+  end
+
+  fun describe()
+    return "({this.x}, {this.y})"
+  end
+end
+
+let p = new Point(3, 4)
+say p.x, p.y             # 3 4
+say p.length_squared()   # 25
+say p.describe()         # (3, 4)
+
+p.x = 6
+say p.describe()         # (6, 4)
+say type(p)              # instance
+say type(Point)          # class</code></pre>
+
+      <h3>How construction works</h3>
+      <ul>
+        <li><code>new Point(3, 4)</code> creates a fresh instance, then calls <code>init</code> with the arguments.</li>
+        <li><code>init</code> is optional. A class without it can only be created with no arguments.</li>
+        <li>Fields are not declared separately; assign <code>this.name = value</code> to create one.</li>
+        <li>Calling <code>Point(3, 4)</code> without <code>new</code> is an error with a hint.</li>
+        <li>Each instance has its own fields; methods are shared through the class.</li>
+      </ul>
+
+      <h3>Methods and state</h3>
+      <p>
+        Methods can read and change fields. A method may call other methods through
+        <code>this</code>. Returning <code>this</code> enables simple chaining.
+      </p>
+
+      <pre class="az-code" data-file="counter.az"><code>class Counter
+  fun init(start = 0)
+    this.value = start
+  end
+
+  fun bump(amount = 1)
+    this.value += amount
+    return this
+  end
+
+  fun get()
+    return this.value
+  end
+end
+
+let counter = new Counter()
+counter.bump().bump(5)
+say counter.get()      # 6</code></pre>
+
+      <h3>Inheritance</h3>
+      <p>
+        A class can extend one parent class with <code>extends</code>. It inherits every
+        method. Redefine a method to override it. Use <code>super(args)</code> to call the
+        parent constructor, and <code>super.method(args)</code> to call a parent method.
+      </p>
+
+      <pre class="az-code" data-file="inheritance.az"><code>class Animal
+  fun init(name)
+    this.name = name
+  end
+
+  fun speak()
+    return "{this.name} makes a sound"
+  end
+
+  fun introduce()
+    return "I am {this.name}"
+  end
+end
+
+class Dog extends Animal
+  fun init(name)
+    super(name)
+  end
+
+  fun speak()
+    return super.speak() + ": woof!"
+  end
+end
+
+class Puppy extends Dog
+  fun speak()
+    return super.speak() + " (small)"
+  end
+end
+
+let animals = [new Animal("Cat"), new Dog("Rex"), new Puppy("Pip")]
+
+for animal in animals
+  say animal.speak()
+  say animal.introduce()
+end</code></pre>
+
+      <p>
+        <code>Dog</code> inherits <code>introduce</code> from <code>Animal</code> and overrides
+        <code>speak</code>. <code>Puppy</code> extends <code>Dog</code>, so <code>super.speak()</code>
+        reaches <code>Dog</code>'s version, which itself calls <code>Animal</code>'s version.
+        This is ordinary dynamic dispatch: the method chosen depends on the instance.
+      </p>
+
+      <h3>Instances in practice</h3>
+      <pre class="az-code" data-file="bank.az"><code>class Account
+  fun init(owner, balance = 0)
+    this.owner = owner
+    this.balance = balance
+  end
+
+  fun deposit(amount)
+    if amount &lt;= 0
+      throw {message: "Deposit must be positive", code: "bad_amount"}
+    end
+    this.balance += amount
+    return this.balance
+  end
+
+  fun withdraw(amount)
+    if amount &gt; this.balance
+      throw {message: "Not enough funds", code: "no_funds"}
+    end
+    this.balance -= amount
+    return this.balance
+  end
+end
+
+let account = new Account("Ada", 100)
+account.deposit(50)
+say account.balance       # 150
+
+try
+  account.withdraw(500)
+catch problem
+  say problem.message     # Not enough funds
+  say problem.code        # no_funds
+end</code></pre>
+
+      <h3>What classes do not have</h3>
+      <ul>
+        <li>No static methods or class-level state.</li>
+        <li>No private or protected members; all fields are public.</li>
+        <li>No interfaces, mixins, or abstract classes.</li>
+        <li>No constructor overloading; one <code>init</code> per class.</li>
+        <li>No <code>toString</code> override: <code>say instance</code> uses the built-in representation.</li>
+      </ul>
+
+      <div class="note tip">
+        <span class="note-title">Composition over inheritance</span>
+        <p>Use inheritance when the “is a” relationship is real (a <code>Dog</code> is an <code>Animal</code>). Otherwise, give a class a field that holds another object. It is usually easier to change later.</p>
+      </div>
+    </article>
+
+    <!-- ============================================================
+         EXCEPTIONS
+         ============================================================ -->
+    <article class="doc-section" id="exceptions">
+      <h2>Exceptions</h2>
+      <p>
+        Errors are values in AzLang. Use <code>try</code> to protect a block, <code>catch</code>
+        to handle a failure, and <code>throw</code> to raise your own. This works for both
+        errors you create and runtime errors such as dividing by zero.
+      </p>
+
+      <pre class="az-code" data-file="try.az"><code>try
+  say 10 / 0
+catch problem
+  say "Something failed:"
+  say problem.message     # Cannot divide by zero
+  say problem.line        # the source line
+end</code></pre>
+
+      <p>
+        The catch variable is optional; the default name is <code>err</code>. Blocks close
+        with one <code>end</code> after the catch body.
+      </p>
+
+      <pre class="az-code" data-file="catch-default.az"><code>try
+  throw "custom failure"
+catch
+  say err
+end</code></pre>
+
+      <h3>What a caught error contains</h3>
+      <p>
+        A runtime error arrives as a map with four keys. Errors thrown with <code>throw</code>
+        keep whatever value you supplied, so you can throw a string, a number, a list, or a
+        map of your own.
+      </p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Field</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td><code>message</code></td><td>human-readable description</td></tr>
+            <tr><td><code>line</code></td><td>source line where the error happened</td></tr>
+            <tr><td><code>kind</code></td><td><code>"syntax"</code> or <code>"runtime"</code> (syntax errors cannot be caught)</td></tr>
+            <tr><td><code>hint</code></td><td>a suggestion, or <code>null</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <pre class="az-code" data-file="error-map.az"><code>try
+  let values = [1, 2]
+  say values[10]
+catch e
+  say e.kind        # runtime
+  say e.line        # 3
+  say e.message     # Index 10 is out of range (length is 2)
+  if e.hint != null
+    say e.hint
+  end
+end</code></pre>
+
+      <h3>Throwing your own errors</h3>
+      <p>
+        The most useful pattern is a map with a <code>message</code> and an optional machine-readable
+        <code>code</code>. Add any extra fields you need, such as the invalid value.
+      </p>
+
+      <pre class="az-code" data-file="throw.az"><code>fun parse_positive(text)
+  let value = num(text)
+  if value &lt;= 0
+    throw {
+      message: "Expected a positive number",
+      code: "not_positive",
+      value: value
+    }
+  end
+  return value
+end
+
+try
+  say parse_positive("0")
+catch e
+  say e.message          # Expected a positive number
+  say e.code             # not_positive
+  say e.value            # 0
+end</code></pre>
+
+      <h3>Re-throwing</h3>
+      <p>
+        A catch block can inspect an error and throw it again (or wrap it in a new one) when
+        it cannot handle the problem:
+      </p>
+
+      <pre class="az-code" data-file="rethrow.az"><code>try
+  try
+    throw {message: "disk full", code: 507}
+  catch e
+    say "Logging: {e.message}"
+    throw e
+  end
+catch outer
+  say "Top level handled: {outer.code}"
+end</code></pre>
+
+      <h3>assert and fail</h3>
+      <p>
+        <code>assert(condition, message)</code> throws when the condition is false.
+        <code>fail(message)</code> always throws. Both are useful while learning and while
+        writing tests; they create ordinary catchable errors.
+      </p>
+
+      <pre class="az-code" data-file="assert.az"><code>fun average(numbers)
+  assert(len(numbers) &gt; 0, "average needs at least one number")
+  return sum(numbers) / len(numbers)
+end
+
+say average([2, 4, 6])
+
+try
+  average([])
+catch e
+  say e.message     # average needs at least one number
+end
+
+# fail("unreachable")</code></pre>
+
+      <div class="note">
+        <span class="note-title">No finally block</span>
+        <p>There is no <code>finally</code>. Put cleanup statements after the <code>try</code>/<code>catch</code> block; they run whether or not an error was handled, as long as control reaches them.</p>
+      </div>
+
+      <div class="note warn">
+        <span class="note-title">Catch what you can handle</span>
+        <p>Avoid wrapping entire programs in a catch that only prints “something went wrong”. Catch close to the operation that can fail, handle the specific case, and let unexpected errors surface with their line number and hint.</p>
+      </div>
+    </article>
+
+    <!-- ============================================================
+         MATCHING
+         ============================================================ -->
+    <article class="doc-section" id="matching">
+      <h2>Pattern matching</h2>
+      <p>
+        <code>match</code> compares one value against several possibilities. Each
+        <code>case</code> can list one or more values; the first match runs and the rest are
+        skipped. An optional <code>default</code> handles everything else. The block closes
+        with <code>end</code>.
+      </p>
+
+      <pre class="az-code" data-file="match.az"><code>let status = 404
+
+match status
+  case 200, 201, 204
+    say "success"
+  case 301, 302, 307
+    say "redirect"
+  case 400, 401, 403, 404
+    say "client error"
+  case 500, 502, 503
+    say "server error"
+  default
+    say "unknown status"
+end</code></pre>
+
+      <p>
+        Values are compared with the same deep equality used by <code>==</code>, so lists and
+        maps can be matched too. The wildcard <code>_</code> matches anything; it is the same
+        idea as <code>default</code> but can sit among the cases.
+      </p>
+
+      <pre class="az-code" data-file="match-values.az"><code>fun describe(value)
+  match value
+    case 0
+      return "zero"
+    case 1, 2, 3
+      return "a small number"
+    case [1, 2]
+      return "the list [1, 2]"
+    case {kind: "user"}
+      return "a user map"
+    case _
+      return "something else"
+  end
+end
+
+say describe(0)
+say describe(2)
+say describe([1, 2])
+say describe({kind: "user"})
+say describe("text")</code></pre>
+
+      <h3>Dispatch on type</h3>
+      <p>
+        Matching on <code>type(value)</code> is a clean alternative to long
+        <code>if type(x) == ...</code> chains:
+      </p>
+
+      <pre class="az-code" data-file="type-match.az"><code>fun render(value)
+  match type(value)
+    case "number"
+      return "number: {value}"
+    case "string"
+      return "text of length {len(value)}"
+    case "list"
+      return "list of {len(value)} items"
+    case "map"
+      return "map with keys {keys(value)}"
+    default
+      return "another kind of value"
+  end
+end
+
+say render(42)
+say render("hello")
+say render([1, 2, 3])
+say render({a: 1})</code></pre>
+
+      <h3>How match behaves</h3>
+      <ul>
+        <li>The subject expression is evaluated once.</li>
+        <li>Case expressions are evaluated in order, from top to bottom, until one matches.</li>
+        <li>A case may contain several values separated by commas.</li>
+        <li>Only the first matching case runs. There is no fall-through.</li>
+        <li><code>default</code> runs only if nothing matched. <code>case _</code> is a wildcard that can appear anywhere.</li>
+        <li><code>match</code> is a statement. To produce a value, return from a function inside each case.</li>
+      </ul>
+
+      <div class="note">
+        <span class="note-title">No binding patterns</span>
+        <p>Cases compare against values; they do not destructure or bind variables. Use ordinary <code>if</code> checks for conditions and <code>for</code> destructuring for pairs.</p>
+      </div>
+    </article>
+
+    <!-- ============================================================
+         BUILTINS
+         ============================================================ -->
+    <article class="doc-section" id="builtins">
+      <h2>Built-in functions</h2>
+      <p>
+        AzLang ships with more than seventy built-ins for everyday work. They are ordinary
+        functions: call them with arguments in parentheses. Built-ins are defined as
+        read-only names; shadowing one with your own variable is possible but not
+        recommended.
+      </p>
+
+      <p>
+        Unless stated otherwise, functions do not mutate their arguments. The notable
+        mutators are <code>append</code>, <code>prepend</code>, <code>insert</code>,
+        <code>remove</code>, <code>discard</code>, <code>pop</code>, <code>sort</code>,
+        <code>reverse</code>, <code>set</code>, and <code>update</code>.
+      </p>
+
+      <h3 id="builtins-core">Core</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Function</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>len(value)</code></td><td>Length of a string (in characters), list, or map.</td></tr>
+            <tr><td><code>type(value)</code></td><td>Type name as a string: <code>"number"</code>, <code>"string"</code>, <code>"boolean"</code>, <code>"null"</code>, <code>"list"</code>, <code>"map"</code>, <code>"function"</code>, <code>"class"</code>, or <code>"instance"</code>.</td></tr>
+            <tr><td><code>str(value)</code></td><td>Human-readable string. Strings stay unchanged; other values use their display form.</td></tr>
+            <tr><td><code>num(value)</code></td><td>Converts a number, boolean, or decimal string to a number. Accepts Persian digits. Throws if the text is not numeric.</td></tr>
+            <tr><td><code>int(value)</code></td><td>Like <code>num</code>, but truncates toward zero and always returns a whole number.</td></tr>
+            <tr><td><code>bool(value)</code></td><td>Truthiness of any value (see <a href="#types">Values &amp; types</a>).</td></tr>
+            <tr><td><code>assert(condition, message?)</code></td><td>Returns <code>true</code>; throws an error when the condition is false. The message is optional.</td></tr>
+            <tr><td><code>fail(message?)</code></td><td>Always throws. Useful for unreachable branches and tests.</td></tr>
+            <tr><td><code>clock()</code></td><td>Current time in milliseconds since the Unix epoch. Use two calls to measure elapsed time.</td></tr>
+            <tr><td><code>input(prompt?)</code></td><td>Reads one line. Shows the prompt when supported. Returns an empty string at end of input.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <pre class="az-code" data-file="core.az"><code>say len("AzLang")        # 6
+say type(3.14)           # number
+say str(42)              # "42"
+say num("۱۲۳")           # 123
+say int("7.9")           # 7
+say bool([])             # false
+
+let started = clock()
+# ... work ...
+say "Elapsed: {clock() - started} ms"
+
+let name = input("Your name: ")
+say "Hello, {name}"</code></pre>
+
+      <h3 id="builtins-math">Math</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Function</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>abs(x)</code></td><td>Absolute value.</td></tr>
+            <tr><td><code>floor(x)</code></td><td>Largest whole number less than or equal to <code>x</code>.</td></tr>
+            <tr><td><code>ceil(x)</code></td><td>Smallest whole number greater than or equal to <code>x</code>.</td></tr>
+            <tr><td><code>round(x, places?)</code></td><td>Rounds to the nearest whole number, or to <code>places</code> decimals (0–12).</td></tr>
+            <tr><td><code>sqrt(x)</code></td><td>Square root. Negative input is an error.</td></tr>
+            <tr><td><code>pow(a, b)</code></td><td><code>a</code> raised to <code>b</code>. Same as <code>a ** b</code>.</td></tr>
+            <tr><td><code>log(x, base?)</code></td><td>Logarithm. Default base is <code>E</code>. <code>x</code> must be positive.</td></tr>
+            <tr><td><code>min(values...)</code></td><td>Smallest argument, or smallest item when given one list.</td></tr>
+            <tr><td><code>max(values...)</code></td><td>Largest argument, or largest item when given one list.</td></tr>
+            <tr><td><code>sum(list)</code></td><td>Sum of a list of numbers.</td></tr>
+            <tr><td><code>avg(list)</code></td><td>Arithmetic mean of a non-empty list of numbers.</td></tr>
+            <tr><td><code>clamp(x, low, high)</code></td><td>Keeps <code>x</code> inside the inclusive range.</td></tr>
+            <tr><td><code>random(a, b)</code></td><td>Random whole number from <code>a</code> to <code>b</code>, both inclusive.</td></tr>
+            <tr><td><code>random_float()</code></td><td>Random decimal from 0 up to (but not including) 1.</td></tr>
+            <tr><td><code>choice(list)</code></td><td>Random item from a non-empty list.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <pre class="az-code" data-file="math.az"><code>say abs(-7)              # 7
+say floor(2.9), ceil(2.1) # 2 3
+say round(3.14159, 2)    # 3.14
+say sqrt(81)             # 9
+say pow(2, 8)            # 256
+say log(100, 10)         # 2
+
+say min([4, 1, 9])       # 1
+say max(3, 7, 5)         # 7
+say sum([1, 2, 3])       # 6
+say avg([2, 4, 6])       # 4
+say clamp(15, 0, 10)     # 10
+
+let die = random(1, 6)
+say "You rolled {die}"
+say choice(["rock", "paper", "scissors"])
+
+say PI, E, TAU</code></pre>
+
+      <p>The constants <code>PI</code>, <code>E</code>, and <code>TAU</code> (2π) are always available.</p>
+
+      <h3 id="builtins-text">Text</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Function</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>upper(s)</code></td><td>Uppercase copy.</td></tr>
+            <tr><td><code>lower(s)</code></td><td>Lowercase copy.</td></tr>
+            <tr><td><code>trim(s)</code></td><td>Removes whitespace from both ends.</td></tr>
+            <tr><td><code>starts(s, prefix)</code></td><td><code>true</code> if <code>s</code> starts with <code>prefix</code>.</td></tr>
+            <tr><td><code>ends(s, suffix)</code></td><td><code>true</code> if <code>s</code> ends with <code>suffix</code>.</td></tr>
+            <tr><td><code>find(s, part)</code></td><td>Index of the first occurrence, or <code>-1</code>.</td></tr>
+            <tr><td><code>replace(s, old, new)</code></td><td>Replaces every occurrence. Searching for an empty string is an error.</td></tr>
+            <tr><td><code>split(s, separator?)</code></td><td>Splits on a separator. With no separator, splits on whitespace and drops empty pieces.</td></tr>
+            <tr><td><code>join(list, separator?)</code></td><td>Joins displayed items into a string. Separator defaults to an empty string.</td></tr>
+            <tr><td><code>chars(s)</code></td><td>List of characters (code points).</td></tr>
+            <tr><td><code>char_code(s)</code></td><td>Unicode code point of a single-character string.</td></tr>
+            <tr><td><code>from_char(code)</code></td><td>Character for a Unicode code point.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <pre class="az-code" data-file="text.az"><code>let line = "  Hello, AzLang  "
+
+say trim(line)
+say upper(trim(line))
+say starts(trim(line), "Hello")
+say find(line, "AzLang")          # 9
+say replace(line, "AzLang", "world")
+
+let csv = "red,green,blue"
+let colors = split(csv, ",")
+say colors                        # ["red", "green", "blue"]
+say join(colors, " | ")
+
+say chars("آز")                   # ["آ", "ز"]
+say char_code("A")                # 65
+say from_char(66)                 # B</code></pre>
+
+      <h3 id="builtins-collections">Lists &amp; maps</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Function</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>append(list, item)</code></td><td>Adds to the end. Returns the same list.</td></tr>
+            <tr><td><code>prepend(list, item)</code></td><td>Adds to the front. Returns the same list.</td></tr>
+            <tr><td><code>insert(list, index, item)</code></td><td>Inserts before <code>index</code>. Clamps the index to the valid range.</td></tr>
+            <tr><td><code>remove(collection, key)</code></td><td>For a list: removes and returns the item at the index. For a map: removes the key and returns its value.</td></tr>
+            <tr><td><code>discard(list, value)</code></td><td>Removes the first item equal to <code>value</code>. Does nothing if absent. Returns the list.</td></tr>
+            <tr><td><code>pop(list, index?)</code></td><td>Removes and returns an item. Default index is <code>-1</code> (the last item).</td></tr>
+            <tr><td><code>sort(list, direction?)</code></td><td>Sorts in place. Direction is <code>"asc"</code> (default) or <code>"desc"</code>. Numbers and strings only, not mixed.</td></tr>
+            <tr><td><code>sorted(list, direction?)</code></td><td>Returns a sorted copy.</td></tr>
+            <tr><td><code>reverse(list)</code></td><td>Reverses in place. Returns the list.</td></tr>
+            <tr><td><code>reversed(list)</code></td><td>Returns a reversed copy.</td></tr>
+            <tr><td><code>slice(sequence, start?, end?)</code></td><td>Sub-list or substring. Negative bounds count from the end; end is exclusive.</td></tr>
+            <tr><td><code>concat(a, b)</code></td><td>Concatenates two lists or two strings.</td></tr>
+            <tr><td><code>unique(list)</code></td><td>New list with duplicates removed, keeping the first occurrence.</td></tr>
+            <tr><td><code>flatten(list)</code></td><td>Flattens one level of nested lists.</td></tr>
+            <tr><td><code>index_of(sequence, value)</code></td><td>Index of the first equal item, or <code>-1</code>. Works on lists and strings.</td></tr>
+            <tr><td><code>has(container, value)</code></td><td>Same test as <code>value in container</code>.</td></tr>
+            <tr><td><code>list(value)</code></td><td>Converts a list (shallow copy), string, or map (keys) into a list.</td></tr>
+            <tr><td><code>range(stop)</code></td><td>List of numbers from 0 up to <code>stop</code>, exclusive.</td></tr>
+            <tr><td><code>range(start, stop)</code></td><td>From <code>start</code> up to <code>stop</code>, exclusive.</td></tr>
+            <tr><td><code>range(start, stop, step)</code></td><td>With a step. Step may be negative. Step zero is an error.</td></tr>
+            <tr><td><code>enumerate(list)</code></td><td>List of <code>[index, item]</code> pairs.</td></tr>
+            <tr><td><code>zip(list, list, ...)</code></td><td>List of groups, stopping at the shortest input.</td></tr>
+            <tr><td><code>keys(map)</code></td><td>List of keys in insertion order.</td></tr>
+            <tr><td><code>values(map)</code></td><td>List of values in insertion order.</td></tr>
+            <tr><td><code>items(map)</code></td><td>List of <code>[key, value]</code> pairs.</td></tr>
+            <tr><td><code>get(map, key, default?)</code></td><td>Value for a key, or the default (or <code>null</code>) when missing.</td></tr>
+            <tr><td><code>set(map, key, value)</code></td><td>Sets a key and returns the map.</td></tr>
+            <tr><td><code>update(map, other)</code></td><td>Copies all keys from <code>other</code> into <code>map</code> and returns it.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <pre class="az-code" data-file="collections.az"><code>let stack = []
+append(stack, "a")
+append(stack, "b")
+say pop(stack)               # b
+
+let queue = [1, 2, 3]
+prepend(queue, 0)
+say queue                    # [0, 1, 2, 3]
+say pop(queue, 0)            # 0
+
+say range(5)                 # [0, 1, 2, 3, 4]
+say range(2, 8, 2)           # [2, 4, 6]
+say range(3, 0, -1)          # [3, 2, 1]
+
+say enumerate(["x", "y"])    # [[0, "x"], [1, "y"]]
+say zip([1, 2], ["a", "b"])  # [[1, "a"], [2, "b"]]
+
+let settings = {theme: "dark"}
+set(settings, "lang", "en")
+update(settings, {font_size: 14})
+say get(settings, "missing", "fallback")</code></pre>
+
+      <h3 id="builtins-functional">Functional helpers</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Function</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>map(list, fn)</code></td><td>New list with <code>fn(item)</code> for every item.</td></tr>
+            <tr><td><code>each(list, fn)</code></td><td>Calls <code>fn(item)</code> for its side effects. Returns <code>null</code>.</td></tr>
+            <tr><td><code>filter(list, fn)</code></td><td>New list of items for which <code>fn(item)</code> is truthy.</td></tr>
+            <tr><td><code>reduce(list, fn, initial?)</code></td><td>Combines items left to right with <code>fn(accumulator, item)</code>. Without an initial value, the first item is the accumulator.</td></tr>
+            <tr><td><code>find_item(list, test)</code></td><td>First item that satisfies a predicate function, or equals a value. Returns <code>null</code> if none.</td></tr>
+            <tr><td><code>count(list, test)</code></td><td>Number of items that satisfy a predicate or equal a value.</td></tr>
+            <tr><td><code>any(list, fn?)</code></td><td><code>true</code> if at least one item is truthy (or passes the predicate).</td></tr>
+            <tr><td><code>all(list, fn?)</code></td><td><code>true</code> if every item is truthy (or passes the predicate).</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <pre class="az-code" data-file="functional.az"><code>let numbers = range(1, 11)
+
+say map(numbers, n =&gt; n * n)
+say filter(numbers, n =&gt; n % 2 == 0)
+say reduce(numbers, (total, n) =&gt; total + n, 0)
+
+let seen = []
+each(["a", "b"], item =&gt; append(seen, item))
+say seen                                # ["a", "b"]
+
+say find_item(numbers, n =&gt; n &gt; 7)    # 8
+say find_item(["x", "y"], "y")         # y
+say count(numbers, n =&gt; n % 2 == 0)    # 5
+say any(numbers, n =&gt; n &gt; 9)           # true
+say all(numbers, n =&gt; n &gt; 0)           # true</code></pre>
+
+      <h3 id="builtins-json">JSON</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Function</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>json_encode(value, pretty?)</code></td><td>Converts lists, maps, strings, numbers, booleans, and instances into JSON text. Pass <code>true</code> for two-space indentation. Alias: <code>to_json</code>.</td></tr>
+            <tr><td><code>json_decode(text)</code></td><td>Parses JSON text into maps, lists, and primitive values. Invalid JSON is an error. Alias: <code>from_json</code>.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <pre class="az-code" data-file="json.az"><code>let user = {
+  name: "Ada",
+  age: 36,
+  tags: ["math", "logic"],
+  active: true
+}
+
+let text = json_encode(user)
+say text
+say json_decode(text).name
+
+let pretty = json_encode(user, true)
+say pretty
+
+let raw = json_decode(r'{"items": [1, 2, 3], "ok": true}')
+say raw.items[1], raw.ok</code></pre>
+
+      <p>
+        Encoding an instance uses its public fields. Functions, classes, and unsupported
+        values cause an encoding error. Decoding always produces maps and lists — never class
+        instances.
+      </p>
+
+      <div class="note warn">
+        <span class="note-title">Remember raw strings</span>
+        <p>JSON text contains braces, which mean interpolation in normal strings. Write <code>json_decode(r'{"a": 1}')</code>, not <code>json_decode('{"a": 1}')</code>.</p>
+      </div>
+    </article>
+
+    <!-- ============================================================
+         ERRORS
+         ============================================================ -->
+    <article class="doc-section" id="errors">
+      <h2>Errors &amp; debugging</h2>
+      <p>
+        AzLang reports two kinds of problems. <strong>Syntax errors</strong> are found before
+        the program starts; the program does not run at all. <strong>Runtime errors</strong>
+        happen while executing and can be caught with <code>try</code> / <code>catch</code>.
+      </p>
+
+      <pre class="az-code" data-file="terminal" data-lang="Shell"><code>$ node azlang.js broken.az
+
+error on line 6: Cannot divide by zero
+  hint: Check that the divisor is not zero before dividing.
+  6 | say total / count</code></pre>
+
+      <p>Every runtime error carries four useful pieces of information:</p>
+      <ul>
+        <li>a plain-English <strong>message</strong>,</li>
+        <li>the exact <strong>line number</strong>,</li>
+        <li>a <strong>hint</strong> when a specific fix is likely,</li>
+        <li>a <strong>kind</strong> (<code>"syntax"</code> or <code>"runtime"</code>).</li>
+      </ul>
+
+      <h3>Common errors and their fixes</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Message (short)</th><th>Usually means</th><th>Fix</th></tr></thead>
+          <tbody>
+            <tr><td>Variable "x" is not defined</td><td>The name was never declared, or is misspelled</td><td>Add <code>let x = ...</code>; check the “did you mean?” hint</td></tr>
+            <tr><td>Cannot assign to constant "X"</td><td>Assigning to a <code>const</code></td><td>Use <code>let</code>, or create a new name</td></tr>
+            <tr><td>Cannot divide by zero</td><td>The divisor is <code>0</code></td><td>Check the value before dividing</td></tr>
+            <tr><td>Index N is out of range</td><td>The list or string is shorter</td><td>Check <code>len()</code> first</td></tr>
+            <tr><td>Key "k" is not in this map</td><td>The key does not exist</td><td>Use <code>has()</code> or <code>get(map, key, default)</code></td></tr>
+            <tr><td>Function "f" is missing argument "a"</td><td>Too few arguments</td><td>Pass the value, or give the parameter a default</td></tr>
+            <tr><td>Function "f" takes at most N arguments</td><td>Too many arguments</td><td>Remove extras or read the map inside the function</td></tr>
+            <tr><td>Every if block needs a closing "end"</td><td>A block is not closed</td><td>Add <code>end</code> at the right indentation</td></tr>
+            <tr><td>"else if" is not valid</td><td>Python-style else-if</td><td>Use <code>elif</code></td></tr>
+            <tr><td>"print" is not an AzLang keyword</td><td>Python habit</td><td>Use <code>say</code></td></tr>
+            <tr><td>Cannot compare number with string</td><td>Ordering values of different types</td><td>Convert with <code>num()</code> or <code>str()</code> first</td></tr>
+            <tr><td>Cannot call class "A" directly</td><td>Missing <code>new</code></td><td>Write <code>new A(...)</code></td></tr>
+            <tr><td>Too many nested function calls</td><td>Recursion without a base case</td><td>Add a base case; check the loop condition</td></tr>
+            <tr><td>Execution stopped: the program ran for too long</td><td>Infinite loop</td><td>Fix the loop condition; did you update the counter?</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Debugging checklist</h3>
+      <ol>
+        <li><strong>Read the line number first.</strong> The message usually points at the exact expression that failed.</li>
+        <li><strong>Print the inputs.</strong> <code>say type(x), x</code> before the failing line answers most questions.</li>
+        <li><strong>Use <code>type()</code>.</strong> A string <code>"5"</code> and the number <code>5</code> are different values.</li>
+        <li><strong>Check boundaries.</strong> Indexes start at 0; <code>range(a, b)</code> stops before <code>b</code>; <code>slice</code> end is exclusive.</li>
+        <li><strong>Check declarations.</strong> Assigning to an undeclared name is an error, so a missing <code>let</code> can look like a scope bug.</li>
+        <li><strong>Use <code>--check</code>.</strong> It catches syntax problems without executing side effects.</li>
+        <li><strong>Use <code>assert</code>.</strong> Put assumptions in code while you learn; a failed assertion names the exact line.</li>
+      </ol>
+
+      <h3>Limits</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Limit</th><th>Value</th></tr></thead>
+          <tbody>
+            <tr><td>Interpreter steps per run</td><td>5,000,000 (configurable through the embedding API)</td></tr>
+            <tr><td>Nested function calls</td><td>256</td></tr>
+            <tr><td><code>range</code> length</td><td>1,000,000 items</td></tr>
+            <tr><td><code>repeat</code> count</td><td>10,000,000 iterations</td></tr>
+            <tr><td>Studio output lines</td><td>4,000 displayed lines per run</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note tip">
+        <span class="note-title">Errors are values</span>
+        <p>Inside <code>catch</code>, a runtime error is a map with <code>message</code>, <code>line</code>, <code>kind</code>, and <code>hint</code>. You can inspect it, log it, wrap it, or throw it again.</p>
+      </div>
+    </article>
+
+    <!-- ============================================================
+         EMBEDDING
+         ============================================================ -->
+    <article class="doc-section" id="embedding">
+      <h2>Embedding AzLang</h2>
+      <p>
+        The interpreter is a library as well as a CLI. The same <code>azlang.js</code> file
+        exposes a small API in Node and in the browser.
+      </p>
+
+      <h3>In Node</h3>
+      <pre class="js-code" data-file="embed.js" data-lang="JavaScript"><code>const az = require('./azlang.js');
+
+const lines = [];
+const result = az.run('say "Hello from embedded AzLang!"', {
+  onOutput: (line) =&gt; lines.push(line),
+  ask: (question) =&gt; 'Ada',
+  maxSteps: 1000000
+});
+
+console.log(lines);        // [ 'Hello from embedded AzLang!' ]
+console.log(result.steps); // interpreter steps used
+console.log(result.ms);    // wall-clock milliseconds</code></pre>
+
+      <h3>The run API</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Option</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td><code>onOutput(text)</code></td><td>Called once per output line. The newline is not included.</td></tr>
+            <tr><td><code>ask(question)</code></td><td>Called by <code>input()</code>. Return a string; return <code>null</code> or <code>''</code> for no input.</td></tr>
+            <tr><td><code>maxSteps</code></td><td>Step limit for this run. Defaults to 5,000,000.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>The return value has three fields:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Field</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td><code>output</code></td><td>Array of all output lines.</td></tr>
+            <tr><td><code>steps</code></td><td>Number of interpreter steps used.</td></tr>
+            <tr><td><code>ms</code></td><td>Elapsed wall-clock time in milliseconds.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Sessions and the REPL</h3>
+      <p>
+        <code>run</code> always starts with a fresh environment. To keep variables between
+        calls, create a <code>Session</code>:
+      </p>
+
+      <pre class="js-code" data-file="session.js" data-lang="JavaScript"><code>const az = require('./azlang.js');
+
+const session = az.createSession({
+  onOutput: (line) =&gt; console.log(line)
+});
+
+session.execute('let total = 0');
+session.execute('total += 41');
+session.execute('total += 1');
+session.execute('say total');       // prints 42</code></pre>
+
+      <p>
+        <code>session.execute(source)</code> parses and runs one chunk in the persistent
+        environment. It returns <code>{ steps, totalSteps }</code>. Errors are thrown as
+        <code>AzError</code> objects with <code>message</code>, <code>line</code>,
+        <code>kind</code>, and <code>hint</code>.
+      </p>
+
+      <h3>In the browser</h3>
+      <pre class="js-code" data-file="browser.html" data-lang="HTML"><code>&lt;script src="azlang.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+  const output = [];
+  AzLang.run('say "Hello from the browser"', {
+    onOutput: (line) =&gt; output.push(line)
+  });
+  console.log(output);
+&lt;/script&gt;</code></pre>
+
+      <h3>API summary</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Export</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><code>AzLang.version</code></td><td>Version string, currently <code>"2.0.0"</code>.</td></tr>
+            <tr><td><code>AzLang.run(source, options?)</code></td><td>Parse and execute a complete program in a fresh environment.</td></tr>
+            <tr><td><code>AzLang.createSession(options?)</code></td><td>Create a persistent REPL-style session.</td></tr>
+            <tr><td><code>AzLang.Session</code></td><td>The session class, if you prefer <code>new</code>.</td></tr>
+            <tr><td><code>AzLang.parse(source)</code></td><td>Return the AST without executing. Throws on syntax errors.</td></tr>
+            <tr><td><code>AzLang.tokenize(source)</code></td><td>Return the token list. Useful for editors and syntax highlighting.</td></tr>
+            <tr><td><code>AzLang.AzError</code></td><td>The error class used for syntax and runtime failures.</td></tr>
+            <tr><td><code>AzLang.Parser</code>, <code>AzLang.Interpreter</code></td><td>Lower-level classes for tooling.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note danger">
+        <span class="note-title">Not a security sandbox</span>
+        <p>The interpreter limits steps and recursion, but it is not designed to run hostile code. There is no file, network, or operating-system access from the language itself, but embedding code runs in your JavaScript process. Only execute programs you trust.</p>
+      </div>
+    </article>
+
+    <!-- ============================================================
+         EXAMPLES
+         ============================================================ -->
+    <article class="doc-section" id="examples">
+      <h2>Example programs</h2>
+      <p>
+        Eight complete programs live in the <code>examples/</code> folder and are bundled into
+        the Studio's Examples window. Each one focuses on a different part of the language.
+      </p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>File</th><th>What it teaches</th></tr></thead>
+          <tbody>
+            <tr><td><code>hello.az</code></td><td>Output, variables, interpolation, Unicode text.</td></tr>
+            <tr><td><code>tour.az</code></td><td>A guided tour: types, loops, functions, classes, matching, JSON.</td></tr>
+            <tr><td><code>fibonacci.az</code></td><td>Recursion, caching with maps, loops, large numbers.</td></tr>
+            <tr><td><code>guessing-game.az</code></td><td>Random numbers, input, loops, validation with try/catch.</td></tr>
+            <tr><td><code>inventory.az</code></td><td>Classes, lists of objects, errors, higher-order helpers, JSON export.</td></tr>
+            <tr><td><code>word-count.az</code></td><td>Strings, maps, lambdas, manual sorting, filtering.</td></tr>
+            <tr><td><code>bank.az</code></td><td>Objects with state, validation, custom error maps, history.</td></tr>
+            <tr><td><code>shapes.az</code></td><td>Inheritance, <code>super</code>, polymorphism, reducing objects.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>Run any of them from the command line:</p>
+      <pre class="az-code" data-file="terminal" data-lang="Shell"><code>node azlang.js examples/hello.az
+node azlang.js examples/tour.az
+node azlang.js examples/fibonacci.az</code></pre>
+
+      <h3>Hello, world</h3>
+      <pre class="az-code" data-file="examples/hello.az"><code># Hello, world!
+say "Hello, world!"
+say "سلام! AzLang fully supports Persian text."
+
+let name = "friend"
+let year = 2026
+
+say "Welcome, {name}!"
+say "This year is {year}."
+say "Goodbye, " + name + "!"</code></pre>
+
+      <h3>Fibonacci with a cache</h3>
+      <pre class="az-code" data-file="examples/fibonacci.az"><code>let cache = {0: 0, 1: 1}
+
+fun fib(n)
+  if has(cache, n)
+    return cache[n]
+  end
+  let value = fib(n - 1) + fib(n - 2)
+  cache[n] = value
+  return value
+end
+
+for i in range(15)
+  say "fib({i}) = {fib(i)}"
+end</code></pre>
+
+      <h3>Shapes and polymorphism</h3>
+      <pre class="az-code" data-file="examples/shapes.az"><code>class Shape
+  fun init(name)
+    this.name = name
+  end
+
+  fun area()
+    return 0
+  end
+
+  fun describe()
+    return "{this.name} with area {round(this.area(), 2)}"
+  end
+end
+
+class Circle extends Shape
+  fun init(radius)
+    super("Circle")
+    this.radius = radius
+  end
+
+  fun area()
+    return PI * this.radius ** 2
+  end
+end
+
+class Rectangle extends Shape
+  fun init(width, height)
+    super("Rectangle")
+    this.width = width
+    this.height = height
+  end
+
+  fun area()
+    return this.width * this.height
+  end
+end
+
+let shapes = [new Circle(2), new Rectangle(3, 4)]
+for shape in shapes
+  say shape.describe()
+end</code></pre>
+
+      <div class="note tip">
+        <span class="note-title">Open them in the Studio</span>
+        <p>The <a href="ide.html">Studio</a> has an <strong>Examples</strong> button that loads any of these programs with one click. After editing a file in <code>examples/</code>, run <code>node build-examples.js</code> to refresh the bundle.</p>
+      </div>
+    </article>
+
+    <!-- ============================================================
+         STYLE
+         ============================================================ -->
+    <article class="doc-section" id="style">
+      <h2>Style guide</h2>
+      <p>
+        AzLang does not force a style, but consistent code is easier to read, review, and
+        teach. These conventions match every example and the Studio's starter program.
+      </p>
+
+      <h3>Formatting</h3>
+      <ul>
+        <li>Use two spaces per indentation level. Never mix tabs and spaces.</li>
+        <li>Put one statement per line. Semicolons are available for compact snippets, not for dense code.</li>
+        <li>Keep lines under about 90 characters; break long expressions with parentheses.</li>
+        <li>Leave one blank line between functions and classes, and around logical groups of statements.</li>
+        <li>Always close a block on its own line.</li>
+      </ul>
+
+      <h3>Names</h3>
+      <pre class="az-code" data-file="style.az"><code>let user_name = "Ada"          # variables: snake_case
+let is_ready = true            # booleans read as questions or states
+const MAX_RETRIES = 3          # constants: UPPER_SNAKE_CASE
+
+fun calculate_total(items)     # functions: a verb or a clear noun phrase
+  return sum(map(items, item =&gt; item.price))
+end
+
+class BankAccount              # classes: PascalCase
+end</code></pre>
+
+      <h3>Choose clarity over cleverness</h3>
+      <p>
+        AzLang supports compact expressions such as <code>reduce(nums, (a, b) =&gt; a + b)</code>,
+        but a named function is often kinder to the next reader:
+      </p>
+
+      <pre class="az-code" data-file="clarity.az"><code>let prices = [3, 5, 2]
+
+# Fine for a small, local use
+let total = reduce(prices, (a, b) =&gt; a + b, 0)
+
+# Clearer when the rule matters or is reused
+fun add_prices(total, price)
+  return total + price
+end
+
+let grand_total = reduce(prices, add_prices, 0)</code></pre>
+
+      <h3>Prefer small functions</h3>
+      <ul>
+        <li>A function should do one thing and have a name that says what it does.</li>
+        <li>Return early instead of nesting deeply.</li>
+        <li>Keep side effects (printing, mutation) visible and intentional.</li>
+        <li>Use parameters instead of reaching for outer variables when possible.</li>
+      </ul>
+
+      <h3>Useful defaults</h3>
+      <ul>
+        <li>Use <code>const</code> for values that should never be reassigned; use <code>let</code> otherwise.</li>
+        <li>Give functions default parameters when a sensible default exists.</li>
+        <li>Use maps for structured records and for named options.</li>
+        <li>Use raw strings for JSON and paths.</li>
+        <li>Throw maps with a <code>message</code> and a <code>code</code>; catch close to the failure.</li>
+        <li>Comment <em>why</em>, not <em>what</em>. The code already says what.</li>
+      </ul>
+
+      <h3>Avoid</h3>
+      <ul>
+        <li>Shadowing built-ins like <code>len</code>, <code>map</code>, or <code>type</code>.</li>
+        <li>Very long blocks; extract a function instead.</li>
+        <li>Magic numbers scattered through the code; name them as constants.</li>
+        <li>Deeply nested <code>if</code> chains; use <code>elif</code>, early returns, or <code>match</code>.</li>
+        <li>Catching an error and doing nothing. At minimum, log the message.</li>
+      </ul>
+    </article>
+
+    <!-- ============================================================
+         FAQ
+         ============================================================ -->
+    <article class="doc-section" id="faq">
+      <h2>FAQ</h2>
+
+      <h3>Is AzLang just Python with different keywords?</h3>
+      <p>
+        It is inspired by Python's readability, but it is an independent language with its own
+        parser and runtime. There are no imports, no objects from Python, no list
+        comprehensions, and blocks use <code>end</code> instead of indentation.
+      </p>
+
+      <h3>Can I use Python libraries?</h3>
+      <p>No. AzLang is self-contained and has no module system. Its standard library is the set of built-in functions documented above.</p>
+
+      <h3>Does it support Persian?</h3>
+      <p>
+        Yes. Strings can contain Persian text, identifiers may use Persian letters, and number
+        literals may use Persian or Arabic-Indic digits. Keywords and error messages remain
+        English so the whole language surface stays consistent.
+      </p>
+
+      <h3>Is indentation significant?</h3>
+      <p>No. Indentation is for humans only. Blocks are defined by keywords and <code>end</code>. The Studio auto-indents to help you.</p>
+
+      <h3>Why <code>end</code> everywhere?</h3>
+      <p>
+        An explicit closer is unambiguous, works in any editor, and makes nesting obvious even
+        when code is copied into a chat or a slide. It also means the language never reports
+        confusing indentation errors.
+      </p>
+
+      <h3>Is there a ternary operator?</h3>
+      <p>No. Use an <code>if</code>/<code>else</code> block or a small function. See <a href="#conditions">Conditions</a>.</p>
+
+      <h3>Can I split code across files?</h3>
+      <p>There are no imports or modules. A program is one file. For larger projects, organize the file with clear sections, functions, and classes. The embedding API can run separate chunks in one <code>Session</code> if a host application needs that.</p>
+
+      <h3>Can I read or write files from an AzLang program?</h3>
+      <p>No. The language has no file or network access. The CLI reads the source file; <code>input()</code> reads standard input; <code>say</code> writes output. Use the embedding API if a host application needs to exchange data.</p>
+
+      <h3>Does it have static methods or private fields?</h3>
+      <p>No. Classes have instance fields and methods only. All fields are public.</p>
+
+      <h3>Can I use it for production software?</h3>
+      <p>
+        It is an educational and scripting language, designed for clarity rather than
+        maximum throughput. It is fine for lessons, demos, small tools, and prototypes. For
+        large production systems, use a language with a mature ecosystem.
+      </p>
+
+      <h3>How fast is it?</h3>
+      <p>
+        It is a tree-walking interpreter, so it is much slower than compiled languages but
+        plenty fast for learning programs and small scripts. The step limit protects the
+        browser from infinite loops.
+      </p>
+
+      <h3>Can I extend the language?</h3>
+      <p>
+        You can define any functions and classes you like in AzLang itself. The runtime is a
+        single readable JavaScript file, so you can also add built-ins or syntax by editing
+        <code>azlang.js</code>. Run <code>node tests.js</code> afterward.
+      </p>
+
+      <h3>Is it free?</h3>
+      <p>Yes. AzLang is released under the MIT license. You can use, modify, and share it, including in commercial projects, with attribution.</p>
+    </article>
+
+    <!-- ============================================================
+         CHANGELOG
+         ============================================================ -->
+    <article class="doc-section" id="changelog">
+      <h2>Changelog</h2>
+
+      <h3>2.0.0 — October 2026</h3>
+      <ul>
+        <li>Classes, inheritance, <code>this</code>, <code>super</code>, and <code>new</code>.</li>
+        <li>Exceptions with <code>try</code>, <code>catch</code>, and <code>throw</code>.</li>
+        <li>Pattern matching with <code>match</code>, <code>case</code>, <code>default</code>, and <code>_</code>.</li>
+        <li>Arrow lambdas, default parameters, and destructuring loops.</li>
+        <li>Raw strings, multi-line strings, and escaped braces.</li>
+        <li>JSON encoding and decoding.</li>
+        <li>More than seventy built-in functions, including higher-order helpers.</li>
+        <li>English diagnostics with hints and “did you mean?” suggestions.</li>
+        <li>New Studio IDE, introduction site, and complete documentation.</li>
+        <li>131 automated tests and eight example programs.</li>
+      </ul>
+
+      <h3>1.0.0</h3>
+      <ul>
+        <li>First release: variables, conditions, loops, functions, lists, maps, strings, and the original browser editor.</li>
+      </ul>
+
+      <div class="next-links">
+        <a class="next-link" href="#intro">
+          <span>Back to</span>
+          <b>Introduction</b>
+        </a>
+        <a class="next-link right" href="#builtins">
+          <span>Jump to</span>
+          <b>Built-in reference</b>
+        </a>
+      </div>
+
+      <div class="doc-footer">
+        <span>AzLang 2.0 · MIT licensed</span>
+        <span class="grow"></span>
+        <a href="index.html">Home</a>
+        <a href="ide.html">Studio</a>
+        <a href="azlang.js">Runtime source</a>
+        <a href="#top">Back to top ↑</a>
+      </div>
+    </article>
+
+  </div>
+</main>
+
+<div class="toast" id="toast">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m4 12.5 5 5L20 6.5"/></svg>
+  <span id="toastText">Copied</span>
+</div>
+<button class="to-top" id="toTop" aria-label="Back to top">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg>
+</button>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ============================================================
+     Syntax highlighting for documentation code blocks
+     ============================================================ */
+
+  var KEYWORDS = new Set([
+    'let', 'const', 'say', 'if', 'elif', 'else', 'end',
+    'while', 'for', 'in', 'repeat', 'break', 'continue',
+    'fun', 'return', 'true', 'false', 'null', 'and', 'or', 'not',
+    'class', 'extends', 'new', 'this', 'super',
+    'try', 'catch', 'throw', 'match', 'case', 'default'
+  ]);
+
+  var BUILTINS = new Set([
+    'len', 'type', 'str', 'num', 'int', 'bool', 'assert', 'fail', 'clock', 'input',
+    'abs', 'floor', 'ceil', 'round', 'sqrt', 'pow', 'log', 'min', 'max', 'sum',
+    'avg', 'clamp', 'random', 'random_float', 'choice',
+    'upper', 'lower', 'trim', 'starts', 'ends', 'find', 'replace', 'split', 'join',
+    'chars', 'char_code', 'from_char',
+    'append', 'prepend', 'insert', 'remove', 'discard', 'pop', 'sort', 'sorted',
+    'reverse', 'reversed', 'slice', 'concat', 'unique', 'flatten', 'index_of',
+    'has', 'list', 'keys', 'values', 'items', 'get', 'set', 'update', 'range',
+    'enumerate', 'zip', 'map', 'each', 'filter', 'reduce', 'find_item', 'count',
+    'any', 'all', 'json_encode', 'json_decode', 'to_json', 'from_json',
+    'PI', 'E', 'TAU'
+  ]);
+
+  var ID_START = /[A-Za-z_\p{L}]/u;
+  var ID_PART = /[A-Za-z0-9_\p{L}\p{N}\p{Mn}\p{Mc}]/u;
+
+  function esc(text) {
+    return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function span(cls, text) {
+    return '<span class="' + cls + '">' + esc(text) + '</span>';
+  }
+
+  function isDigit(ch) {
+    var c = ch.charCodeAt(0);
+    return (ch >= '0' && ch <= '9') ||
+      (c >= 0x06f0 && c <= 0x06f9) ||
+      (c >= 0x0660 && c <= 0x0669);
+  }
+
+  function renderString(src, i) {
+    var raw = (src[i] === 'r' || src[i] === 'R') &&
+      (src[i + 1] === '"' || src[i + 1] === "'");
+    var qIndex = raw ? i + 1 : i;
+    var quote = src[qIndex];
+    var triple = src.slice(qIndex, qIndex + 3) === quote + quote + quote;
+    var contentStart = qIndex + (triple ? 3 : 1);
+    var j = contentStart;
+    var closed = false;
+
+    while (j < src.length) {
+      var ch = src[j];
+      if (!raw && ch === '\\') { j += 2; continue; }
+      if (triple) {
+        if (src.slice(j, j + 3) === quote + quote + quote) {
+          j += 3;
+          closed = true;
+          break;
+        }
+        j += 1;
+        continue;
+      }
+      if (ch === quote) { j += 1; closed = true; break; }
+      if (ch === '\n') break;
+      j += 1;
+    }
+
+    var closeLen = triple ? 3 : 1;
+    var innerEnd = closed ? j - closeLen : j;
+    var inner = src.slice(contentStart, innerEnd);
+    var html = span('tok-raw', src.slice(i, contentStart));
+
+    if (raw) {
+      html += span('tok-str', inner);
+    } else {
+      var p = 0;
+      var buffer = '';
+      while (p < inner.length) {
+        var c = inner[p];
+        if (c === '\\') {
+          buffer += c + (inner[p + 1] || '');
+          p += 2;
+          continue;
+        }
+        if (c === '{') {
+          var depth = 1;
+          var quote2 = null;
+          var k = p + 1;
+          while (k < inner.length) {
+            var d = inner[k];
+            if (d === '\\') { k += 2; continue; }
+            if (quote2) {
+              if (d === quote2) quote2 = null;
+              k += 1;
+              continue;
+            }
+            if (d === '"' || d === "'") { quote2 = d; k += 1; continue; }
+            if (d === '{') depth += 1;
+            else if (d === '}') {
+              depth -= 1;
+              if (depth === 0) break;
+            }
+            k += 1;
+          }
+          if (depth === 0) {
+            if (buffer) { html += span('tok-str', buffer); buffer = ''; }
+            html += span('tok-interp', inner.slice(p, k + 1));
+            p = k + 1;
+            continue;
+          }
+        }
+        buffer += c;
+        p += 1;
+      }
+      if (buffer) html += span('tok-str', buffer);
+    }
+
+    if (closed) html += span('tok-raw', src.slice(innerEnd, j));
+    return { html: html, end: j };
+  }
+
+  function highlight(src) {
+    var out = '';
+    var i = 0;
+    var n = src.length;
+    var prevWord = '';
+
+    while (i < n) {
+      var ch = src[i];
+
+      if (ch === '#') {
+        var commentEnd = i;
+        while (commentEnd < n && src[commentEnd] !== '\n') commentEnd += 1;
+        out += span('tok-com', src.slice(i, commentEnd));
+        i = commentEnd;
+        continue;
+      }
+
+      if ((ch === 'r' || ch === 'R') && (src[i + 1] === '"' || src[i + 1] === "'")) {
+        var rawResult = renderString(src, i);
+        out += rawResult.html;
+        i = rawResult.end;
+        prevWord = '';
+        continue;
+      }
+
+      if (ch === '"' || ch === "'") {
+        var strResult = renderString(src, i);
+        out += strResult.html;
+        i = strResult.end;
+        prevWord = '';
+        continue;
+      }
+
+      if (isDigit(ch)) {
+        var numEnd = i;
+        var dot = false;
+        while (numEnd < n) {
+          var nc = src[numEnd];
+          if (isDigit(nc)) { numEnd += 1; continue; }
+          if (nc === '.' && !dot && isDigit(src[numEnd + 1] || '')) {
+            dot = true;
+            numEnd += 1;
+            continue;
+          }
+          break;
+        }
+        out += span('tok-num', src.slice(i, numEnd));
+        i = numEnd;
+        prevWord = '';
+        continue;
+      }
+
+      if (ID_START.test(ch)) {
+        var wordEnd = i + 1;
+        while (wordEnd < n && ID_PART.test(src[wordEnd])) wordEnd += 1;
+        var word = src.slice(i, wordEnd);
+        var look = wordEnd;
+        while (look < n && (src[look] === ' ' || src[look] === '\t')) look += 1;
+
+        if (prevWord === 'class' || prevWord === 'extends' || prevWord === 'new') {
+          out += span('tok-cls', word);
+        } else if (KEYWORDS.has(word)) {
+          out += span('tok-kw', word);
+        } else if (BUILTINS.has(word)) {
+          out += span('tok-builtin', word);
+        } else if (src[look] === '(') {
+          out += span('tok-fn', word);
+        } else {
+          out += span('tok-ident', word);
+        }
+
+        prevWord = word;
+        i = wordEnd;
+        continue;
+      }
+
+      var three = src.slice(i, i + 3);
+      if (three === '**=' || three === '//=') {
+        out += span('tok-op', three);
+        i += 3;
+        continue;
+      }
+
+      var two = src.slice(i, i + 2);
+      if (['**', '==', '!=', '<=', '>=', '//', '+=', '-=', '*=', '/=', '%=', '=>'].indexOf(two) !== -1) {
+        out += span('tok-op', two);
+        i += 2;
+        continue;
+      }
+
+      if ('+-*/%=<>'.indexOf(ch) !== -1) {
+        out += span('tok-op', ch);
+        i += 1;
+        prevWord = '';
+        continue;
+      }
+
+      if ('()[]{},.:;'.indexOf(ch) !== -1) {
+        out += span('tok-punc', ch);
+        i += 1;
+        continue;
+      }
+
+      if (ch === '\n') {
+        out += '\n';
+        prevWord = '';
+        i += 1;
+        continue;
+      }
+
+      out += esc(ch);
+      i += 1;
+    }
+
+    return out;
+  }
+
+  /* ============================================================
+     Code block chrome + highlighting
+     ============================================================ */
+
+  var toast = document.getElementById('toast');
+  var toastText = document.getElementById('toastText');
+  var toastTimer = null;
+
+  function showToast(text) {
+    toastText.textContent = text;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 1700);
+  }
+
+  function copyText(text, button) {
+    function done() {
+      showToast('Copied to clipboard');
+      if (!button) return;
+      var old = button.textContent;
+      button.textContent = 'Copied';
+      setTimeout(function () { button.textContent = old; }, 1400);
+    }
+
+    function fallback() {
+      var area = document.createElement('textarea');
+      area.value = text;
+      area.style.position = 'fixed';
+      area.style.left = '-9999px';
+      document.body.appendChild(area);
+      area.select();
+      try {
+        document.execCommand('copy');
+        done();
+      } catch (e) {
+        showToast('Copy failed — select the code manually');
+      }
+      area.remove();
+    }
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done).catch(fallback);
+    } else {
+      fallback();
+    }
+  }
+
+  var blocks = document.querySelectorAll('pre.az-code, pre.js-code');
+
+  Array.prototype.forEach.call(blocks, function (pre) {
+    var isAz = pre.classList.contains('az-code');
+    var lang = pre.getAttribute('data-lang') || (isAz ? 'AzLang' : 'JavaScript');
+    var code = pre.querySelector('code');
+    if (!code) return;
+
+    if (isAz && lang !== 'Output' && lang !== 'Shell' && lang !== 'Text') {
+      code.innerHTML = highlight(code.textContent);
+    }
+
+    var wrapper = document.createElement('div');
+    wrapper.className = 'codeblock';
+
+    var head = document.createElement('div');
+    head.className = 'cb-head';
+    head.innerHTML =
+      '<span class="cb-dots"><i></i><i></i><i></i></span>' +
+      '<span class="cb-file"></span>' +
+      '<span class="cb-lang"></span>' +
+      '<button class="cb-copy" type="button">Copy</button>';
+
+    head.querySelector('.cb-file').textContent = pre.getAttribute('data-file') || '';
+    head.querySelector('.cb-lang').textContent = lang;
+
+    var button = head.querySelector('.cb-copy');
+    var plain = code.textContent;
+    button.addEventListener('click', function () {
+      copyText(plain, button);
+    });
+
+    pre.parentNode.insertBefore(wrapper, pre);
+    wrapper.appendChild(head);
+    wrapper.appendChild(pre);
+  });
+
+  /* ============================================================
+     Sidebar search
+     ============================================================ */
+
+  var search = document.getElementById('docSearch');
+  var navLinks = Array.prototype.slice.call(document.querySelectorAll('#docNav a'));
+  var navGroups = Array.prototype.slice.call(document.querySelectorAll('#docNav .nav-group'));
+  var noResults = document.getElementById('noResults');
+
+  function filterNav() {
+    var query = search.value.trim().toLowerCase();
+    var visible = 0;
+
+    navLinks.forEach(function (link) {
+      var hit = !query || link.textContent.toLowerCase().indexOf(query) !== -1;
+      link.style.display = hit ? '' : 'none';
+      if (hit) visible += 1;
+    });
+
+    navGroups.forEach(function (group) {
+      var any = Array.prototype.some.call(group.querySelectorAll('a'), function (link) {
+        return link.style.display !== 'none';
+      });
+      group.style.display = any ? '' : 'none';
+    });
+
+    noResults.classList.toggle('show', !!query && visible === 0);
+  }
+
+  if (search) search.addEventListener('input', filterNav);
+
+  /* ============================================================
+     Scroll spy
+     ============================================================ */
+
+  var spySections = [];
+  navLinks.forEach(function (link) {
+    var id = link.getAttribute('href').slice(1);
+    var element = document.getElementById(id);
+    if (element && spySections.indexOf(element) === -1) spySections.push(element);
+  });
+
+  function updateActiveLink() {
+    var y = window.scrollY + 140;
+    var current = null;
+
+    for (var i = 0; i < spySections.length; i += 1) {
+      var section = spySections[i];
+      var top = section.getBoundingClientRect().top + window.scrollY;
+      if (top <= y) current = section;
+    }
+
+    navLinks.forEach(function (link) {
+      link.classList.toggle('active', !!current && link.getAttribute('href') === '#' + current.id);
+    });
+  }
+
+  /* ============================================================
+     Back to top
+     ============================================================ */
+
+  var toTop = document.getElementById('toTop');
+  toTop.addEventListener('click', function () {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  var ticking = false;
+  function onScroll() {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(function () {
+      ticking = false;
+      updateActiveLink();
+      toTop.classList.toggle('show', window.scrollY > 600);
+    });
+  }
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+
+  /* ============================================================
+     Mobile sidebar
+     ============================================================ */
+
+  var sidebar = document.getElementById('sidebar');
+  var overlay = document.getElementById('sidebarOverlay');
+  var menuBtn = document.getElementById('menuBtn');
+
+  function openSidebar() {
+    sidebar.classList.add('open');
+    overlay.classList.add('show');
+    menuBtn.setAttribute('aria-expanded', 'true');
+  }
+
+  function closeSidebar() {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('show');
+    menuBtn.setAttribute('aria-expanded', 'false');
+  }
+
+  menuBtn.addEventListener('click', function () {
+    if (sidebar.classList.contains('open')) closeSidebar();
+    else openSidebar();
+  });
+
+  overlay.addEventListener('click', closeSidebar);
+  navLinks.forEach(function (link) { link.addEventListener('click', closeSidebar); });
+
+  window.addEventListener('resize', function () {
+    if (window.innerWidth > 1080) closeSidebar();
+  });
+
+  /* ============================================================
+     Heading anchors
+     ============================================================ */
+
+  Array.prototype.forEach.call(document.querySelectorAll('h2[id], h3[id]'), function (heading) {
+    var anchor = document.createElement('a');
+    anchor.className = 'anchor';
+    anchor.href = '#' + heading.id;
+    anchor.textContent = '#';
+    anchor.setAttribute('aria-label', 'Link to this section');
+    heading.appendChild(anchor);
+  });
+
+  /* ============================================================
+     Keyboard shortcuts
+     ============================================================ */
+
+  document.addEventListener('keydown', function (e) {
+    var tag = (e.target && e.target.tagName) || '';
+
+    if ((e.key === '/' && tag !== 'INPUT' && tag !== 'TEXTAREA') ||
+        ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k')) {
+      if (search && search.offsetParent !== null) {
+        e.preventDefault();
+        search.focus();
+        search.select();
+      }
+      return;
+    }
+
+    if (e.key === 'Escape') {
+      if (document.activeElement === search) {
+        search.value = '';
+        filterNav();
+        search.blur();
+      }
+      closeSidebar();
+    }
+  });
+
+  /* ============================================================
+     Boot
+     ============================================================ */
+
+  filterNav();
+  updateActiveLink();
+  toTop.classList.toggle('show', window.scrollY > 600);
+})();
+</script>
+
+</body>
+</html>

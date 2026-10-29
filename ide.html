@@ -1,0 +1,1732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AzLang Studio</title>
+<meta name="description" content="AzLang Studio — a beautiful, dependency-free editor for the AzLang programming language.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%237c5cff'/%3E%3Cstop offset='1' stop-color='%2321d4b4'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)'/%3E%3Cpath d='M24 18l22 14-22 14z' fill='white'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #05070f;
+    --panel: rgba(16, 22, 38, 0.78);
+    --panel-solid: #0d1424;
+    --line: rgba(255, 255, 255, 0.075);
+    --line-strong: rgba(255, 255, 255, 0.14);
+    --text: #e9effc;
+    --muted: #8b9ab8;
+    --dim: #5b6a88;
+    --accent: #7c5cff;
+    --accent-soft: rgba(124, 92, 255, 0.14);
+    --teal: #21d4b4;
+    --danger: #ff6b81;
+    --warn: #ffcb6b;
+    --ok: #59e0a0;
+    --mono: "Cascadia Code", "JetBrains Mono", "Fira Code", Consolas, "Courier New", monospace;
+    --ui: "Inter", "Segoe UI", system-ui, -apple-system, Tahoma, sans-serif;
+    --lh: 24px;
+    --pad-y: 18px;
+    --editor-w: 58%;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+
+  body {
+    margin: 0;
+    height: 100dvh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    color: var(--text);
+    font-family: var(--ui);
+    background: var(--bg);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* ---------- background ---------- */
+  .aurora {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+    background:
+      radial-gradient(1100px 700px at 82% -12%, rgba(124, 92, 255, 0.18), transparent 60%),
+      radial-gradient(900px 620px at 4% 112%, rgba(33, 212, 180, 0.10), transparent 62%),
+      linear-gradient(180deg, #060a14 0%, #04070d 100%);
+  }
+  .aurora i {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(90px);
+    opacity: 0.5;
+    animation: float 28s ease-in-out infinite alternate;
+  }
+  .aurora i:nth-child(1) { width: 430px; height: 430px; background: #4f3cff; top: -160px; right: 6%; }
+  .aurora i:nth-child(2) { width: 360px; height: 360px; background: #0fb9a6; bottom: -170px; left: 2%; animation-delay: -9s; opacity: 0.28; }
+  .aurora i:nth-child(3) { width: 300px; height: 300px; background: #ff4f9a; top: 42%; left: 46%; opacity: 0.10; animation-delay: -17s; }
+
+  @keyframes float {
+    from { transform: translate3d(0, 0, 0) scale(1); }
+    to   { transform: translate3d(42px, -48px, 0) scale(1.14); }
+  }
+
+  /* ---------- header ---------- */
+  .topbar {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 14px 20px 12px;
+  }
+
+  .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+
+  .mark {
+    width: 42px;
+    height: 42px;
+    flex: 0 0 auto;
+    border-radius: 13px;
+    display: grid;
+    place-items: center;
+    color: #fff;
+    background: linear-gradient(140deg, #8b6cff 0%, #5b8cff 52%, #21d4b4 135%);
+    box-shadow: 0 12px 28px -12px rgba(124, 92, 255, 0.95), inset 0 1px 0 rgba(255, 255, 255, 0.38);
+    position: relative;
+  }
+  .mark svg { width: 21px; height: 21px; margin-left: 2px; }
+  .mark::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(120% 80% at 30% 0%, rgba(255,255,255,.34), transparent 60%);
+    mix-blend-mode: overlay;
+  }
+
+  .brand-copy { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+  .brand-title {
+    font-size: 18px;
+    font-weight: 750;
+    letter-spacing: -0.2px;
+    line-height: 1.15;
+    background: linear-gradient(90deg, #fff, #c9d6ff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .brand-sub { font-size: 11px; color: var(--dim); white-space: nowrap; }
+
+  .toolbar {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 37px;
+    padding: 0 13px;
+    border-radius: 11px;
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.035);
+    color: var(--text);
+    font: inherit;
+    font-size: 12.5px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background .17s, border-color .17s, transform .17s, box-shadow .17s;
+    white-space: nowrap;
+  }
+  .btn:hover {
+    background: rgba(255, 255, 255, 0.075);
+    border-color: var(--line-strong);
+    transform: translateY(-1px);
+  }
+  .btn:active { transform: translateY(0); }
+  .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .btn .ic { width: 16px; height: 16px; flex: 0 0 auto; }
+
+  .btn-run {
+    border: 0;
+    padding: 0 17px;
+    color: #fff;
+    font-weight: 700;
+    background: linear-gradient(135deg, #7c5cff 0%, #6d5efc 42%, #a84dff 100%);
+    box-shadow: 0 12px 28px -12px rgba(124, 92, 255, 0.98), inset 0 1px 0 rgba(255,255,255,.28);
+    overflow: hidden;
+  }
+  .btn-run::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 42%;
+    left: -60%;
+    background: linear-gradient(100deg, transparent, rgba(255,255,255,.28), transparent);
+    transform: skewX(-18deg);
+    transition: left .55s ease;
+  }
+  .btn-run:hover::after { left: 120%; }
+  .btn-run:hover { background: linear-gradient(135deg, #8b7dff 0%, #7a6bff 42%, #bd63ff 100%); }
+
+  .btn-run kbd {
+    font-family: var(--ui);
+    font-size: 9.5px;
+    font-weight: 600;
+    padding: 2px 5px;
+    border-radius: 5px;
+    background: rgba(0, 0, 0, 0.22);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    color: rgba(255, 255, 255, 0.85);
+  }
+  .btn-run.is-running { pointer-events: none; filter: saturate(0.7) brightness(0.9); }
+  .btn-run.is-running .ic { animation: spin 0.9s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .btn-icon { width: 37px; padding: 0; }
+  .vsep { width: 1px; height: 23px; background: var(--line); margin: 0 3px; }
+
+  /* ---------- layout ---------- */
+  .workspace {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    gap: 9px;
+    padding: 0 16px 14px;
+  }
+
+  .pane {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    border-radius: 17px;
+    border: 1px solid var(--line);
+    background: linear-gradient(180deg, rgba(21, 28, 46, 0.82), rgba(10, 15, 26, 0.9));
+    box-shadow: 0 30px 70px -40px #000, inset 0 1px 0 rgba(255, 255, 255, 0.055);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    overflow: hidden;
+  }
+
+  .editor-pane { flex: 0 0 var(--editor-w); }
+  .console-pane { flex: 1 1 0; }
+
+  .pane-head {
+    flex: 0 0 auto;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 13px;
+    border-bottom: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.018);
+  }
+
+  .tabs { display: flex; align-items: center; gap: 6px; min-width: 0; }
+
+  .tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 29px;
+    padding: 0 11px;
+    border-radius: 9px;
+    font-size: 12.5px;
+    color: var(--text);
+    background: var(--accent-soft);
+    border: 1px solid var(--line);
+    min-width: 0;
+  }
+  .tab-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--teal));
+    box-shadow: 0 0 10px rgba(124, 92, 255, 0.85);
+    flex: 0 0 auto;
+  }
+  #fileName { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tab-badge {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    padding: 2px 5px;
+    border-radius: 4px;
+    color: var(--teal);
+    background: rgba(33, 212, 180, 0.10);
+    border: 1px solid rgba(33, 212, 180, 0.18);
+  }
+
+  .pane-tools { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+
+  .hint { font-size: 10.5px; color: var(--dim); display: inline-flex; align-items: center; gap: 4px; }
+  .hint kbd, .mini kbd {
+    font-family: var(--ui);
+    font-size: 9.5px;
+    padding: 2px 5px;
+    border-radius: 4px;
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,.04);
+    color: var(--muted);
+  }
+
+  .mini {
+    font: inherit;
+    font-size: 11px;
+    color: var(--muted);
+    background: transparent;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    height: 26px;
+    padding: 0 9px;
+    cursor: pointer;
+    transition: .16s;
+  }
+  .mini:hover { color: var(--text); background: rgba(255,255,255,.05); border-color: var(--line-strong); }
+
+  /* ---------- editor ---------- */
+  .editor {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    position: relative;
+  }
+
+  .gutter {
+    flex: 0 0 auto;
+    width: 54px;
+    padding: var(--pad-y) 10px var(--pad-y) 12px;
+    text-align: right;
+    color: #3b4864;
+    font: 12.5px/var(--lh) var(--mono);
+    user-select: none;
+    overflow: hidden;
+    border-right: 1px solid rgba(255, 255, 255, 0.035);
+    background: rgba(255, 255, 255, 0.012);
+    font-variant-numeric: tabular-nums;
+  }
+  .gutter-inner { white-space: pre; will-change: transform; }
+
+  .code-area {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .active-line, .error-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: var(--lh);
+    pointer-events: none;
+    z-index: 1;
+    will-change: transform;
+  }
+  .active-line {
+    background: linear-gradient(90deg, rgba(124, 92, 255, 0.08), rgba(124, 92, 255, 0.018));
+    border-left: 2px solid rgba(124, 92, 255, 0.42);
+  }
+  .error-line {
+    display: none;
+    background: linear-gradient(90deg, rgba(255, 107, 129, 0.17), rgba(255, 107, 129, 0.035));
+    border-left: 2px solid var(--danger);
+    z-index: 2;
+  }
+
+  .highlight {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    padding: var(--pad-y) 22px;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 3;
+    font: 14px/var(--lh) var(--mono);
+    font-variant-ligatures: none;
+    tab-size: 2;
+    color: #d7e2f7;
+  }
+  .highlight code {
+    display: block;
+    white-space: pre;
+    will-change: transform;
+    font: inherit;
+  }
+
+  #code {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: var(--pad-y) 22px;
+    border: 0;
+    outline: 0;
+    resize: none;
+    background: transparent;
+    color: transparent;
+    caret-color: #6ff0d8;
+    font: 14px/var(--lh) var(--mono);
+    font-variant-ligatures: none;
+    tab-size: 2;
+    white-space: pre;
+    overflow: auto;
+    direction: ltr;
+    text-align: left;
+    z-index: 4;
+    scrollbar-gutter: stable;
+  }
+  #code::selection { background: rgba(124, 92, 255, 0.33); color: transparent; }
+  #code::-webkit-scrollbar { width: 12px; height: 12px; }
+  #code::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.10);
+    border-radius: 20px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+  #code::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); background-clip: content-box; }
+  #code::-webkit-scrollbar-corner { background: transparent; }
+
+  /* syntax colors */
+  .tok-com { color: #526283; font-style: italic; }
+  .tok-ident { color: #d7e2f7; }
+  .tok-str { color: #a9e88f; }
+  .tok-interp { color: #ffcb6b; }
+  .tok-num { color: #f78c6c; }
+  .tok-kw { color: #c792ea; }
+  .tok-builtin { color: #82aaff; }
+  .tok-fn { color: #5fd8c8; }
+  .tok-op { color: #89ddff; }
+  .tok-punc { color: #6b7c9c; }
+  .tok-class { color: #ffd479; }
+  .tok-raw { color: #b6e3a0; }
+
+  .statusbar {
+    flex: 0 0 auto;
+    height: 31px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 15px;
+    border-top: 1px solid var(--line);
+    font-size: 10.5px;
+    color: var(--dim);
+    background: rgba(255, 255, 255, 0.012);
+  }
+  .statusbar .grow { flex: 1; }
+  .statusbar .dot { width: 3px; height: 3px; border-radius: 50%; background: var(--dim); opacity: .6; }
+  #statusMsg { color: var(--muted); }
+  #statusMsg.bad { color: var(--danger); }
+  #statusMsg.good { color: var(--ok); }
+
+  /* ---------- console ---------- */
+  .console-title { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
+  .console-title .ic { width: 15px; height: 15px; color: var(--teal); }
+  .console-title b { color: var(--text); font-weight: 600; }
+  .stats { font-size: 10.5px; color: var(--dim); font-variant-numeric: tabular-nums; }
+  .stats .ok-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--ok); margin-right: 6px; vertical-align: 1px; }
+
+  .console-wrap { position: relative; flex: 1; min-height: 0; display: flex; }
+  .console {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    padding: 14px 18px;
+    font: 13px/1.8 var(--mono);
+    color: #cfdaf0;
+    scrollbar-gutter: stable;
+  }
+  .console::-webkit-scrollbar { width: 10px; }
+  .console::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.09);
+    border-radius: 20px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+
+  .out-line {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    min-height: 1.8em;
+    unicode-bidi: plaintext;
+    animation: fadeUp .17s ease both;
+  }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
+
+  .console-empty {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    text-align: center;
+    color: #3f4c68;
+    pointer-events: none;
+    padding: 20px;
+  }
+  .console-empty .big {
+    font-family: var(--mono);
+    font-size: 24px;
+    margin-bottom: 10px;
+    opacity: .8;
+    letter-spacing: 1px;
+  }
+  .console-empty p { margin: 0; font-size: 12px; line-height: 1.9; }
+  .console-empty b { color: #8f9dbb; font-weight: 600; }
+
+  .run-muted { color: #5a688a; font-size: 11.5px; padding: 4px 0; }
+  .run-muted.bad { color: #b98a95; }
+
+  .error-card {
+    margin: 10px 0;
+    border-radius: 13px;
+    border: 1px solid rgba(255, 107, 129, 0.28);
+    background: linear-gradient(180deg, rgba(255, 107, 129, 0.10), rgba(255, 107, 129, 0.04));
+    padding: 12px 14px;
+    font-family: var(--ui);
+    animation: fadeUp .22s ease both;
+  }
+  .error-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .err-badge {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    padding: 3px 7px;
+    border-radius: 6px;
+    background: rgba(255, 107, 129, 0.18);
+    color: #ff9bab;
+    border: 1px solid rgba(255, 107, 129, 0.25);
+    text-transform: uppercase;
+  }
+  .err-kind { font-size: 10px; color: #9a7c88; text-transform: uppercase; letter-spacing: .5px; }
+  .error-msg { font-size: 12.5px; line-height: 1.7; color: #ffd7dd; }
+  .error-hint { margin-top: 6px; font-size: 11.5px; color: var(--warn); opacity: .94; }
+  .err-code {
+    margin: 9px 0 0;
+    padding: 9px 11px;
+    border-radius: 9px;
+    background: rgba(0, 0, 0, 0.30);
+    border: 1px solid rgba(255, 255, 255, 0.055);
+    font: 11.5px/1.7 var(--mono);
+    color: #a9b6cf;
+    overflow-x: auto;
+    white-space: pre;
+  }
+
+  .console-foot {
+    flex: 0 0 auto;
+    height: 33px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 0 15px;
+    border-top: 1px solid var(--line);
+    font-size: 10px;
+    color: var(--dim);
+    background: rgba(255, 255, 255, 0.012);
+  }
+  .console-foot .grow { flex: 1; }
+  .console-foot a { color: var(--muted); text-decoration: none; border-bottom: 1px dotted rgba(255,255,255,.16); }
+  .console-foot a:hover { color: var(--text); }
+  .console-foot kbd {
+    font-family: var(--ui);
+    font-size: 9px;
+    padding: 2px 4px;
+    border-radius: 4px;
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,.04);
+    color: var(--muted);
+  }
+
+  /* ---------- splitter ---------- */
+  .splitter {
+    flex: 0 0 9px;
+    display: grid;
+    place-items: center;
+    cursor: col-resize;
+    border-radius: 10px;
+    touch-action: none;
+  }
+  .splitter span {
+    width: 4px;
+    height: 44px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.09);
+    transition: background .18s, height .18s;
+  }
+  .splitter:hover span, .splitter.dragging span { background: rgba(124, 92, 255, 0.78); height: 70px; }
+  body.resizing { cursor: col-resize; user-select: none; }
+
+  /* ---------- modal ---------- */
+  .modal { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 22px; }
+  .modal[hidden] { display: none; }
+  .modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(4, 7, 14, 0.74);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    animation: fadeIn .18s ease both;
+  }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  .modal-card {
+    position: relative;
+    width: min(880px, 100%);
+    max-height: min(86vh, 900px);
+    display: flex;
+    flex-direction: column;
+    border-radius: 20px;
+    border: 1px solid var(--line-strong);
+    background: linear-gradient(180deg, #131b2e, #0a1020);
+    box-shadow: 0 50px 120px -40px #000, inset 0 1px 0 rgba(255,255,255,.07);
+    animation: pop .22s cubic-bezier(.2,.9,.3,1.18) both;
+    overflow: hidden;
+  }
+  @keyframes pop { from { opacity: 0; transform: translateY(12px) scale(.985); } to { opacity: 1; transform: none; } }
+
+  .modal-head {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 17px 20px;
+    border-bottom: 1px solid var(--line);
+  }
+  .modal-head h2 { margin: 0; font-size: 15px; font-weight: 700; }
+  .modal-head .sub { font-size: 11px; color: var(--dim); margin-top: 2px; }
+  .modal-head .close { margin-left: auto; }
+
+  .modal-body {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    padding: 10px 22px 24px;
+    scrollbar-gutter: stable;
+  }
+  .modal-body::-webkit-scrollbar { width: 10px; }
+  .modal-body::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,.1);
+    border-radius: 20px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+
+  .close {
+    width: 33px;
+    height: 33px;
+    border-radius: 9px;
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,.035);
+    color: var(--muted);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: .16s;
+  }
+  .close:hover { color: var(--text); background: rgba(255,90,110,.12); border-color: rgba(255,90,110,.3); }
+  .close .ic { width: 15px; height: 15px; }
+
+  .examples-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(235px, 1fr));
+    gap: 10px;
+    padding: 12px 0 4px;
+  }
+
+  .example-card {
+    text-align: left;
+    font: inherit;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 14px 15px;
+    border-radius: 13px;
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.022);
+    color: var(--text);
+    cursor: pointer;
+    transition: .18s;
+  }
+  .example-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(124, 92, 255, 0.42);
+    background: rgba(124, 92, 255, 0.08);
+    box-shadow: 0 18px 34px -22px rgba(124, 92, 255, 0.9);
+  }
+  .example-top { display: flex; align-items: center; gap: 8px; }
+  .example-icon {
+    width: 27px;
+    height: 27px;
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    font-size: 14px;
+    background: rgba(124, 92, 255, 0.12);
+    border: 1px solid rgba(124, 92, 255, 0.18);
+    flex: 0 0 auto;
+  }
+  .example-title { font-size: 12.5px; font-weight: 650; }
+  .example-desc { font-size: 11px; color: var(--dim); line-height: 1.65; }
+  .example-tag {
+    align-self: flex-start;
+    margin-top: 3px;
+    font-size: 9px;
+    letter-spacing: .4px;
+    text-transform: uppercase;
+    color: #7f8fb0;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(255,255,255,.035);
+    border: 1px solid var(--line);
+  }
+
+  /* ---------- toast ---------- */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translate(-50%, 20px);
+    z-index: 90;
+    padding: 10px 17px;
+    border-radius: 11px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(19, 27, 45, 0.96);
+    box-shadow: 0 20px 50px -18px #000;
+    font-size: 12px;
+    color: var(--text);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .22s, transform .22s;
+    backdrop-filter: blur(12px);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  .toast .ic { width: 15px; height: 15px; color: var(--ok); }
+
+  .sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
+  .ic { display: block; }
+
+  /* ---------- responsive ---------- */
+  @media (max-width: 900px) {
+    .workspace { flex-direction: column; padding: 0 11px 11px; gap: 7px; }
+    .editor-pane { flex: 1 1 58%; }
+    .console-pane { flex: 1 1 42%; }
+    .splitter { display: none; }
+    .brand-sub { display: none; }
+    .topbar { padding: 11px 13px; gap: 10px; }
+    .btn .label { display: none; }
+    .btn { padding: 0 10px; }
+    .btn-run { padding: 0 13px; }
+    .btn-run kbd { display: none; }
+  }
+
+  @media (max-width: 620px) {
+    .brand-title { font-size: 16px; }
+    .mark { width: 36px; height: 36px; border-radius: 11px; }
+    .mark svg { width: 18px; height: 18px; }
+    .hint { display: none; }
+    .gutter { width: 44px; padding-left: 7px; padding-right: 7px; }
+    .highlight, #code { padding-left: 15px; padding-right: 15px; }
+  }
+</style>
+</head>
+<body>
+
+<svg class="sprite" aria-hidden="true" focusable="false">
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.1v13.8c0 .8.9 1.3 1.6.9l10.3-6.9c.6-.4.6-1.3 0-1.7L9.6 4.2C8.9 3.8 8 4.3 8 5.1Z" fill="currentColor"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.6"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5V5.5Z"/><path d="M4 20.5A2.5 2.5 0 0 1 6.5 18H20"/></symbol>
+  <symbol id="i-save" viewBox="0 0 24 24"><path d="M5 3h11l3 3v15H5z"/><path d="M8 3v6h7V3M8 21v-7h8v7"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></symbol>
+  <symbol id="i-terminal" viewBox="0 0 24 24"><path d="M4 5h16v14H4z"/><path d="M7.5 10l2.5 2.5-2.5 2.5M12.5 15H17"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></symbol>
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5.5 9.5V21h13V9.5"/></symbol>
+  <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v6H4V6h6"/></symbol>
+</svg>
+
+<div class="aurora"><i></i><i></i><i></i></div>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.1v13.8c0 .8.9 1.3 1.6.9l10.3-6.9c.6-.4.6-1.3 0-1.7L9.6 4.2C8.9 3.8 8 4.3 8 5.1Z" fill="currentColor"/></svg></div>
+    <div class="brand-copy">
+      <div class="brand-title">AzLang Studio</div>
+      <div class="brand-sub">A small language with serious features</div>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <button class="btn btn-run" id="btnRun" title="Run the program (Ctrl+Enter)">
+      <svg class="ic"><use href="#i-play"/></svg>
+      <span class="label">Run</span>
+      <kbd>Ctrl &#8629;</kbd>
+    </button>
+    <button class="btn" id="btnExamples" title="Open a ready-made example">
+      <svg class="ic"><use href="#i-grid"/></svg>
+      <span class="label">Examples</span>
+    </button>
+    <a class="btn" href="docs.html" target="_blank" rel="noopener" title="Read the full documentation (F1)">
+      <svg class="ic"><use href="#i-book"/></svg>
+      <span class="label">Docs</span>
+    </a>
+    <span class="vsep"></span>
+    <button class="btn btn-icon" id="btnSave" title="Download the .az file (Ctrl+S)" aria-label="Save file">
+      <svg class="ic"><use href="#i-save"/></svg>
+    </button>
+    <button class="btn btn-icon" id="btnOpen" title="Open a local .az file" aria-label="Open file">
+      <svg class="ic"><use href="#i-folder"/></svg>
+    </button>
+    <button class="btn btn-icon" id="btnNew" title="Start a new file" aria-label="New file">
+      <svg class="ic"><use href="#i-plus"/></svg>
+    </button>
+    <span class="vsep"></span>
+    <a class="btn btn-icon" href="index.html" title="Home" aria-label="Home">
+      <svg class="ic"><use href="#i-home"/></svg>
+    </a>
+  </div>
+</header>
+
+<main class="workspace" id="workspace">
+  <section class="pane editor-pane">
+    <div class="pane-head">
+      <div class="tabs">
+        <div class="tab">
+          <span class="tab-dot"></span>
+          <span id="fileName">main.az</span>
+          <span class="tab-badge">2.0</span>
+        </div>
+      </div>
+      <div class="pane-tools">
+        <span class="hint"><kbd>Ctrl</kbd><kbd>&#8629;</kbd> run</span>
+      </div>
+    </div>
+
+    <div class="editor" id="editor">
+      <div class="gutter" id="gutter"><div class="gutter-inner" id="gutterInner">1</div></div>
+      <div class="code-area" id="codeArea">
+        <div class="active-line" id="activeLine"></div>
+        <div class="error-line" id="errorLine"></div>
+        <pre class="highlight" id="highlight" aria-hidden="true"><code id="highlightInner"></code></pre>
+        <textarea id="code" spellcheck="false" wrap="off" autocapitalize="off" autocomplete="off" autocorrect="off" aria-label="AzLang code editor"></textarea>
+      </div>
+    </div>
+
+    <div class="statusbar">
+      <span id="cursorPos">Line 1, Col 1</span>
+      <span class="dot"></span>
+      <span>AzLang 2.0</span>
+      <span class="grow"></span>
+      <span id="statusMsg">Ready</span>
+    </div>
+  </section>
+
+  <div class="splitter" id="splitter" title="Drag to resize"><span></span></div>
+
+  <section class="pane console-pane">
+    <div class="pane-head">
+      <div class="console-title">
+        <svg class="ic"><use href="#i-terminal"/></svg>
+        <b>Output</b>
+      </div>
+      <div class="pane-tools">
+        <span class="stats" id="stats"></span>
+        <button class="mini" id="btnClearConsole" title="Clear the output">
+          <svg class="ic" style="width:12px;height:12px;display:inline-block;vertical-align:-1px"><use href="#i-trash"/></svg>
+          Clear
+        </button>
+      </div>
+    </div>
+
+    <div class="console-wrap">
+      <div class="console" id="console" dir="ltr"></div>
+      <div class="console-empty" id="consoleEmpty">
+        <div>
+          <div class="big">&gt;_</div>
+          <p>No output yet.<br>Press <b>Run</b> or hit <b>Ctrl + Enter</b>.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="console-foot">
+      <span>Autosaved in this browser</span>
+      <span class="grow"></span>
+      <a href="docs.html" target="_blank" rel="noopener">Language reference</a>
+      <span class="dot" style="width:3px;height:3px;border-radius:50%;background:var(--dim);opacity:.5"></span>
+      <kbd>Ctrl</kbd><kbd>S</kbd> save
+    </div>
+  </section>
+</main>
+
+<!-- Examples modal -->
+<div class="modal" id="examplesModal" hidden>
+  <div class="modal-backdrop" data-close></div>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-label="AzLang examples">
+    <div class="modal-head">
+      <svg class="ic" style="width:18px;height:18px;color:var(--teal)"><use href="#i-grid"/></svg>
+      <div>
+        <h2>Examples</h2>
+        <div class="sub">Pick a program to load into the editor</div>
+      </div>
+      <button class="close" data-close aria-label="Close"><svg class="ic"><use href="#i-x"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="examples-grid" id="examplesGrid"></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <svg class="ic"><use href="#i-check"/></svg>
+  <span id="toastText"></span>
+</div>
+
+<input type="file" id="fileInput" accept=".az,.txt,text/plain" hidden>
+
+<script src="azlang.js"></script>
+<script src="examples.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  const code = document.getElementById('code');
+  const highlightInner = document.getElementById('highlightInner');
+  const gutterInner = document.getElementById('gutterInner');
+  const gutter = document.getElementById('gutter');
+  const activeLine = document.getElementById('activeLine');
+  const errorLine = document.getElementById('errorLine');
+  const consoleEl = document.getElementById('console');
+  const consoleEmpty = document.getElementById('consoleEmpty');
+  const statsEl = document.getElementById('stats');
+  const statusMsg = document.getElementById('statusMsg');
+  const cursorPos = document.getElementById('cursorPos');
+  const fileNameEl = document.getElementById('fileName');
+  const btnRun = document.getElementById('btnRun');
+  const toast = document.getElementById('toast');
+  const toastText = document.getElementById('toastText');
+  const fileInput = document.getElementById('fileInput');
+  const examplesModal = document.getElementById('examplesModal');
+  const examplesGrid = document.getElementById('examplesGrid');
+  const splitter = document.getElementById('splitter');
+  const editorPane = document.querySelector('.editor-pane');
+  const workspace = document.getElementById('workspace');
+
+  const LH = 24;
+  const PAD_Y = 18;
+  const STORE_CODE = 'azlang.code.v2';
+  const STORE_NAME = 'azlang.name.v2';
+  const STORE_WIDTH = 'azlang.width.v2';
+
+  const STARTER = [
+    '# Welcome to AzLang 2.0',
+    '# Press Ctrl+Enter to run this program.',
+    '',
+    'let name = "world"',
+    'say "Hello, {name}!"',
+    '',
+    'fun greet(who, punctuation = "!")',
+    '  return "Hello, " + who + punctuation',
+    'end',
+    '',
+    'say greet("AzLang")',
+    '',
+    'let numbers = [1, 2, 3, 4, 5]',
+    'say map(numbers, n => n * n)',
+    ''
+  ].join('\n');
+
+  const KEYWORDS = new Set([
+    'let', 'const', 'say', 'if', 'elif', 'else', 'end',
+    'while', 'for', 'in', 'repeat', 'break', 'continue',
+    'fun', 'return', 'true', 'false', 'null', 'and', 'or', 'not',
+    'class', 'extends', 'new', 'this', 'super',
+    'try', 'catch', 'throw', 'match', 'case', 'default'
+  ]);
+
+  const BUILTINS = new Set([
+    'len', 'type', 'str', 'num', 'int', 'bool', 'assert', 'fail', 'clock', 'input',
+    'abs', 'floor', 'ceil', 'round', 'sqrt', 'pow', 'log', 'min', 'max', 'sum',
+    'avg', 'clamp', 'random', 'random_float', 'choice',
+    'upper', 'lower', 'trim', 'starts', 'ends', 'find', 'replace', 'split', 'join',
+    'chars', 'char_code', 'from_char',
+    'append', 'prepend', 'insert', 'remove', 'discard', 'pop', 'sort', 'sorted',
+    'reverse', 'reversed', 'slice', 'concat', 'unique', 'flatten', 'index_of',
+    'has', 'list', 'keys', 'values', 'items', 'get', 'set', 'update', 'range',
+    'enumerate', 'zip', 'map', 'each', 'filter', 'reduce', 'find_item', 'count',
+    'any', 'all', 'json_encode', 'json_decode', 'to_json', 'from_json',
+    'PI', 'E', 'TAU'
+  ]);
+
+  const OPENERS = /^(if|elif|else|while|for|repeat|fun|class|try|catch|match|case|default)\b/;
+
+  let errorLineNo = 0;
+  let toastTimer = null;
+  let scrollTop = 0;
+  let scrollLeft = 0;
+  let frame = 0;
+
+  /* ---------- helpers ---------- */
+
+  function escapeHtml(text) {
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
+  function isDigit(ch) {
+    const c = ch.charCodeAt(0);
+    return (ch >= '0' && ch <= '9') ||
+      (c >= 0x06f0 && c <= 0x06f9) ||
+      (c >= 0x0660 && c <= 0x0669);
+  }
+
+  const ID_START = /[A-Za-z_\p{L}]/u;
+  const ID_PART = /[A-Za-z0-9_\p{L}\p{N}\p{Mn}\p{Mc}]/u;
+
+  function isIdStart(ch) { return ID_START.test(ch); }
+  function isIdPart(ch) { return ID_PART.test(ch); }
+
+  function lineStarts(text) {
+    const starts = [0];
+    for (let i = 0; i < text.length; i += 1) {
+      if (text[i] === '\n') starts.push(i + 1);
+    }
+    return starts;
+  }
+
+  /* ---------- syntax highlighting ---------- */
+
+  function span(cls, text) {
+    return '<span class="' + cls + '">' + escapeHtml(text) + '</span>';
+  }
+
+  function highlightString(text, i) {
+    const raw = (text[i] === 'r' || text[i] === 'R') &&
+      (text[i + 1] === '"' || text[i + 1] === "'");
+    const qIndex = raw ? i + 1 : i;
+    const quote = text[qIndex];
+    const triple = text.slice(qIndex, qIndex + 3) === quote + quote + quote;
+    let j = qIndex + (triple ? 3 : 1);
+    let closed = false;
+
+    while (j < text.length) {
+      const ch = text[j];
+      if (!raw && ch === '\\') { j += 2; continue; }
+      if (triple) {
+        if (text.slice(j, j + 3) === quote + quote + quote) { j += 3; closed = true; break; }
+        j += 1;
+        continue;
+      }
+      if (ch === quote) { j += 1; closed = true; break; }
+      if (ch === '\n') break;
+      j += 1;
+    }
+
+    const end = closed ? j : j;
+    const prefix = text.slice(i, qIndex + (triple ? 3 : 1));
+    const inner = text.slice(qIndex + (triple ? 3 : 1), closed ? end - (triple ? 3 : 1) : end);
+    const suffix = closed ? text.slice(end - (triple ? 3 : 1), end) : '';
+
+    let html = span('tok-raw', prefix);
+
+    if (raw || triple) {
+      html += span(raw ? 'tok-raw' : 'tok-str', inner);
+    } else {
+      let p = 0;
+      let buffer = '';
+      while (p < inner.length) {
+        const ch = inner[p];
+        if (ch === '\\') {
+          buffer += ch + (inner[p + 1] || '');
+          p += 2;
+          continue;
+        }
+        if (ch === '{') {
+          let depth = 1;
+          let q = null;
+          let k = p + 1;
+          while (k < inner.length) {
+            const c = inner[k];
+            if (c === '\\') { k += 2; continue; }
+            if (q) {
+              if (c === q) q = null;
+              k += 1;
+              continue;
+            }
+            if (c === '"' || c === "'") { q = c; k += 1; continue; }
+            if (c === '{') depth += 1;
+            else if (c === '}') { depth -= 1; if (depth === 0) break; }
+            k += 1;
+          }
+          if (depth === 0) {
+            if (buffer) { html += span('tok-str', buffer); buffer = ''; }
+            html += span('tok-interp', inner.slice(p, k + 1));
+            p = k + 1;
+            continue;
+          }
+        }
+        buffer += ch;
+        p += 1;
+      }
+      if (buffer) html += span('tok-str', buffer);
+    }
+
+    html += span('tok-raw', suffix);
+    return { html: html, end: end };
+  }
+
+  function highlight(text) {
+    let html = '';
+    let i = 0;
+    const n = text.length;
+    let prevWord = '';
+
+    while (i < n) {
+      const ch = text[i];
+
+      if (ch === '#') {
+        let j = i;
+        while (j < n && text[j] !== '\n') j += 1;
+        html += span('tok-com', text.slice(i, j));
+        i = j;
+        continue;
+      }
+
+      if ((ch === 'r' || ch === 'R') && (text[i + 1] === '"' || text[i + 1] === "'")) {
+        const r = highlightString(text, i);
+        html += r.html;
+        i = r.end;
+        prevWord = '';
+        continue;
+      }
+
+      if (ch === '"' || ch === "'") {
+        const r = highlightString(text, i);
+        html += r.html;
+        i = r.end;
+        prevWord = '';
+        continue;
+      }
+
+      if (isDigit(ch)) {
+        let j = i;
+        let dot = false;
+        while (j < n) {
+          const c = text[j];
+          if (isDigit(c)) { j += 1; continue; }
+          if (c === '.' && !dot && isDigit(text[j + 1] || '')) { dot = true; j += 1; continue; }
+          break;
+        }
+        html += span('tok-num', text.slice(i, j));
+        i = j;
+        prevWord = '';
+        continue;
+      }
+
+      if (isIdStart(ch)) {
+        let j = i + 1;
+        while (j < n && isIdPart(text[j])) j += 1;
+        const word = text.slice(i, j);
+        let k = j;
+        while (k < n && (text[k] === ' ' || text[k] === '\t')) k += 1;
+
+        if (prevWord === 'class' || prevWord === 'extends' || prevWord === 'new') {
+          html += span('tok-class', word);
+        } else if (KEYWORDS.has(word)) {
+          html += span('tok-kw', word);
+        } else if (BUILTINS.has(word)) {
+          html += span('tok-builtin', word);
+        } else if (text[k] === '(') {
+          html += span('tok-fn', word);
+        } else {
+          html += span('tok-ident', word);
+        }
+
+        prevWord = word;
+        i = j;
+        continue;
+      }
+
+      const three = text.slice(i, i + 3);
+      if (['**=', '//='].indexOf(three) !== -1) {
+        html += span('tok-op', three);
+        i += 3;
+        continue;
+      }
+
+      const two = text.slice(i, i + 2);
+      if (['**', '==', '!=', '<=', '>=', '//', '+=', '-=', '*=', '/=', '%=', '=>'].indexOf(two) !== -1) {
+        html += span('tok-op', two);
+        i += 2;
+        continue;
+      }
+
+      if ('+-*/%=<>'.indexOf(ch) !== -1) {
+        html += span('tok-op', ch);
+        i += 1;
+        prevWord = '';
+        continue;
+      }
+
+      if ('()[]{},.:;'.indexOf(ch) !== -1) {
+        html += span('tok-punc', ch);
+        i += 1;
+        continue;
+      }
+
+      if (ch === '\n') {
+        html += '\n';
+        prevWord = '';
+        i += 1;
+        continue;
+      }
+
+      html += escapeHtml(ch);
+      i += 1;
+    }
+
+    return html;
+  }
+
+  /* ---------- rendering ---------- */
+
+  function refresh() {
+    const text = code.value;
+    const lines = text.split('\n');
+
+    highlightInner.innerHTML = highlight(text);
+    gutterInner.textContent = lines.map(function (_, i) { return i + 1; }).join('\n');
+    updateScroll();
+    updateCursor();
+  }
+
+  function scheduleRefresh() {
+    if (frame) return;
+    frame = requestAnimationFrame(function () {
+      frame = 0;
+      refresh();
+    });
+  }
+
+  function updateScroll(force) {
+    if (force !== -1) {
+      scrollTop = code.scrollTop;
+      scrollLeft = code.scrollLeft;
+    }
+    highlightInner.style.transform = 'translate(' + (-scrollLeft) + 'px,' + (-scrollTop) + 'px)';
+    gutterInner.style.transform = 'translateY(' + (-scrollTop) + 'px)';
+    updateActiveLine();
+  }
+
+  function caretLine() {
+    const before = code.value.slice(0, code.selectionStart);
+    let line = 1;
+    let col = 1;
+    for (let i = 0; i < before.length; i += 1) {
+      if (before[i] === '\n') { line += 1; col = 1; }
+      else col += 1;
+    }
+    return { line: line, col: col };
+  }
+
+  function updateCursor() {
+    const p = caretLine();
+    cursorPos.textContent = 'Line ' + p.line + ', Col ' + p.col;
+    activeLine.style.transform = 'translateY(' + (PAD_Y + (p.line - 1) * LH - scrollTop) + 'px)';
+  }
+
+  function updateActiveLine() {
+    const p = caretLine();
+    activeLine.style.transform = 'translateY(' + (PAD_Y + (p.line - 1) * LH - scrollTop) + 'px)';
+  }
+
+  function placeErrorLine(lineNo) {
+    if (!lineNo) {
+      errorLine.style.display = 'none';
+      return;
+    }
+    errorLine.style.display = 'block';
+    errorLine.style.transform = 'translateY(' + (PAD_Y + (lineNo - 1) * LH - scrollTop) + 'px)';
+  }
+
+  function goToLine(lineNo) {
+    const starts = lineStarts(code.value);
+    const idx = Math.max(0, Math.min(lineNo - 1, starts.length - 1));
+    code.focus();
+    code.setSelectionRange(starts[idx], starts[idx]);
+    const target = Math.max(0, (idx - 3) * LH);
+    code.scrollTop = target;
+    updateScroll();
+    placeErrorLine(errorLineNo);
+  }
+
+  /* ---------- status & toast ---------- */
+
+  function setStatus(text, kind) {
+    statusMsg.textContent = text;
+    statusMsg.className = kind || '';
+  }
+
+  function showToast(text) {
+    toastText.textContent = text;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 1900);
+  }
+
+  /* ---------- run ---------- */
+
+  function clearConsole() {
+    consoleEl.innerHTML = '';
+    consoleEmpty.hidden = false;
+    statsEl.innerHTML = '';
+  }
+
+  function addLine(text) {
+    const div = document.createElement('div');
+    div.className = 'out-line';
+    div.textContent = text;
+    consoleEl.appendChild(div);
+    return div;
+  }
+
+  function addMuted(text, bad) {
+    const div = document.createElement('div');
+    div.className = 'run-muted' + (bad ? ' bad' : '');
+    div.textContent = text;
+    consoleEl.appendChild(div);
+    return div;
+  }
+
+  function showError(err) {
+    const card = document.createElement('div');
+    card.className = 'error-card';
+
+    const head = document.createElement('div');
+    head.className = 'error-head';
+
+    const badge = document.createElement('span');
+    badge.className = 'err-badge';
+    badge.textContent = 'error';
+
+    const kind = document.createElement('span');
+    kind.className = 'err-kind';
+    const lineText = err.line ? ' · line ' + err.line : '';
+    kind.textContent = (err.kind === 'syntax' ? 'syntax' : 'runtime') + lineText;
+
+    head.appendChild(badge);
+    head.appendChild(kind);
+    card.appendChild(head);
+
+    const msg = document.createElement('div');
+    msg.className = 'error-msg';
+    msg.textContent = err.message || String(err);
+    card.appendChild(msg);
+
+    if (err.hint) {
+      const hint = document.createElement('div');
+      hint.className = 'error-hint';
+      hint.textContent = 'Hint: ' + err.hint;
+      card.appendChild(hint);
+    }
+
+    if (err.line) {
+      const lines = code.value.split('\n');
+      const text = lines[err.line - 1];
+      if (text !== undefined) {
+        const pre = document.createElement('pre');
+        pre.className = 'err-code';
+        pre.textContent = String(err.line).padStart(3, ' ') + ' | ' + text;
+        pre.style.cursor = 'pointer';
+        pre.title = 'Click to jump to this line';
+        pre.addEventListener('click', function () { goToLine(err.line); });
+        card.appendChild(pre);
+      }
+      errorLineNo = err.line;
+      placeErrorLine(err.line);
+      goToLine(err.line);
+    }
+
+    consoleEl.appendChild(card);
+  }
+
+  async function runProgram() {
+    if (btnRun.classList.contains('is-running')) return;
+
+    if (!window.AzLang) {
+      clearConsole();
+      consoleEmpty.hidden = true;
+      addMuted('The AzLang runtime (azlang.js) did not load.', true);
+      return;
+    }
+
+    btnRun.classList.add('is-running');
+    setStatus('Running...', '');
+    errorLineNo = 0;
+    placeErrorLine(0);
+    clearConsole();
+    consoleEmpty.hidden = true;
+    addMuted('\u25B6 ' + fileNameEl.textContent);
+    statsEl.textContent = '';
+
+    saveSoon(true);
+
+    try {
+      const result = window.AzLang.run(code.value, {
+        onOutput: function (line) {
+          addLine(line);
+          if (consoleEl.childElementCount > 4000) {
+            addMuted('Output truncated...', true);
+            throw new Error('__truncated__');
+          }
+        },
+        ask: function (question) {
+          const answer = window.prompt(question || 'Input:');
+          if (answer === null) {
+            addMuted('(input cancelled)', true);
+            return '';
+          }
+          addMuted('\u203A ' + (question ? question + ' ' : '') + answer);
+          return answer;
+        }
+      });
+
+      statsEl.innerHTML = '<span class="ok-dot"></span>' + result.ms + ' ms \u00B7 ' + result.steps + ' steps';
+      setStatus('Finished in ' + result.ms + ' ms', 'good');
+    } catch (err) {
+      if (err && err.message === '__truncated__') {
+        setStatus('Output is too long', 'bad');
+      } else if (err && err.name === 'AzError') {
+        showError(err);
+        statsEl.textContent = 'error';
+        setStatus('Error on line ' + (err.line || '?'), 'bad');
+      } else {
+        showError({ message: String(err && err.message ? err.message : err), kind: 'runtime', line: 0 });
+        statsEl.textContent = 'error';
+        setStatus('Something went wrong', 'bad');
+        if (window.console) console.error(err);
+      }
+    } finally {
+      btnRun.classList.remove('is-running');
+      consoleEl.scrollTop = consoleEl.scrollHeight;
+      placeErrorLine(errorLineNo);
+    }
+  }
+
+  /* ---------- files ---------- */
+
+  function saveSoon(immediate) {
+    try {
+      localStorage.setItem(STORE_CODE, code.value);
+      localStorage.setItem(STORE_NAME, fileNameEl.textContent);
+      if (immediate) return;
+    } catch (e) { /* storage may be unavailable */ }
+  }
+
+  function download() {
+    const name = (fileNameEl.textContent || 'main.az').replace(/[\\/:*?"<>|]/g, '-');
+    const blob = new Blob([code.value], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = /\.az$/i.test(name) ? name : name + '.az';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+    showToast('Saved ' + a.download);
+    setStatus('Saved ' + a.download, 'good');
+  }
+
+  function openFile(file) {
+    const reader = new FileReader();
+    reader.onload = function () {
+      code.value = String(reader.result || '').replace(/\r\n/g, '\n');
+      fileNameEl.textContent = file.name;
+      errorLineNo = 0;
+      placeErrorLine(0);
+      saveSoon();
+      refresh();
+      code.focus();
+      showToast('Opened ' + file.name);
+      setStatus('Opened ' + file.name, 'good');
+    };
+    reader.readAsText(file, 'utf-8');
+  }
+
+  function newFile() {
+    if (code.value.trim() && !window.confirm('Start a new file? The current code will be replaced.')) return;
+    code.value = STARTER;
+    fileNameEl.textContent = 'main.az';
+    errorLineNo = 0;
+    placeErrorLine(0);
+    saveSoon();
+    refresh();
+    code.focus();
+    setStatus('New file', '');
+  }
+
+  /* ---------- examples ---------- */
+
+  function openExamples() {
+    examplesGrid.innerHTML = '';
+    const list = window.AZ_EXAMPLES || [];
+
+    if (!list.length) {
+      examplesGrid.innerHTML = '<p style="color:var(--dim);font-size:12px">No examples found.</p>';
+    }
+
+    list.forEach(function (example) {
+      const card = document.createElement('button');
+      card.type = 'button';
+      card.className = 'example-card';
+
+      const top = document.createElement('div');
+      top.className = 'example-top';
+
+      const icon = document.createElement('span');
+      icon.className = 'example-icon';
+      icon.textContent = example.icon || '\u25A0';
+
+      const title = document.createElement('span');
+      title.className = 'example-title';
+      title.textContent = example.title;
+
+      top.appendChild(icon);
+      top.appendChild(title);
+
+      const desc = document.createElement('div');
+      desc.className = 'example-desc';
+      desc.textContent = example.desc;
+
+      const tag = document.createElement('span');
+      tag.className = 'example-tag';
+      tag.textContent = example.tag || 'Example';
+
+      card.appendChild(top);
+      card.appendChild(desc);
+      card.appendChild(tag);
+
+      card.addEventListener('click', function () {
+        code.value = example.code;
+        fileNameEl.textContent = example.id + '.az';
+        errorLineNo = 0;
+        placeErrorLine(0);
+        closeExamples();
+        saveSoon();
+        refresh();
+        code.focus();
+        setStatus('Loaded ' + example.title, 'good');
+        showToast('Loaded ' + example.title);
+      });
+
+      examplesGrid.appendChild(card);
+    });
+
+    examplesModal.hidden = false;
+    const first = examplesGrid.querySelector('.example-card');
+    if (first) first.focus();
+  }
+
+  function closeExamples() {
+    examplesModal.hidden = true;
+  }
+
+  /* ---------- layout ---------- */
+
+  function setWidth(percent) {
+    const clamped = Math.max(30, Math.min(78, percent));
+    document.documentElement.style.setProperty('--editor-w', clamped + '%');
+    try { localStorage.setItem(STORE_WIDTH, String(clamped)); } catch (e) { /* ignore */ }
+  }
+
+  let dragging = false;
+
+  splitter.addEventListener('pointerdown', function (e) {
+    dragging = true;
+    splitter.classList.add('dragging');
+    splitter.setPointerCapture(e.pointerId);
+    document.body.classList.add('resizing');
+    e.preventDefault();
+  });
+
+  splitter.addEventListener('pointermove', function (e) {
+    if (!dragging) return;
+    const rect = workspace.getBoundingClientRect();
+    const width = rect.width - 30;
+    setWidth(((e.clientX - rect.left) / width) * 100);
+  });
+
+  function endDrag() {
+    if (!dragging) return;
+    dragging = false;
+    splitter.classList.remove('dragging');
+    document.body.classList.remove('resizing');
+  }
+
+  splitter.addEventListener('pointerup', endDrag);
+  splitter.addEventListener('pointercancel', endDrag);
+
+  /* ---------- editor behavior ---------- */
+
+  function insertText(text) {
+    code.setRangeText(text, code.selectionStart, code.selectionEnd, 'end');
+    scheduleRefresh();
+    saveSoon();
+  }
+
+  code.addEventListener('keydown', function (e) {
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      const start = code.selectionStart;
+      const end = code.selectionEnd;
+      const value = code.value;
+
+      if (start === end) {
+        insertText('  ');
+        return;
+      }
+
+      const firstLine = value.lastIndexOf('\n', start - 1) + 1;
+      const lastLineEnd = value.indexOf('\n', end);
+      const blockEnd = lastLineEnd === -1 ? value.length : lastLineEnd;
+      const block = value.slice(firstLine, blockEnd);
+      const lines = block.split('\n');
+      const changed = lines.map(function (line) {
+        if (e.shiftKey) return line.replace(/^ {1,2}/, '');
+        return line.trim() ? '  ' + line : line;
+      }).join('\n');
+
+      code.setRangeText(changed, firstLine, blockEnd, 'select');
+      scheduleRefresh();
+      saveSoon();
+      return;
+    }
+
+    if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey) {
+      e.preventDefault();
+      const start = code.selectionStart;
+      const before = code.value.slice(0, start);
+      const lineStart = before.lastIndexOf('\n') + 1;
+      const currentLine = before.slice(lineStart);
+      const indentMatch = currentLine.match(/^[ \t]*/);
+      let indent = indentMatch ? indentMatch[0] : '';
+      const trimmed = currentLine.trim();
+
+      if (/^end\b/.test(trimmed)) {
+        indent = indent.slice(0, Math.max(0, indent.length - 2));
+      } else if (OPENERS.test(trimmed)) {
+        indent += '  ';
+      }
+
+      code.setRangeText('\n' + indent, start, code.selectionEnd, 'end');
+      scheduleRefresh();
+      saveSoon();
+      return;
+    }
+
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'Enter' || e.keyCode === 13)) {
+      e.preventDefault();
+      runProgram();
+      return;
+    }
+
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+      e.preventDefault();
+      download();
+      return;
+    }
+
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'o') {
+      e.preventDefault();
+      fileInput.click();
+      return;
+    }
+
+    if (e.key === 'F1') {
+      e.preventDefault();
+      window.open('docs.html', '_blank', 'noopener');
+    }
+  });
+
+  code.addEventListener('input', function () {
+    scheduleRefresh();
+    saveSoon();
+  });
+
+  code.addEventListener('scroll', function () { updateScroll(); });
+  code.addEventListener('click', function () { updateCursor(); });
+  code.addEventListener('keyup', function () { updateCursor(); });
+  code.addEventListener('select', function () { updateCursor(); });
+  code.addEventListener('blur', function () { saveSoon(); });
+
+  /* ---------- wiring ---------- */
+
+  btnRun.addEventListener('click', runProgram);
+
+  document.getElementById('btnExamples').addEventListener('click', openExamples);
+  document.getElementById('btnClearConsole').addEventListener('click', function () {
+    clearConsole();
+    setStatus('Output cleared', '');
+  });
+
+  document.getElementById('btnSave').addEventListener('click', download);
+  document.getElementById('btnOpen').addEventListener('click', function () { fileInput.click(); });
+  document.getElementById('btnNew').addEventListener('click', newFile);
+
+  fileInput.addEventListener('change', function () {
+    if (fileInput.files && fileInput.files[0]) openFile(fileInput.files[0]);
+    fileInput.value = '';
+  });
+
+  examplesModal.addEventListener('click', function (e) {
+    if (e.target.hasAttribute('data-close')) closeExamples();
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && !examplesModal.hidden) closeExamples();
+  });
+
+  window.addEventListener('resize', function () {
+    updateCursor();
+    placeErrorLine(errorLineNo);
+  });
+
+  /* ---------- boot ---------- */
+
+  try {
+    const savedCode = localStorage.getItem(STORE_CODE);
+    const savedName = localStorage.getItem(STORE_NAME);
+    const savedWidth = localStorage.getItem(STORE_WIDTH);
+    if (savedCode && savedCode.trim()) code.value = savedCode;
+    else code.value = STARTER;
+    if (savedName) fileNameEl.textContent = savedName;
+    if (savedWidth) setWidth(parseFloat(savedWidth));
+  } catch (e) {
+    code.value = STARTER;
+  }
+
+  refresh();
+  setStatus('Ready', '');
+})();
+</script>
+</body>
+</html>

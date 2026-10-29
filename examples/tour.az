@@ -1,0 +1,95 @@
+# A quick tour of AzLang
+
+# --- values ---
+let title = "AzLang"
+let version = 2.0
+let stable = true
+let nothing = null
+let colors = ["red", "green", "blue"]
+let scores = {Ada: 95, Grace: 98}
+
+say "{title} {version}"
+say type(title), type(version), type(stable), type(nothing)
+say type(colors), type(scores), type(x => x)
+
+# --- conditions ---
+if version >= 2.0
+  say "Modern version"
+elif version >= 1.0
+  say "Classic version"
+else
+  say "Old version"
+end
+
+# --- loops ---
+for i in range(1, 4)
+  say "Step {i}"
+end
+
+let total = 0
+for value in [10, 20, 30]
+  total += value
+end
+say "Total: {total}"
+
+# --- functions and lambdas ---
+fun greet(name, punctuation = "!")
+  return "Hello, " + name + punctuation
+end
+
+say greet("Ada")
+say greet("Grace", "?")
+
+let square = x => x * x
+say "Squares: {map(range(1, 6), square)}"
+
+# --- collections ---
+append(colors, "black")
+prepend(colors, "white")
+say colors
+say "Even numbers: {filter(range(10), n => n % 2 == 0)}"
+
+scores["Linus"] = 99
+for name, score in scores
+  say "{name}: {score}"
+end
+
+# --- classes ---
+class Greeter
+  fun init(name)
+    this.name = name
+  end
+
+  fun greet()
+    return "Hi, " + this.name + "!"
+  end
+end
+
+let greeter = new Greeter("world")
+say greeter.greet()
+
+# --- match ---
+fun size(n)
+  match n
+    case 0
+      return "zero"
+    case 1, 2, 3
+      return "small"
+    case _
+      return "large"
+  end
+end
+say size(2), size(100)
+
+# --- exceptions ---
+try
+  throw {message: "Something went wrong", code: 42}
+catch problem
+  say "Caught: {problem.message} (code {problem.code})"
+end
+
+# --- raw strings ---
+let data = json_decode(r'{"language": "AzLang", "year": 2026}')
+say data.language, data.year
+
+say "Tour complete."

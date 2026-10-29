@@ -1,0 +1,44 @@
+# Word frequency counter
+# Demonstrates maps, string functions, lambdas, and manual sorting.
+
+let text = "the quick brown fox jumps over the lazy dog the fox is quick"
+
+let counts = {}
+for word in split(lower(text))
+  if has(counts, word)
+    counts[word] += 1
+  else
+    counts[word] = 1
+  end
+end
+
+# Turn the map into [word, count] pairs
+let pairs = items(counts)
+
+# Sort by count, largest first (a simple bubble sort)
+fun sort_by_count(list)
+  repeat len(list)
+    for i in range(len(list) - 1)
+      if list[i][1] < list[i + 1][1]
+        let temp = list[i]
+        list[i] = list[i + 1]
+        list[i + 1] = temp
+      end
+    end
+  end
+  return list
+end
+
+sort_by_count(pairs)
+
+say "Top words:"
+for pair in slice(pairs, 0, 5)
+  say "{pair[0]}: {pair[1]}"
+end
+
+say "Unique words: {len(pairs)}"
+say "Total words: {len(split(text))}"
+
+# Find words that appear more than once
+let repeated = filter(keys(counts), word => counts[word] > 1)
+say "Repeated: {join(sort(repeated), ', ')}"

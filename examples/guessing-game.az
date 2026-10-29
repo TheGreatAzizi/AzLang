@@ -1,0 +1,41 @@
+# Number guessing game
+# The computer picks a number; you try to find it.
+
+let secret = random(1, 100)
+let attempts = 0
+let max_attempts = 7
+let won = false
+
+say "I am thinking of a number between 1 and 100."
+say "You have {max_attempts} attempts."
+
+while attempts < max_attempts
+  attempts += 1
+  let raw = trim(input("Guess #{attempts}: "))
+
+  if raw == ""
+    say "No input received. Goodbye!"
+    break
+  end
+
+  try
+    let guess = num(raw)
+  catch problem
+    say "That is not a number. Try again."
+    continue
+  end
+
+  if guess < secret
+    say "Higher!"
+  elif guess > secret
+    say "Lower!"
+  else
+    say "Correct! You found it in {attempts} attempts."
+    won = true
+    break
+  end
+end
+
+if not won
+  say "Out of attempts. The number was {secret}."
+end

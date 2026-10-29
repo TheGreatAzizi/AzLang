@@ -1,0 +1,31 @@
+# Fibonacci numbers, with a cache for speed
+
+let cache = {0: 0, 1: 1}
+
+fun fib(n)
+  if has(cache, n)
+    return cache[n]
+  end
+  let value = fib(n - 1) + fib(n - 2)
+  cache[n] = value
+  return value
+end
+
+say "The first 15 Fibonacci numbers:"
+for i in range(15)
+  say "fib({i}) = {fib(i)}"
+end
+
+# An iterative version, for comparison
+fun fib_fast(n)
+  let a = 0
+  let b = 1
+  repeat n
+    let next = a + b
+    a = b
+    b = next
+  end
+  return a
+end
+
+say "fib_fast(50) = {fib_fast(50)}"

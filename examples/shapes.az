@@ -1,0 +1,77 @@
+# Shapes: inheritance, super, and polymorphism
+
+class Shape
+  fun init(name)
+    this.name = name
+  end
+
+  fun area()
+    return 0
+  end
+
+  fun describe()
+    return "{this.name} with area {round(this.area(), 2)}"
+  end
+end
+
+class Circle extends Shape
+  fun init(radius)
+    super("Circle")
+    this.radius = radius
+  end
+
+  fun area()
+    return PI * this.radius ** 2
+  end
+end
+
+class Rectangle extends Shape
+  fun init(width, height)
+    super("Rectangle")
+    this.width = width
+    this.height = height
+  end
+
+  fun area()
+    return this.width * this.height
+  end
+end
+
+class Triangle extends Shape
+  fun init(base, height)
+    super("Triangle")
+    this.base = base
+    this.height = height
+  end
+
+  fun area()
+    return this.base * this.height / 2
+  end
+end
+
+let shapes = [
+  new Circle(2),
+  new Rectangle(3, 4),
+  new Triangle(6, 5)
+]
+
+for shape in shapes
+  say shape.describe()
+end
+
+let total = 0
+for shape in shapes
+  total += shape.area()
+end
+say "Combined area: {round(total, 2)}"
+
+# Find the largest shape
+fun larger(a, b)
+  if a.area() >= b.area()
+    return a
+  end
+  return b
+end
+
+let largest = reduce(shapes, larger)
+say "Largest: {largest.describe()}"

@@ -1,0 +1,57 @@
+# A tiny bank: classes, validation, and exception handling
+
+class Account
+  fun init(owner, balance = 0)
+    this.owner = owner
+    this.balance = balance
+    this.history = []
+  end
+
+  fun deposit(amount)
+    if amount <= 0
+      throw {message: "Deposit must be positive", code: "bad_amount"}
+    end
+    this.balance += amount
+    append(this.history, "deposit " + str(amount))
+    return this.balance
+  end
+
+  fun withdraw(amount)
+    if amount <= 0
+      throw {message: "Withdrawal must be positive", code: "bad_amount"}
+    end
+    if amount > this.balance
+      throw {message: "Not enough funds", code: "no_funds", balance: this.balance}
+    end
+    this.balance -= amount
+    append(this.history, "withdraw " + str(amount))
+    return this.balance
+  end
+
+  fun summary()
+    return "{this.owner}: {this.balance}"
+  end
+end
+
+let account = new Account("Ada", 100)
+say account.summary()
+
+account.deposit(50)
+say "After deposit: {account.balance}"
+
+try
+  account.withdraw(500)
+catch problem
+  say "Failed: {problem.message}"
+  say "Available: {problem.balance}"
+end
+
+try
+  account.deposit(-10)
+catch problem
+  say "Failed: {problem.message} ({problem.code})"
+end
+
+account.withdraw(30)
+say account.summary()
+say "Operations: {len(account.history)}"
