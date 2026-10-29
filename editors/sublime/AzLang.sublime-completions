@@ -1,0 +1,29 @@
+{
+  "scope": "source.azlang",
+
+  "completions": [
+    "let ${1:name} = ${2:value}",
+    "say ${1:value}",
+    "if ${1:condition}",
+    "elif ${1:condition}",
+    "else",
+    "end",
+    "for ${1:item} in ${2:items}",
+    "while ${1:condition}",
+    "repeat ${1:3}",
+    "fun ${1:name}(${2:args})",
+    "return ${1:value}",
+    "class ${1:Name}",
+    "extends ${1:Parent}",
+    "try",
+    "catch ${1:problem}",
+    "throw ${1:message}",
+    "match ${1:value}",
+    "case ${1:pattern}",
+    "true",
+    "false",
+    "null",
+    "this",
+    "super"
+  ]
+}

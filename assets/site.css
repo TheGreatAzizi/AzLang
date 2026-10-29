@@ -631,6 +631,94 @@
   .err-hint { margin-top: 7px; font-size: 11.5px; color: var(--gold); }
   .err-hint b { font-weight: 700; }
 
+  /* ---------- downloads ---------- */
+  #download { scroll-margin-top: 90px; }
+  .download-grid {
+    display: grid;
+    grid-template-columns: 1.15fr 1fr 1fr;
+    gap: 16px;
+    align-items: stretch;
+  }
+  .download-card {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    position: relative;
+    padding: 26px;
+    border-radius: 18px;
+    border: 1px solid var(--line);
+    background: linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.012));
+    overflow: hidden;
+  }
+  .download-card.primary {
+    border-color: rgba(124, 92, 255, .42);
+    background:
+      radial-gradient(520px 260px at 90% -10%, rgba(124,92,255,.3), transparent 65%),
+      linear-gradient(180deg, rgba(124,92,255,.12), rgba(255,255,255,.018));
+    box-shadow: 0 24px 60px -40px rgba(124,92,255,.9);
+  }
+  .download-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .dl-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    color: #c8bcff;
+    background: rgba(124,92,255,.16);
+    border: 1px solid rgba(124,92,255,.28);
+  }
+  .dl-icon .ic { width: 19px; height: 19px; }
+  .dl-badge {
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: .5px;
+    text-transform: uppercase;
+    color: #8fe6d3;
+    background: rgba(33,212,180,.09);
+    border: 1px solid rgba(33,212,180,.22);
+    padding: 4px 8px;
+    border-radius: 999px;
+  }
+  .dl-badge.alt {
+    color: #c8bcff;
+    background: rgba(124,92,255,.1);
+    border-color: rgba(124,92,255,.25);
+  }
+  .download-card h3 { margin: 0; font-size: 20px; letter-spacing: -.4px; }
+  .download-card p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.75; }
+  .dl-list { list-style: none; display: grid; gap: 8px; margin: 0; padding: 0; }
+  .dl-list li { display: flex; align-items: flex-start; gap: 8px; font-size: 12px; color: #c2cee7; line-height: 1.55; }
+  .dl-list .ic { width: 13px; height: 13px; flex: none; margin-top: 3px; color: var(--teal); }
+  .dl-list code { font: 11px var(--mono); color: #e3eaf9; background: rgba(255,255,255,.05); padding: 1px 4px; border-radius: 4px; }
+  .download-card .btn { width: 100%; margin-top: auto; }
+  .dl-meta { font-size: 10.5px; color: var(--dim); text-align: center; }
+  .editor-pills { display: flex; flex-wrap: wrap; gap: 5px; }
+  .editor-pills span {
+    font-size: 10px;
+    color: #c2cee7;
+    background: rgba(255,255,255,.04);
+    border: 1px solid var(--line);
+    padding: 3px 7px;
+    border-radius: 999px;
+  }
+  .dl-link { font-size: 11.5px; color: var(--teal); text-align: center; }
+  .dl-link:hover { text-decoration: underline; }
+  .download-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 18px;
+    margin-top: 18px;
+    padding: 0 4px;
+    color: var(--dim);
+    font-size: 11.5px;
+  }
+  .download-foot span { display: inline-flex; align-items: center; gap: 6px; }
+  .download-foot .ic { width: 13px; height: 13px; color: var(--teal); }
+  .download-foot a { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; color: var(--text); }
+  .download-foot a .ic { color: var(--teal); }
+
   /* ---------- getting started ---------- */
   .start {
     position: relative;
@@ -755,6 +843,8 @@
     .showcase-code { border-right: 0; border-bottom: 1px solid var(--line); }
     .errors-split { grid-template-columns: 1fr; gap: 30px; }
     .start { grid-template-columns: 1fr; padding: 40px 34px 36px; gap: 30px; }
+    .download-grid { grid-template-columns: 1fr 1fr; }
+    .download-card.primary { grid-column: 1 / -1; }
   }
 
   @media (max-width: 780px) {
@@ -767,6 +857,9 @@
     .floating-tag { right: 8px; bottom: -14px; }
     .strip-inner { justify-content: flex-start; gap: 12px; }
     .strip .label { width: 100%; }
+    .download-grid { grid-template-columns: 1fr; }
+    .download-card.primary { grid-column: auto; }
+    .download-foot a { margin-left: 0; }
   }
 
   @media (max-width: 560px) {
@@ -779,6 +872,7 @@
     .stat:last-child { border-bottom: 0; }
     .showcase-code, .card-code { font-size: 11.5px; padding: 18px 16px; }
     .start { padding: 32px 22px 26px; border-radius: 18px; }
+    .download-card { padding: 22px 20px; border-radius: 15px; }
     .nav-actions .btn-primary .label { display: none; }
     .footer-links { margin-left: 0; }
     .section-head h2 { letter-spacing: -.7px; }

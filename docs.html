@@ -444,9 +444,33 @@
   .note.danger { border-left-color: var(--danger); background: linear-gradient(180deg, rgba(255,107,129,.07), rgba(255,107,129,.02)); }
   .note.danger .note-title { color: #ff9bab; }
 
+  /* ---------- download actions ---------- */
+  .download-links { display: flex; flex-wrap: wrap; gap: 9px; margin: 16px 0 22px; }
+  .download-links a {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 38px;
+    padding: 0 15px;
+    border-radius: 9px;
+    border: 1px solid var(--line-strong);
+    background: rgba(255,255,255,.035);
+    color: #d7e2f7;
+    font-size: 12.5px;
+    font-weight: 650;
+    text-decoration: none;
+    transition: background .16s, border-color .16s, transform .16s;
+  }
+  .download-links a:hover { background: rgba(255,255,255,.075); border-color: rgba(255,255,255,.24); transform: translateY(-1px); }
+  .download-links a.primary {
+    border-color: transparent;
+    color: #fff;
+    background: linear-gradient(135deg, #7c5cff, #6f5efc 48%, #a84dff);
+    box-shadow: 0 14px 32px -18px rgba(124,92,255,.95);
+  }
+
   /* ---------- tables ---------- */
-  .table-wrap { margin: 18px 0 22px; overflow-x: auto; border: 1px solid var(--line); border-radius: 11px; }
-  table { width: 100%; border-collapse: collapse; font-size: 12.7px; min-width: 460px; }
+  .table-wrap { margin: 18px 0 22px; overflow-x: auto; border: 1px solid var(--line); border-radius: 11px; }  table { width: 100%; border-collapse: collapse; font-size: 12.7px; min-width: 460px; }
   th {
     text-align: left;
     padding: 9px 13px;
@@ -596,7 +620,7 @@
 
   @media (max-width: 760px) {
     .main { padding: calc(var(--header) + 28px) 18px 90px; }
-    .doc-hero h1 { letter-spacing: -1.2px; }
+    .doc-hero h1 { font-size: 38px; letter-spacing: -1.2px; }
     .doc-hero p { font-size: 15px; }
     h2 { font-size: 25px; }
     h3 { font-size: 17.5px; }
@@ -615,6 +639,7 @@
   @media (max-width: 440px) {
     .brand-name { font-size: 15px; }
     .main { padding-left: 14px; padding-right: 14px; }
+    .doc-hero h1 { font-size: 31px; letter-spacing: -1px; }
   }
 
   @media print {
@@ -631,7 +656,7 @@
   }
 </style>
 </head>
-<body>
+<body id="top">
 <div class="backdrop"></div>
 
 <header>
@@ -663,6 +688,7 @@
       <a href="#install">Install &amp; run</a>
       <a href="#first-program">Your first program</a>
       <a href="#cli">Command line</a>
+      <a href="#editors">Editors &amp; IDEs</a>
     </div>
 
     <div class="nav-group">
@@ -721,7 +747,8 @@
       </p>
       <div class="hero-meta">
         <span class="meta-chip"><code>.az</code> source files</span>
-        <span class="meta-chip">Node.js 18+ · Browser</span>
+        <span class="meta-chip">Windows installer &middot; Browser</span>
+        <span class="meta-chip">Editor integrations</span>
         <span class="meta-chip">Zero dependencies</span>
         <span class="meta-chip">English diagnostics</span>
       </div>
@@ -788,26 +815,84 @@
     <article class="doc-section" id="install">
       <h2>Install &amp; run</h2>
       <p>
-        AzLang has no package manager, no compiler, and no configuration files. It is a
-        single JavaScript file, <code>azlang.js</code>, plus the HTML pages for the Studio
-        and this guide.
+        AzLang runs in the browser, from a terminal, and as a desktop app. On Windows,
+        the installer puts the <code>azlang</code> command, AzLang Studio, the docs,
+        examples, and a Node.js runtime in one place. The language itself still has zero
+        npm dependencies and no build step.
+      </p>
+
+      <h3>Windows installer (recommended)</h3>
+      <p>
+        Download the latest Setup file from
+        <a href="https://github.com/TheGreatAzizi/AzLang/releases/latest">GitHub Releases</a>.
+        It installs for the current user, so no administrator rights are required.
+      </p>
+      <div class="download-links">
+        <a class="primary" href="https://github.com/TheGreatAzizi/AzLang/releases/latest/download/AzLang-2.0.0-Setup.exe">Download Setup.exe</a>
+        <a href="https://github.com/TheGreatAzizi/AzLang/releases/latest/download/AzLang-2.0.0-windows-x64-portable.zip">Portable ZIP</a>
+        <a href="https://github.com/TheGreatAzizi/AzLang/releases/latest">All releases</a>
+      </div>
+      <ul>
+        <li>Installs to <code>%LOCALAPPDATA%\Programs\AzLang</code> by default.</li>
+        <li>Adds <code>azlang</code> to your user <code>PATH</code>; open a new terminal after setup.</li>
+        <li>Creates Start Menu and desktop shortcuts, associates <code>.az</code> files, and registers an uninstaller in <strong>Settings &gt; Apps</strong>.</li>
+        <li>Includes its own Node.js runtime, so nothing else needs to be installed.</li>
+      </ul>
+      <p>Run a file, a snippet, or the interactive shell:</p>
+      <pre class="az-code" data-file="Windows PowerShell" data-lang="PowerShell"><code>azlang examples\hello.az
+azlang -e "say 6 * 7"
+azlang --check examples\tour.az
+azlang</code></pre>
+      <p>
+        To uninstall, open <strong>Settings &gt; Apps &gt; AzLang &gt; Uninstall</strong>
+        or run <code>uninstall.exe</code> in the installation folder. Your autosaved
+        Studio code is kept.
+      </p>
+
+      <h3>Browser Studio</h3>
+      <p>
+        Open <a href="ide.html">AzLang Studio</a> in any modern browser. It needs no
+        installation and works offline once the page is loaded. It includes the same
+        examples, syntax highlighting, output panel, terminal, command palette, search,
+        and autosave as the desktop Studio.
+      </p>
+
+      <h3>Manual installation</h3>
+      <p>
+        For other platforms or a source checkout, download or clone the repository and
+        run the runtime with Node.js 18 or newer. No npm packages are used.
+      </p>
+      <pre class="az-code" data-file="terminal" data-lang="Shell"><code>node azlang.js examples/hello.az
+node azlang.js -e "say 6 * 7"
+node azlang.js --check examples/tour.az
+node azlang.js</code></pre>
+      <p>
+        The portable ZIP contains the same files as the installed copy. Unzip it and
+        run <code>bin\AzLangStudio.exe</code> or <code>bin\azlang.exe</code>; it does
+        not change PATH, file associations, or the registry.
       </p>
 
       <h3>Requirements</h3>
-      <ul>
-        <li><strong>Browser:</strong> any modern browser (Chrome, Edge, Firefox, Safari).</li>
-        <li><strong>Command line:</strong> Node.js 18 or newer. No npm packages are used.</li>
-        <li><strong>Files:</strong> save source code as UTF-8. The extension is <code>.az</code>.</li>
-      </ul>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Setup</th><th>Requires</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td>Windows installer</td><td>Windows 10 or 11, x64</td><td>Per-user install. No administrator rights. Includes Node.js.</td></tr>
+            <tr><td>Portable ZIP</td><td>Windows 10 or 11, x64</td><td>No installer and no registry changes.</td></tr>
+            <tr><td>Browser Studio</td><td>Chrome, Edge, Firefox, or Safari</td><td>No installation and no Node.js.</td></tr>
+            <tr><td>Manual CLI</td><td>Node.js 18 or newer</td><td>Run <code>node azlang.js</code> from a checkout or download.</td></tr>
+          </tbody>
+        </table>
+      </div>
 
       <h3>Three ways to run a program</h3>
       <div class="table-wrap">
         <table>
           <thead><tr><th>Way</th><th>How</th><th>Best for</th></tr></thead>
           <tbody>
-            <tr><td>AzLang Studio</td><td>Open <code>ide.html</code>, write code, press <kbd>Ctrl</kbd> + <kbd>Enter</kbd></td><td>Learning, quick experiments, sharing a screen</td></tr>
-            <tr><td>Command line</td><td><code>node azlang.js examples/hello.az</code></td><td>Real files, scripts, automation</td></tr>
-            <tr><td>Interactive shell</td><td><code>node azlang.js</code></td><td>Trying one line at a time</td></tr>
+            <tr><td>AzLang Studio</td><td>Open the installed app or <code>ide.html</code>, write code, press <kbd>Ctrl</kbd> + <kbd>Enter</kbd></td><td>Learning, quick experiments, sharing a screen</td></tr>
+            <tr><td>Installed command line</td><td><code>azlang examples\hello.az</code></td><td>Real files, scripts, automation</td></tr>
+            <tr><td>Manual command line</td><td><code>node azlang.js examples/hello.az</code></td><td>Source checkouts and other platforms</td></tr>
           </tbody>
         </table>
       </div>
@@ -818,15 +903,16 @@
           <thead><tr><th>File</th><th>Purpose</th></tr></thead>
           <tbody>
             <tr><td><code>azlang.js</code></td><td>The complete language: lexer, parser, interpreter, built-ins, and CLI.</td></tr>
-            <tr><td><code>ide.html</code></td><td>AzLang Studio — the browser editor and runner.</td></tr>
-            <tr><td><code>index.html</code></td><td>The introduction site.</td></tr>
+            <tr><td><code>ide.html</code></td><td>AzLang Studio, the browser editor and runner.</td></tr>
+            <tr><td><code>index.html</code></td><td>The introduction site, generated from <code>site/site.az</code>.</td></tr>
             <tr><td><code>docs.html</code></td><td>This guide.</td></tr>
             <tr><td><code>examples/</code></td><td>Eight ready-to-run programs.</td></tr>
             <tr><td><code>tests.js</code></td><td>Test suite: <code>node tests.js</code>.</td></tr>
-            <tr><td><code>examples.js</code></td><td>Generated bundle used by the Studio.</td></tr>
-            <tr><td><code>build-examples.js</code></td><td>Regenerates <code>examples.js</code> from <code>examples/</code>.</td></tr>
+            <tr><td><code>packaging/</code></td><td>Windows launchers, installer, uninstaller, icon, and release helpers.</td></tr>
+            <tr><td><code>editors/</code></td><td>VS Code, TextMate, Sublime Text, Vim, Neovim, and JetBrains integrations.</td></tr>
+            <tr><td><code>build-release.js</code></td><td>Builds Setup, portable ZIP, VSIX, editors ZIP, and checksums.</td></tr>
+            <tr><td><code>.github/workflows/release.yml</code></td><td>Tag-triggered Windows release workflow.</td></tr>
             <tr><td><code>server.js</code></td><td>Optional local web server: <code>node server.js</code>.</td></tr>
-            <tr><td><code>azlang.bat</code>, <code>IDE.bat</code></td><td>Windows shortcuts for the CLI and the Studio.</td></tr>
           </tbody>
         </table>
       </div>
@@ -839,7 +925,7 @@
 
       <div class="note">
         <span class="note-title">No internet required</span>
-        <p>There are no CDNs, web fonts, or external scripts. Once the files are on your computer, the whole project works offline.</p>
+        <p>There are no CDNs, web fonts, or external scripts. The installed copy includes the runtime, Studio, docs, and examples; the browser pages work offline once loaded.</p>
       </div>
     </article>
 
@@ -856,7 +942,7 @@ say "Hello, world!"
 let name = "Ada"
 say "Welcome, {name}!"</code></pre>
 
-      <p>Run it with <code>node azlang.js hello.az</code>, or paste it into the Studio. The output is:</p>
+      <p>Run it with <code>azlang hello.az</code> (or <code>node azlang.js hello.az</code> from a checkout), or paste it into the Studio. The output is:</p>
 
       <pre class="az-code" data-file="output" data-lang="Output"><code>Hello, world!
 Welcome, Ada!</code></pre>
@@ -893,29 +979,33 @@ end</code></pre>
          ============================================================ -->
     <article class="doc-section" id="cli">
       <h2>Command line</h2>
-      <p>The CLI is part of <code>azlang.js</code>. Its general form is:</p>
+      <p>
+        If you installed AzLang for Windows, the <code>azlang</code> command is on your
+        <code>PATH</code>. A source checkout uses <code>node azlang.js</code>. Both forms
+        accept the same arguments.
+      </p>
 
-      <pre class="az-code" data-file="terminal" data-lang="Shell"><code>node azlang.js &lt;file.az&gt;
-node azlang.js
-node azlang.js -e "say 6 * 7"
-node azlang.js --check &lt;file.az&gt;</code></pre>
+      <pre class="az-code" data-file="terminal" data-lang="Shell"><code>azlang &lt;file.az&gt;
+azlang
+azlang -e "say 6 * 7"
+azlang --check &lt;file.az&gt;</code></pre>
 
       <div class="table-wrap">
         <table>
           <thead><tr><th>Command</th><th>What it does</th></tr></thead>
           <tbody>
-            <tr><td><code>node azlang.js file.az</code></td><td>Runs a program. Exit code is <code>0</code> on success and <code>1</code> on an error.</td></tr>
-            <tr><td><code>node azlang.js</code></td><td>Starts the interactive shell (REPL). Variables persist between lines.</td></tr>
-            <tr><td><code>node azlang.js -e "code"</code></td><td>Runs a snippet directly. Useful for one-liners.</td></tr>
-            <tr><td><code>node azlang.js --check file.az</code></td><td>Parses the file and reports syntax errors without running anything.</td></tr>
-            <tr><td><code>node azlang.js -h</code></td><td>Shows help.</td></tr>
-            <tr><td><code>node azlang.js -v</code></td><td>Prints the version.</td></tr>
+            <tr><td><code>azlang file.az</code></td><td>Runs a program. Exit code is <code>0</code> on success and <code>1</code> on an error. From a checkout, use <code>node azlang.js file.az</code>.</td></tr>
+            <tr><td><code>azlang</code></td><td>Starts the interactive shell (REPL). Variables persist between lines.</td></tr>
+            <tr><td><code>azlang -e "code"</code></td><td>Runs a snippet directly. Useful for one-liners.</td></tr>
+            <tr><td><code>azlang --check file.az</code></td><td>Parses the file and reports syntax errors without running anything.</td></tr>
+            <tr><td><code>azlang -h</code></td><td>Shows help.</td></tr>
+            <tr><td><code>azlang -v</code></td><td>Prints the version.</td></tr>
           </tbody>
         </table>
       </div>
 
       <h3>The interactive shell</h3>
-      <pre class="az-code" data-file="terminal" data-lang="Shell"><code>$ node azlang.js
+      <pre class="az-code" data-file="terminal" data-lang="Shell"><code>$ azlang
 AzLang 2.0 - type .exit to quit
 az&gt; let x = 6 * 7
 az&gt; say x
@@ -934,7 +1024,7 @@ az&gt; .exit</code></pre>
       </p>
 
       <h3>Checking syntax only</h3>
-      <pre class="az-code" data-file="terminal" data-lang="Shell"><code>$ node azlang.js --check examples/tour.az
+      <pre class="az-code" data-file="terminal" data-lang="Shell"><code>$ azlang --check examples/tour.az
 OK: examples/tour.az (52 top-level statements)</code></pre>
 
       <p>
@@ -945,14 +1035,114 @@ OK: examples/tour.az (52 top-level statements)</code></pre>
 
       <div class="note">
         <span class="note-title">Reading input</span>
-        <p><code>input("Question: ")</code> reads one line from standard input. Programs can be piped: <code>echo 42 | node azlang.js examples/guessing-game.az</code>. At end of input, <code>input</code> returns an empty string.</p>
+        <p><code>input("Question: ")</code> reads one line from standard input. Programs can be piped: <code>echo 42 | azlang examples/guessing-game.az</code>. At end of input, <code>input</code> returns an empty string.</p>
       </div>
 
-      <h3>Windows shortcuts</h3>
+      <h3>Installed copy and portable copy</h3>
       <p>
-        <code>azlang.bat</code> accepts a dragged-and-dropped <code>.az</code> file and runs it.
-        <code>IDE.bat</code> opens the Studio in your default browser. Both are convenience
-        wrappers around the commands above, not separate tools.
+        The installer adds <code>%LOCALAPPDATA%\Programs\AzLang\bin</code> to your user
+        <code>PATH</code> and bundles Node.js, so <code>azlang</code> works in any new
+        terminal. The portable ZIP uses <code>bin\azlang.exe</code> directly. The
+        repository also keeps <code>azlang.bat</code> and <code>IDE.bat</code> as
+        convenience wrappers for a source checkout.
+      </p>
+    </article>
+
+    <!-- ============================================================
+         EDITORS
+         ============================================================ -->
+    <article class="doc-section" id="editors">
+      <h2>Editors &amp; IDEs</h2>
+      <p>
+        AzLang ships language support for the editors people already use. Every release
+        includes a VS Code extension and an editors ZIP with the other integrations.
+        Download them from
+        <a href="https://github.com/TheGreatAzizi/AzLang/releases/latest">GitHub Releases</a>.
+      </p>
+
+      <div class="download-links">
+        <a class="primary" href="https://github.com/TheGreatAzizi/AzLang/releases/latest/download/azlang-2.0.0.vsix">Download VSIX</a>
+        <a href="https://github.com/TheGreatAzizi/AzLang/releases/latest/download/AzLang-2.0.0-editors.zip">All editor files</a>
+        <a href="https://github.com/TheGreatAzizi/AzLang/tree/main/editors">Browse on GitHub</a>
+      </div>
+
+      <h3>VS Code, Cursor, Windsurf, and VSCodium</h3>
+      <p>
+        The extension supports VS Code 1.75 and newer and other VS Code-compatible
+        editors. Install the VSIX from a terminal:
+      </p>
+      <pre class="az-code" data-file="terminal" data-lang="Shell"><code>code --install-extension azlang-2.0.0.vsix</code></pre>
+      <p>
+        Or open the Extensions view, choose
+        <strong>Views and More Actions... &gt; Install from VSIX...</strong>, and select
+        the file.
+      </p>
+      <ul>
+        <li>Syntax highlighting for keywords, classes, functions, strings, interpolation, numbers, Unicode identifiers, and built-ins.</li>
+        <li>Smart indentation, folding, and snippets for functions, classes, loops, <code>try</code>/<code>catch</code>, <code>match</code>, and complete programs.</li>
+        <li><strong>AzLang: Run File</strong> and <strong>AzLang: Run Selection</strong> commands, a status bar Run button, and an editor title-bar button.</li>
+        <li><strong>AzLang: Open AzLang Studio</strong> and <strong>AzLang: Open Documentation</strong> commands.</li>
+      </ul>
+
+      <h3>Keyboard shortcuts</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Action</th><th>Windows / Linux</th><th>macOS</th></tr></thead>
+          <tbody>
+            <tr><td>Run the active file</td><td><kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>R</kbd></td><td><kbd>Cmd</kbd> + <kbd>Alt</kbd> + <kbd>R</kbd></td></tr>
+            <tr><td>Run the selected code</td><td><kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>R</kbd></td><td><kbd>Cmd</kbd> + <kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>R</kbd></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>TextMate</h3>
+      <p>
+        Open <strong>Bundles &gt; Edit Bundles...</strong>, choose
+        <strong>File &gt; Add Bundle...</strong>, and select
+        <code>editors/textmate/AzLang.tmBundle</code>. It provides syntax highlighting
+        and the <code>#</code> line-comment command.
+      </p>
+
+      <h3>Sublime Text</h3>
+      <p>
+        Choose <strong>Preferences &gt; Browse Packages...</strong>, create a folder named
+        <code>AzLang</code>, and copy <code>AzLang.sublime-syntax</code> and
+        <code>AzLang.sublime-completions</code> into it. The editors ZIP includes a
+        build-system example that runs <code>azlang</code>.
+      </p>
+
+      <h3>Vim and Neovim</h3>
+      <p>
+        The <code>editors/vim</code> folder is a Vim runtime package with syntax
+        highlighting, filetype detection, and filetype settings. With vim-plug:
+      </p>
+      <pre class="az-code" data-file="vimrc" data-lang="Vim"><code>Plug 'TheGreatAzizi/AzLang', { 'rtp': 'editors/vim' }</code></pre>
+      <p>
+        For a manual install, copy its <code>syntax</code>, <code>ftdetect</code>, and
+        <code>ftplugin</code> folders into your Vim or Neovim configuration directory.
+        Run a file with <code>:!azlang %</code>.
+      </p>
+
+      <h3>JetBrains IDEs</h3>
+      <p>
+        Install the <strong>TextMate Bundles</strong> plugin, then add
+        <code>editors/textmate/AzLang.tmBundle</code> under
+        <strong>Settings &gt; Editor &gt; TextMate Bundles</strong>. To run programs,
+        create an external tool with <code>azlang</code> as the program and
+        <code>$FilePath$</code> as the argument.
+      </p>
+
+      <h3>Choosing the executable</h3>
+      <p>
+        The extension runs <code>azlang</code> from <code>PATH</code> by default. If the
+        command is not available, set the full path in your editor settings:
+      </p>
+      <pre class="js-code" data-file="settings.json" data-lang="JSON"><code>{
+  "azlang.executablePath": "C:\\Users\\you\\AppData\\Local\\Programs\\AzLang\\bin\\azlang.exe"
+}</code></pre>
+      <p>
+        The <code>azlang.studioUrl</code> and <code>azlang.docsUrl</code> settings change
+        the addresses opened by the Studio and documentation commands.
       </p>
     </article>
 
@@ -2811,7 +3001,7 @@ say raw.items[1], raw.ok</code></pre>
         happen while executing and can be caught with <code>try</code> / <code>catch</code>.
       </p>
 
-      <pre class="az-code" data-file="terminal" data-lang="Shell"><code>$ node azlang.js broken.az
+      <pre class="az-code" data-file="terminal" data-lang="Shell"><code>$ azlang broken.az
 
 error on line 6: Cannot divide by zero
   hint: Check that the divisor is not zero before dividing.
@@ -3011,9 +3201,9 @@ session.execute('say total');       // prints 42</code></pre>
       </div>
 
       <p>Run any of them from the command line:</p>
-      <pre class="az-code" data-file="terminal" data-lang="Shell"><code>node azlang.js examples/hello.az
-node azlang.js examples/tour.az
-node azlang.js examples/fibonacci.az</code></pre>
+      <pre class="az-code" data-file="terminal" data-lang="Shell"><code>azlang examples/hello.az
+azlang examples/tour.az
+azlang examples/fibonacci.az</code></pre>
 
       <h3>Hello, world</h3>
       <pre class="az-code" data-file="examples/hello.az"><code># Hello, world!
@@ -3205,6 +3395,13 @@ let grand_total = reduce(prices, add_prices, 0)</code></pre>
       <h3>Is there a ternary operator?</h3>
       <p>No. Use an <code>if</code>/<code>else</code> block or a small function. See <a href="#conditions">Conditions</a>.</p>
 
+      <h3>Do I need to install Node.js?</h3>
+      <p>
+        No on Windows. The installer includes its own Node.js runtime, and the browser
+        Studio needs no runtime at all. Install Node.js 18 or newer only when you run
+        <code>node azlang.js</code> from a source checkout on another platform.
+      </p>
+
       <h3>Can I split code across files?</h3>
       <p>There are no imports or modules. A program is one file. For larger projects, organize the file with clear sections, functions, and classes. The embedding API can run separate chunks in one <code>Session</code> if a host application needs that.</p>
 
@@ -3255,7 +3452,11 @@ let grand_total = reduce(prices, add_prices, 0)</code></pre>
         <li>JSON encoding and decoding.</li>
         <li>More than seventy built-in functions, including higher-order helpers.</li>
         <li>English diagnostics with hints and “did you mean?” suggestions.</li>
-        <li>New Studio IDE, introduction site, and complete documentation.</li>
+        <li>Redesigned VS Code-style Studio with explorer, tabs, search, command palette, terminal, minimap, and autosave.</li>
+        <li>Windows Setup and portable builds with a bundled Node.js runtime, PATH support, <code>.az</code> association, and per-user uninstall.</li>
+        <li>Installable VS Code extension for VS Code, Cursor, Windsurf, and VSCodium, plus TextMate, Sublime Text, Vim, Neovim, and JetBrains support.</li>
+        <li>Automated GitHub Releases with installers, editor archives, and SHA-256 checksums.</li>
+        <li>Introduction site and complete documentation, generated from AzLang sources.</li>
         <li>131 automated tests and eight example programs.</li>
       </ul>
 
@@ -3280,6 +3481,8 @@ let grand_total = reduce(prices, add_prices, 0)</code></pre>
         <span class="grow"></span>
         <a href="index.html">Home</a>
         <a href="ide.html">Studio</a>
+        <a href="docs.html#editors">Editors</a>
+        <a href="https://github.com/TheGreatAzizi/AzLang/releases/latest">Releases</a>
         <a href="azlang.js">Runtime source</a>
         <a href="#top">Back to top ↑</a>
       </div>

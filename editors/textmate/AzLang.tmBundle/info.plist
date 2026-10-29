@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>name</key>
+  <string>AzLang</string>
+  <key>uuid</key>
+  <string>6F3A1E42-8D7B-4C55-9A0E-2B6D4F8C1A73</string>
+  <key>description</key>
+  <string>AzLang syntax highlighting, comments, and Editor support.</string>
+  <key>mainMenu</key>
+  <dict>
+    <key>items</key>
+    <array>
+      <string>AzLang</string>
+    </array>
+  </dict>
+</dict>
+</plist>

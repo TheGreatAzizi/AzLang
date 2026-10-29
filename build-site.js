@@ -7,6 +7,13 @@ const path = require('path');
 const az = require('./azlang.js');
 
 const root = __dirname;
+const runtime = fs.readFileSync(path.join(root, 'azlang.js'), 'utf8');
+const versionMatch = /var VERSION = '([^']+)'/.exec(runtime);
+if (!versionMatch) {
+  console.error('build-site: could not find VERSION in azlang.js');
+  process.exit(1);
+}
+const version = versionMatch[1];
 const source = fs
   .readFileSync(path.join(root, 'site', 'site.az'), 'utf8')
   .replace(/\r\n?/g, '\n');
@@ -19,7 +26,10 @@ const result = az.run(source, {
   maxSteps: 20000000
 });
 
-let html = chunks.join('\n').replace(/\r\n/g, '\n');
+let html = chunks
+  .join('\n')
+  .replace(/\r\n/g, '\n')
+  .replace(/\{\{VERSION\}\}/g, version);
 
 if (!/^<!DOCTYPE html>/.test(html) || !/<\/html>\s*$/.test(html)) {
   console.error('site/site.az did not produce a complete HTML document.');

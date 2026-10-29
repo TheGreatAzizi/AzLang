@@ -274,7 +274,7 @@
   const copyBtn = document.getElementById('copyCmd');
   const copyLabel = document.getElementById('copyLabel');
   copyBtn.addEventListener('click', function () {
-    const text = 'node azlang.js examples/hello.az';
+    const text = 'azlang examples/hello.az';
     function done() {
       copyLabel.textContent = 'Copied!';
       setTimeout(function () { copyLabel.textContent = 'Copy command'; }, 1600);

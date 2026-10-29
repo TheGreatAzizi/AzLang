@@ -1,0 +1,107 @@
+{
+  "Function": {
+    "prefix": "fun",
+    "body": [
+      "fun ${1:name}(${2:args})",
+      "  ${3:return ${4:null}}",
+      "end"
+    ],
+    "description": "Define a function"
+  },
+  "If / else": {
+    "prefix": "if",
+    "body": [
+      "if ${1:condition}",
+      "  ${2:say \"yes\"}",
+      "else",
+      "  ${3:say \"no\"}",
+      "end"
+    ],
+    "description": "If / else block"
+  },
+  "For loop": {
+    "prefix": "for",
+    "body": [
+      "for ${1:item} in ${2:items}",
+      "  ${3:say item}",
+      "end"
+    ],
+    "description": "Loop through a list or map"
+  },
+  "While loop": {
+    "prefix": "while",
+    "body": [
+      "while ${1:condition}",
+      "  ${2:# body}",
+      "end"
+    ],
+    "description": "While loop"
+  },
+  "Repeat": {
+    "prefix": "repeat",
+    "body": [
+      "repeat ${1:3}",
+      "  ${2:say \"again\"}",
+      "end"
+    ],
+    "description": "Repeat a block a fixed number of times"
+  },
+  "Class": {
+    "prefix": "class",
+    "body": [
+      "class ${1:Name}${2: extends Parent}",
+      "  fun init(${3:args})",
+      "    ${4:this.value = value}",
+      "  end",
+      "",
+      "  fun ${5:method}()",
+      "    return ${6:this.value}",
+      "  end",
+      "end"
+    ],
+    "description": "Define a class"
+  },
+  "Try / catch": {
+    "prefix": "try",
+    "body": [
+      "try",
+      "  ${1:risky()}",
+      "catch ${2:problem}",
+      "  say \"Error: {${2:problem}.message}\"",
+      "end"
+    ],
+    "description": "Recover from a runtime error"
+  },
+  "Match": {
+    "prefix": "match",
+    "body": [
+      "match ${1:value}",
+      "  case ${2:expected}",
+      "    ${3:say \"matched\"}",
+      "  case _",
+      "    ${4:say \"anything else\"}",
+      "end"
+    ],
+    "description": "Pattern matching block"
+  },
+  "Say with interpolation": {
+    "prefix": "sayf",
+    "body": [
+      "say \"${1:Hello}, {${2:name}}!\""
+    ],
+    "description": "Print a string with an interpolated value"
+  },
+  "Main program": {
+    "prefix": "azmain",
+    "body": [
+      "# ${1:Description}",
+      "",
+      "fun main()",
+      "  ${2:say \"Hello, world!\"}",
+      "end",
+      "",
+      "main()"
+    ],
+    "description": "A complete starter program"
+  }
+}

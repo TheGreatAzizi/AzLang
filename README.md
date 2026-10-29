@@ -7,6 +7,8 @@ AzLang is a friendly, Python-like programming language designed for people who w
 - **Website:** <https://thegreatazizi.github.io/AzLang/>
 - **Studio (browser IDE):** <https://thegreatazizi.github.io/AzLang/ide.html>
 - **Documentation:** <https://thegreatazizi.github.io/AzLang/docs.html>
+- **Downloads:** <https://github.com/TheGreatAzizi/AzLang/releases/latest>
+- **Editor support:** [editors/](editors/)
 
 ```az
 class Greeter
@@ -30,6 +32,51 @@ Hello, Grace!
 Hello, Linus!
 ```
 
+## Install
+
+### Windows installer (recommended)
+
+Download `AzLang-2.0.0-Setup.exe` from the
+[latest release](https://github.com/TheGreatAzizi/AzLang/releases/latest) and run
+it. Setup installs for the current user, so no administrator rights are required.
+
+The installer adds:
+
+- `azlang.exe` on your user `PATH`, so the command works in any new terminal.
+- AzLang Studio, with Start Menu and desktop shortcuts.
+- The documentation, all eight examples, and a bundled Node.js runtime.
+- A `.az` file association and an entry in **Settings > Apps > Uninstall**.
+
+The default location is `%LOCALAPPDATA%\Programs\AzLang`. Uninstall from
+**Settings > Apps > AzLang**, or run `uninstall.exe` in that folder. Your
+autosaved Studio code is kept.
+
+### Portable ZIP
+
+Download `AzLang-2.0.0-windows-x64-portable.zip`, unzip it anywhere, and run
+`bin\AzLangStudio.exe` or `bin\azlang.exe`. It does not change PATH, file
+associations, or the registry.
+
+Every release also includes `SHA256SUMS.txt`. Verify a download with:
+
+```powershell
+Get-FileHash .\AzLang-2.0.0-Setup.exe -Algorithm SHA256
+```
+
+### Browser
+
+Open the [AzLang Studio](https://thegreatazizi.github.io/AzLang/ide.html) and
+press <kbd>Ctrl</kbd> + <kbd>Enter</kbd>. No installation and no Node.js
+required.
+
+### Manual
+
+For another platform or a source checkout, install Node.js 18 or newer and run:
+
+```bash
+node azlang.js examples/hello.az
+```
+
 ## Why AzLang
 
 - **Learnable in an afternoon.** One keyword per idea, blocks that close with `end`, no semicolons, no braces around blocks.
@@ -47,34 +94,28 @@ Open the [AzLang Studio](https://thegreatazizi.github.io/AzLang/ide.html), write
 
 ### From the command line
 
-Requires Node.js 18 or newer. There are no npm packages.
+After installing on Windows, use the `azlang` command in a new terminal:
+
+```bash
+azlang examples\hello.az
+azlang
+azlang -e "say 6 * 7"
+azlang --check examples\tour.az
+```
+
+From a source checkout, use `node azlang.js` instead. Node.js 18 or newer is
+required, and there are no npm packages.
 
 ```bash
 node azlang.js examples/hello.az
 ```
 
-Start the interactive shell:
-
-```bash
-node azlang.js
-```
-
-Run a snippet:
-
-```bash
-node azlang.js -e "say 6 * 7"
-```
-
-Check syntax without running anything:
-
-```bash
-node azlang.js --check examples/tour.az
-```
-
 ### From Windows Explorer
 
-- Double-click `IDE.bat` to open the Studio.
-- Drag a `.az` file onto `azlang.bat` to run it.
+- Installed: double-click any `.az` file, or open **AzLang Studio** from the
+  Start Menu or desktop.
+- Source checkout: double-click `IDE.bat` to open the Studio, or drag a `.az`
+  file onto `azlang.bat` to run it.
 
 ### Preview the website locally
 
@@ -177,16 +218,44 @@ say user.name
 
 ## Command line
 
+The installed `azlang` command and `node azlang.js` from a checkout accept the
+same arguments.
+
 | Command | What it does |
 | --- | --- |
-| `node azlang.js file.az` | Run a program. Exit code is `0` on success and `1` on error. |
-| `node azlang.js` | Start the interactive shell (REPL). Variables persist between lines. |
-| `node azlang.js -e "code"` | Run a snippet directly. |
-| `node azlang.js --check file.az` | Parse a file and report syntax errors without running it. |
-| `node azlang.js -h` | Show help. |
-| `node azlang.js -v` | Print the version. |
+| `azlang file.az` | Run a program. Exit code is `0` on success and `1` on error. |
+| `azlang` | Start the interactive shell (REPL). Variables persist between lines. |
+| `azlang -e "code"` | Run a snippet directly. |
+| `azlang --check file.az` | Parse a file and report syntax errors without running it. |
+| `azlang -h` | Show help. |
+| `azlang -v` | Print the version. |
 
-Set `AZLANG_VERBOSE=1` to print timing and interpreter step counts after a run.
+From a source checkout, replace `azlang` with `node azlang.js`. Set
+`AZLANG_VERBOSE=1` to print timing and interpreter step counts after a run.
+
+## Editors and IDEs
+
+Every release includes language support for the editors people already use.
+All integrations are dependency-free and share the same grammar.
+
+| Editor | What you get |
+| --- | --- |
+| VS Code, Cursor, Windsurf, VSCodium | VSIX extension with syntax highlighting, snippets, Run commands, status bar action, and shortcuts. |
+| TextMate | `AzLang.tmBundle` with syntax highlighting and `#` comments. |
+| Sublime Text | `.sublime-syntax`, completions, and a build-system example. |
+| Vim and Neovim | Syntax highlighting, filetype detection, and filetype settings. |
+| JetBrains IDEs | Instructions for importing the TextMate bundle and running files. |
+
+Install the VS Code extension from the latest release:
+
+```bash
+code --install-extension azlang-2.0.0.vsix
+```
+
+The extension provides **AzLang: Run File** (<kbd>Ctrl</kbd> + <kbd>Alt</kbd> +
+<kbd>R</kbd>) and **AzLang: Run Selection** (<kbd>Ctrl</kbd> + <kbd>Alt</kbd> +
+<kbd>Shift</kbd> + <kbd>R</kbd>). See [editors/README.md](editors/README.md) for
+TextMate, Sublime Text, Vim, Neovim, and JetBrains setup.
 
 ## Project structure
 
@@ -206,9 +275,14 @@ Set `AZLANG_VERBOSE=1` to print timing and interpreter step counts after a run.
 | `build-site.js` | Runs `site/site.az` and writes `index.html`. |
 | `build-examples.js` | Regenerates `examples.js` from `examples/`. |
 | `build-pages.js` | Assembles the deployable site in `_site/`. |
+| `build-release.js` | Builds the Windows Setup, portable ZIP, editors ZIP, VSIX, and checksums. |
+| `packaging/` | C# launchers, installer, uninstaller, icon, and release helpers. |
+| `editors/` | VS Code, TextMate, Sublime Text, Vim, Neovim, and JetBrains integrations. |
 | `server.js` | Optional local static server. |
 | `.github/workflows/pages.yml` | Tests, rebuilds, and deploys the site to GitHub Pages. |
-| `azlang.bat`, `IDE.bat` | Windows shortcuts for the CLI and the Studio. |
+| `.github/workflows/release.yml` | Builds and publishes GitHub Releases when a `v*` tag is pushed. |
+| `RELEASE_NOTES.md` | Release body published by the workflow. |
+| `azlang.bat`, `IDE.bat` | Windows shortcuts for a source checkout. |
 
 ## Building
 
@@ -231,6 +305,31 @@ node build-pages.js
 ```
 
 The result is written to `_site/`. It is ignored by Git; the workflow builds it from source on every push.
+
+## Building the Windows release
+
+The release build is dependency-free: it uses the installed `node` and the
+.NET Framework `csc.exe` that ships with Windows, plus a custom ZIP writer.
+
+```bash
+node build-release.js
+```
+
+It validates the version, compiles the launchers, installer, and uninstaller,
+stages the language runtime, Studio, docs, examples, and editors, and writes
+these files to `dist/`:
+
+| File | What it is |
+| --- | --- |
+| `AzLang-2.0.0-Setup.exe` | Per-user Windows installer with a bundled Node.js runtime. |
+| `AzLang-2.0.0-windows-x64-portable.zip` | Portable build; unzip and run. |
+| `AzLang-2.0.0-editors.zip` | TextMate, Sublime Text, Vim, Neovim, and JetBrains files. |
+| `azlang-2.0.0.vsix` | VS Code extension. |
+| `azlang.js` | Standalone runtime. |
+| `SHA256SUMS.txt` | SHA-256 checksums for every artifact. |
+
+Pass `--expect-tag v2.0.0` to fail the build when the tag does not match the
+version in `azlang.js`. The release workflow uses this check.
 
 ## Tests
 
@@ -280,14 +379,32 @@ Persian letters are valid in identifiers, Persian and Arabic-Indic digits are va
 
 ## GitHub Pages
 
-This repository is ready for GitHub Pages. The workflow in `.github/workflows/pages.yml`:
+The site is live at <https://thegreatazizi.github.io/AzLang/>. The workflow in
+`.github/workflows/pages.yml` runs on every push to `main`:
 
 1. runs the test suite,
 2. regenerates `examples.js` and the landing page from `site/site.az`,
 3. assembles the deployable site in `_site/` and uploads it as a Pages artifact,
 4. deploys it with the official GitHub Pages actions.
 
-If Pages is not enabled yet, open **Settings → Pages** in the repository and choose **GitHub Actions** as the source. After the first successful workflow run the site is available at <https://thegreatazizi.github.io/AzLang/>.
+For a fork where Pages is not enabled, open **Settings → Pages** and choose
+**GitHub Actions** as the source.
+
+## Releases
+
+Releases are built on Windows by `.github/workflows/release.yml`. Push a tag
+that matches the version in `azlang.js`:
+
+```bash
+git tag v2.0.0
+git push origin v2.0.0
+```
+
+The workflow runs the tests, regenerates generated files, builds the artifacts
+with `--expect-tag`, verifies every SHA-256 checksum, uploads the build, and
+publishes a GitHub Release with the files in `dist/` and the body from
+`RELEASE_NOTES.md`. A manual `workflow_dispatch` run builds and uploads the same
+artifacts without publishing a release.
 
 ## License
 

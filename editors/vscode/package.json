@@ -1,0 +1,159 @@
+{
+  "name": "azlang",
+  "displayName": "AzLang",
+  "description": "AzLang language support: syntax highlighting, snippets, and Run commands for VS Code, Cursor, Windsurf, and VSCodium.",
+  "version": "2.0.0",
+  "publisher": "thegreatazizi",
+  "license": "MIT",
+  "icon": "icon.png",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Snippets"
+  ],
+  "keywords": [
+    "azlang",
+    "language",
+    "syntax highlighting",
+    "persian"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TheGreatAzizi/AzLang.git"
+  },
+  "bugs": {
+    "url": "https://github.com/TheGreatAzizi/AzLang/issues"
+  },
+  "homepage": "https://thegreatazizi.github.io/AzLang/",
+  "activationEvents": [
+    "onLanguage:azlang",
+    "onCommand:azlang.runFile",
+    "onCommand:azlang.runSelection",
+    "onCommand:azlang.openStudio"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "azlang",
+        "aliases": [
+          "AzLang",
+          "azlang"
+        ],
+        "extensions": [
+          ".az"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "azlang",
+        "scopeName": "source.azlang",
+        "path": "./syntaxes/AzLang.tmLanguage"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "azlang",
+        "path": "./snippets/azlang.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "azlang.runFile",
+        "title": "AzLang: Run File",
+        "category": "AzLang"
+      },
+      {
+        "command": "azlang.runSelection",
+        "title": "AzLang: Run Selection",
+        "category": "AzLang"
+      },
+      {
+        "command": "azlang.openStudio",
+        "title": "AzLang: Open AzLang Studio",
+        "category": "AzLang"
+      },
+      {
+        "command": "azlang.openDocs",
+        "title": "AzLang: Open Documentation",
+        "category": "AzLang"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "azlang.runFile",
+        "key": "ctrl+alt+r",
+        "mac": "cmd+alt+r",
+        "when": "editorLangId == azlang"
+      },
+      {
+        "command": "azlang.runSelection",
+        "key": "ctrl+alt+shift+r",
+        "mac": "cmd+alt+shift+r",
+        "when": "editorLangId == azlang && editorHasSelection"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "azlang.runFile",
+          "when": "resourceLangId == azlang",
+          "group": "navigation@10"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "azlang.runFile",
+          "when": "resourceLangId == azlang",
+          "group": "azlang@1"
+        },
+        {
+          "command": "azlang.runSelection",
+          "when": "editorHasSelection && resourceLangId == azlang",
+          "group": "azlang@2"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "azlang.runFile"
+        },
+        {
+          "command": "azlang.runSelection"
+        },
+        {
+          "command": "azlang.openStudio"
+        },
+        {
+          "command": "azlang.openDocs"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "AzLang",
+      "properties": {
+        "azlang.executablePath": {
+          "type": "string",
+          "default": "azlang",
+          "description": "Path to the azlang executable. The default uses the installed command from PATH."
+        },
+        "azlang.studioUrl": {
+          "type": "string",
+          "default": "https://thegreatazizi.github.io/AzLang/ide.html",
+          "description": "URL opened by the \"AzLang: Open AzLang Studio\" command."
+        },
+        "azlang.docsUrl": {
+          "type": "string",
+          "default": "https://thegreatazizi.github.io/AzLang/docs.html",
+          "description": "URL opened by the \"AzLang: Open Documentation\" command."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "package": "node ../../build-release.js"
+  }
+}

@@ -35,6 +35,8 @@
   <symbol id="i-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></symbol>
   <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m4 12.5 5 5L20 6.5"/></symbol>
   <symbol id="i-grid" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.6"/></symbol>
+  <symbol id="i-windows" viewBox="0 0 24 24" fill="currentColor"><path d="M3 4.3 11 3v8H3V4.3Zm9-1.5 9-1.3v9.5h-9V2.8ZM3 12h8v8l-8-1.3V12Zm9 0h9v9.5l-9-1.3V12Z"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v11M7.5 10.5 12 15l4.5-4.5M4 19.5h16"/></symbol>
 </svg>
 <header id="header">
   <nav class="nav" aria-label="Main">
@@ -45,7 +47,7 @@
     <div class="nav-links">
       <a href="#features">Features</a>
       <a href="#showcase">Showcase</a>
-      <a href="#errors">Errors</a>
+      <a href="#download">Download</a>
       <a href="docs.html">Docs</a>
       <a href="https://github.com/TheGreatAzizi/AzLang" target="_blank" rel="noopener">GitHub</a>
     </div>
@@ -78,19 +80,19 @@
           errors, and pattern matching — without the ceremony.
         </p>
         <div class="hero-actions">
-          <a class="btn btn-primary" href="ide.html">
-            <svg class="ic" aria-hidden="true"><use href="#i-play"/></svg>
-            Start coding now
+          <a class="btn btn-primary" href="https://github.com/TheGreatAzizi/AzLang/releases/latest/download/AzLang-2.0.0-Setup.exe">
+            <svg class="ic" aria-hidden="true"><use href="#i-download"/></svg>
+            Download for Windows
           </a>
-          <a class="btn btn-ghost" href="docs.html">
-            <svg class="ic" aria-hidden="true"><use href="#i-book"/></svg>
-            Read the docs
+          <a class="btn btn-ghost" href="ide.html">
+            <svg class="ic" aria-hidden="true"><use href="#i-play"/></svg>
+            Open Studio
           </a>
         </div>
         <div class="hero-note">
-          <span><span class="dot"></span>Runs in your browser</span>
-          <span><span class="dot"></span>No install, no build step</span>
-          <span><span class="dot"></span>English error messages</span>
+          <span><span class="dot"></span>One-click Windows setup</span>
+          <span><span class="dot"></span>CLI, Studio, and .az files</span>
+          <span><span class="dot"></span>Zero dependencies</span>
         </div>
       </div>
 
@@ -167,6 +169,88 @@ end</code></pre>
       </div>
     </div>
   </div>
+
+  <section id="download" class="download-section">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <span class="eyebrow">Get AzLang</span>
+        <h2>Install it like a real language.</h2>
+        <p>
+          One Setup file adds the <code>azlang</code> command, the desktop Studio,
+          complete documentation, examples, and <code>.az</code> file support. No
+          administrator rights and no separate Node.js install.
+        </p>
+      </div>
+
+      <div class="download-grid">
+        <article class="download-card primary reveal">
+          <div class="download-head">
+            <span class="dl-icon"><svg class="ic" aria-hidden="true"><use href="#i-windows"/></svg></span>
+            <span class="dl-badge">Recommended</span>
+          </div>
+          <h3>Windows installer</h3>
+          <p>
+            A normal per-user install with everything ready on first launch. Includes
+            its own Node.js runtime.
+          </p>
+          <ul class="dl-list">
+            <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span><code>azlang</code> on your PATH</span></li>
+            <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span>AzLang Studio and Start Menu shortcuts</span></li>
+            <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span><code>.az</code> file association</span></li>
+            <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span>Docs and examples included offline</span></li>
+          </ul>
+          <a class="btn btn-primary" href="https://github.com/TheGreatAzizi/AzLang/releases/latest/download/AzLang-2.0.0-Setup.exe">
+            <svg class="ic" aria-hidden="true"><use href="#i-download"/></svg>
+            Download Setup.exe
+          </a>
+          <span class="dl-meta">Windows 10/11 &middot; x64 &middot; 35 MB</span>
+        </article>
+
+        <article class="download-card reveal">
+          <div class="download-head">
+            <span class="dl-icon"><svg class="ic" aria-hidden="true"><use href="#i-box"/></svg></span>
+          </div>
+          <h3>Portable ZIP</h3>
+          <p>
+            Unzip anywhere and run the Studio or the command line. Nothing is written
+            to the registry and no shortcuts are created.
+          </p>
+          <a class="btn btn-ghost" href="https://github.com/TheGreatAzizi/AzLang/releases/latest/download/AzLang-2.0.0-windows-x64-portable.zip">
+            <svg class="ic" aria-hidden="true"><use href="#i-download"/></svg>
+            Download portable
+          </a>
+          <span class="dl-meta">No installer &middot; no registry changes</span>
+        </article>
+
+        <article class="download-card reveal">
+          <div class="download-head">
+            <span class="dl-icon"><svg class="ic" aria-hidden="true"><use href="#i-grid"/></svg></span>
+            <span class="dl-badge alt">Editors</span>
+          </div>
+          <h3>Editor support</h3>
+          <p>
+            Syntax highlighting, snippets, and Run commands in the editors you already
+            use.
+          </p>
+          <div class="editor-pills">
+            <span>VS Code</span><span>Cursor</span><span>Windsurf</span><span>VSCodium</span>
+            <span>TextMate</span><span>Sublime Text</span><span>Vim</span><span>Neovim</span><span>JetBrains</span>
+          </div>
+          <a class="btn btn-ghost" href="https://github.com/TheGreatAzizi/AzLang/releases/latest/download/azlang-2.0.0.vsix">
+            <svg class="ic" aria-hidden="true"><use href="#i-download"/></svg>
+            Download VSIX
+          </a>
+          <a class="dl-link" href="https://github.com/TheGreatAzizi/AzLang/releases/latest/download/AzLang-2.0.0-editors.zip">All editor files &rarr;</a>
+        </article>
+      </div>
+
+      <div class="download-foot reveal">
+        <span><svg class="ic" aria-hidden="true"><use href="#i-shield"/></svg> No administrator rights</span>
+        <span><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg> SHA-256 checksums on every release</span>
+        <a href="https://github.com/TheGreatAzizi/AzLang/releases/latest">All releases <svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+      </div>
+    </div>
+  </section>
 
   <section id="features">
     <div class="wrap">
@@ -326,20 +410,20 @@ say "Sum: {total}"
       <div class="start reveal">
         <div>
           <span class="eyebrow">Start now</span>
-          <h2>Your first program is one click away.</h2>
+          <h2>Your first program is one install away.</h2>
           <p>
-            Open the Studio and press Run. Nothing to install, nothing to configure —
-            the whole language runs right in your browser. Prefer the terminal? AzLang
-            is a single JavaScript file.
+            Install AzLang for Windows and the command, Studio, docs, and editor support
+            are ready in one step. Prefer to try it first? The browser Studio needs no
+            installation at all.
           </p>
           <div class="start-actions">
-            <a class="btn btn-primary" href="ide.html">
-              <svg class="ic" aria-hidden="true"><use href="#i-play"/></svg>
-              Open AzLang Studio
+            <a class="btn btn-primary" href="#download">
+              <svg class="ic" aria-hidden="true"><use href="#i-download"/></svg>
+              Get AzLang for Windows
             </a>
-            <a class="btn btn-ghost" href="docs.html">
-              <svg class="ic" aria-hidden="true"><use href="#i-book"/></svg>
-              Language reference
+            <a class="btn btn-ghost" href="ide.html">
+              <svg class="ic" aria-hidden="true"><use href="#i-play"/></svg>
+              Run in the browser
             </a>
           </div>
         </div>
@@ -347,16 +431,16 @@ say "Sum: {total}"
         <div class="terminal">
           <div class="terminal-head">
             <div class="dots"><i></i><i></i><i></i></div>
-            <span>Terminal</span>
-            <span style="margin-left:auto;text-transform:none;letter-spacing:0;color:#50607f">Node.js 18+</span>
+            <span>Windows PowerShell</span>
+            <span style="margin-left:auto;text-transform:none;letter-spacing:0;color:#50607f">Bundled Node.js</span>
           </div>
           <div class="terminal-body" id="terminalBody">
-<div class="cmd"><span class="prompt">$</span> node azlang.js examples/hello.az</div>
+<div class="cmd"><span class="prompt">PS&gt;</span> azlang examples/hello.az</div>
 <div class="res">Hello, world!</div>
 <div class="res">Welcome, friend!</div>
-<div class="cmd"><span class="prompt">$</span> node azlang.js --check examples/tour.az</div>
+<div class="cmd"><span class="prompt">PS&gt;</span> azlang --check examples/tour.az</div>
 <div class="res">OK: examples/tour.az (52 top-level statements)</div>
-<div class="cmd"><span class="prompt">$</span> node azlang.js <span class="cm"># interactive shell</span></div>
+<div class="cmd"><span class="prompt">PS&gt;</span> azlang <span class="cm"># interactive shell</span></div>
 <div class="res">AzLang 2.0 &gt; <span style="color:#d9e4f8">say 6 * 7</span></div>
 <div class="res">42</div>
           </div>
@@ -382,11 +466,12 @@ say "Sum: {total}"
       <span class="footer-note">v2.0 · This page is generated by AzLang</span>
     </div>
     <div class="footer-links">
+      <a href="#download">Download</a>
       <a href="ide.html">Studio</a>
       <a href="docs.html">Documentation</a>
+      <a href="docs.html#editors">Editors</a>
       <a href="docs.html#examples">Examples</a>
-      <a href="azlang.js">Runtime source</a>
-      <a href="site/site.az">Site source</a>
+      <a href="https://github.com/TheGreatAzizi/AzLang/releases/latest" target="_blank" rel="noopener">Releases</a>
       <a href="https://github.com/TheGreatAzizi/AzLang" target="_blank" rel="noopener">GitHub</a>
     </div>
   </div>

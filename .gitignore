@@ -1,6 +1,14 @@
 # Generated Pages artifact
 _site/
 
+# Release build output
+build/
+dist/
+
+# Scratch files
+tmp-*
+*.tmp
+
 # Dependencies (the project itself has none)
 node_modules/
 

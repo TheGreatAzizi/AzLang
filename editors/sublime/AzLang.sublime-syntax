@@ -1,0 +1,157 @@
+%YAML 1.2
+---
+name: AzLang
+file_extensions:
+  - az
+scope: source.azlang
+
+contexts:
+  main:
+    - include: comments
+    - include: strings
+    - include: declarations
+    - include: keywords
+    - include: constants
+    - include: builtins
+    - include: calls
+    - include: numbers
+    - include: operators
+    - include: punctuation
+    - include: identifiers
+
+  comments:
+    - match: '#.*$'
+      scope: comment.line.number-sign.azlang
+
+  strings:
+    - match: '\br"""'
+      scope: string.quoted.triple.raw.azlang
+      push:
+        - meta_scope: string.quoted.triple.raw.azlang
+        - match: '"""'
+          pop: true
+    - match: "\\br'''"
+      scope: string.quoted.triple.raw.azlang
+      push:
+        - meta_scope: string.quoted.triple.raw.azlang
+        - match: "'''"
+          pop: true
+    - match: '"""'
+      scope: punctuation.definition.string.begin.azlang
+      push:
+        - meta_scope: string.quoted.triple.azlang
+        - include: escapes
+        - include: interpolation
+        - match: '"""'
+          scope: punctuation.definition.string.end.azlang
+          pop: true
+    - match: "'''"
+      scope: punctuation.definition.string.begin.azlang
+      push:
+        - meta_scope: string.quoted.triple.azlang
+        - include: escapes
+        - include: interpolation
+        - match: "'''"
+          scope: punctuation.definition.string.end.azlang
+          pop: true
+    - match: '\br"'
+      scope: string.quoted.double.raw.azlang
+      push:
+        - meta_scope: string.quoted.double.raw.azlang
+        - match: '"'
+          pop: true
+    - match: "\\br'"
+      scope: string.quoted.single.raw.azlang
+      push:
+        - meta_scope: string.quoted.single.raw.azlang
+        - match: "'"
+          pop: true
+    - match: '"'
+      scope: punctuation.definition.string.begin.azlang
+      push:
+        - meta_scope: string.quoted.double.azlang
+        - include: escapes
+        - include: interpolation
+        - match: '"'
+          scope: punctuation.definition.string.end.azlang
+          pop: true
+    - match: "'"
+      scope: punctuation.definition.string.begin.azlang
+      push:
+        - meta_scope: string.quoted.single.azlang
+        - include: escapes
+        - include: interpolation
+        - match: "'"
+          scope: punctuation.definition.string.end.azlang
+          pop: true
+
+  escapes:
+    - match: '\\.'
+      scope: constant.character.escape.azlang
+
+  interpolation:
+    - match: '\{'
+      scope: punctuation.section.interpolation.begin.azlang
+      push:
+        - meta_scope: meta.interpolation.azlang
+        - include: keywords
+        - include: constants
+        - include: builtins
+        - include: calls
+        - include: numbers
+        - include: operators
+        - include: identifiers
+        - match: '\}'
+          scope: punctuation.section.interpolation.end.azlang
+          pop: true
+
+  declarations:
+    - match: '\b(class|extends|new)\s+([A-Za-z_\p{L}][A-Za-z0-9_\p{L}\p{N}]*)'
+      captures:
+        1: keyword.other.azlang
+        2: entity.name.type.class.azlang
+    - match: '\b(fun)\s+([A-Za-z_\p{L}][A-Za-z0-9_\p{L}\p{N}]*)'
+      captures:
+        1: keyword.other.azlang
+        2: entity.name.function.azlang
+
+  keywords:
+    - match: '\b(let|const|say|if|elif|else|end|while|for|in|repeat|break|continue|fun|return|class|extends|new|try|catch|throw|match|case|default)\b'
+      scope: keyword.control.azlang
+    - match: '\b(and|or|not)\b'
+      scope: keyword.operator.word.azlang
+
+  constants:
+    - match: '\b(true|false)\b'
+      scope: constant.language.boolean.azlang
+    - match: '\bnull\b'
+      scope: constant.language.null.azlang
+    - match: '\b(this|super)\b'
+      scope: variable.language.azlang
+    - match: '\b(PI|E|TAU)\b'
+      scope: support.constant.azlang
+
+  builtins:
+    - match: '\b(len|type|str|num|int|bool|assert|fail|clock|input|abs|floor|ceil|round|sqrt|pow|log|min|max|sum|avg|clamp|random|random_float|choice|upper|lower|trim|starts|ends|find|replace|split|join|chars|char_code|from_char|append|prepend|insert|remove|discard|pop|sort|sorted|reverse|reversed|slice|concat|unique|flatten|index_of|has|list|keys|values|items|get|set|update|range|enumerate|zip|map|each|filter|reduce|find_item|count|any|all|json_encode|json_decode|to_json|from_json)\b'
+      scope: support.function.builtin.azlang
+
+  calls:
+    - match: '\b([A-Za-z_\p{L}][A-Za-z0-9_\p{L}\p{N}]*)\s*(?=\()'
+      captures:
+        1: entity.name.function.azlang
+
+  numbers:
+    - match: '\b[0-9۰-۹٠-٩]+(?:\.[0-9۰-۹٠-٩]+)?\b'
+      scope: constant.numeric.azlang
+
+  operators:
+    - match: '\*\*=|//=|\*\*|==|!=|<=|>=|//|=>|\+=|-=|\*=|/=|%=|[+\-*/%=<>!]'
+      scope: keyword.operator.azlang
+
+  punctuation:
+    - match: '[(){}\[\],.:;]'
+      scope: punctuation.azlang
+
+  identifiers:
+    - match: '[A-Za-z_\p{L}][A-Za-z0-9_\p{L}\p{N}]*'
+      scope: variable.other.azlang
