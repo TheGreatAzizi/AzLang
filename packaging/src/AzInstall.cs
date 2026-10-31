@@ -19,7 +19,7 @@ internal sealed class InstallOptions
 internal static class AzInstall
 {
     public const string DisplayName = "AzLang";
-    public const string DisplayVersion = "2.0.0";
+    public const string DisplayVersion = "2.1.0";
     public const string Publisher = "TheGreatAzizi";
     public const string Website = "https://github.com/TheGreatAzizi/AzLang";
     public const string UninstallKey = @"Software\Microsoft\Windows\CurrentVersion\Uninstall\AzLang";
@@ -54,7 +54,8 @@ internal static class AzInstall
     public static string RuntimeDirectory(string root) { return Path.Combine(root, "runtime"); }
     public static string StudioDirectory(string root) { return Path.Combine(root, "studio"); }
     public static string CliExe(string root) { return Path.Combine(BinDirectory(root), "azlang.exe"); }
-    public static string StudioExe(string root) { return Path.Combine(BinDirectory(root), "AzLangStudio.exe"); }
+    public static string StudioLauncher(string root) { return Path.Combine(StudioDirectory(root), "AzLang Studio.vbs"); }
+    public static string StudioServer(string root) { return Path.Combine(StudioDirectory(root), "studio-server.js"); }
     public static string UninstallerExe(string root) { return Path.Combine(root, "uninstall.exe"); }
     public static string StudioPage(string root) { return Path.Combine(StudioDirectory(root), "ide.html"); }
     public static string DocsPage(string root) { return Path.Combine(StudioDirectory(root), "docs.html"); }
@@ -175,16 +176,17 @@ internal static class AzInstall
     public static void CreateShortcuts(string root, bool desktop)
     {
         string cli = CliExe(root);
-        string studio = StudioExe(root);
+        string studio = StudioLauncher(root);
         string docs = DocsPage(root);
         string uninstaller = UninstallerExe(root);
+        string wscript = Path.Combine(Environment.SystemDirectory, "wscript.exe");
 
         string programs = Environment.GetFolderPath(Environment.SpecialFolder.Programs);
         string folder = Path.Combine(programs, "AzLang");
         Directory.CreateDirectory(folder);
 
-        CreateShortcut(Path.Combine(folder, "AzLang Studio.lnk"), studio, "",
-            root, "Open the AzLang Studio editor", cli);
+        CreateShortcut(Path.Combine(folder, "AzLang Studio.lnk"), wscript, AzInstall.Quote(studio),
+            root, "Open the browser-based AzLang Studio", cli);
         CreateShortcut(Path.Combine(folder, "AzLang Documentation.lnk"), docs, "",
             root, "Read the AzLang language guide", cli);
         CreateShortcut(Path.Combine(folder, "AzLang Command Prompt.lnk"),
@@ -197,8 +199,8 @@ internal static class AzInstall
         if (desktop)
         {
             string desktopFolder = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
-            CreateShortcut(Path.Combine(desktopFolder, "AzLang Studio.lnk"), studio, "",
-                root, "Open the AzLang Studio editor", cli);
+            CreateShortcut(Path.Combine(desktopFolder, "AzLang Studio.lnk"), wscript, AzInstall.Quote(studio),
+                root, "Open the browser-based AzLang Studio", cli);
         }
     }
 
@@ -411,7 +413,7 @@ internal static class AzInstall
     {
         using (RegistryKey key = Registry.CurrentUser.CreateSubKey(UninstallKey))
         {
-            key.SetValue("DisplayName", "AzLang 2.0", RegistryValueKind.String);
+            key.SetValue("DisplayName", "AzLang " + DisplayVersion, RegistryValueKind.String);
             key.SetValue("DisplayVersion", DisplayVersion, RegistryValueKind.String);
             key.SetValue("Publisher", Publisher, RegistryValueKind.String);
             key.SetValue("InstallLocation", root, RegistryValueKind.String);

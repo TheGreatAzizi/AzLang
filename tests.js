@@ -3,6 +3,7 @@
  * Run:  node tests.js
  */
 const az = require('./azlang.js');
+const vm = require('vm');
 
 let pass = 0;
 let fail = 0;
@@ -200,6 +201,28 @@ err('uncaught throw', 'throw "boom"', 'Uncaught value');
 err('invalid JSON', 'json_decode(r"{")', 'Invalid JSON');
 err('runaway recursion', 'fun f()\n  return f()\nend\nf()', 'nested function calls');
 
+console.log('\n- strings and collections -');
+eq('string case and trim', 'say strip("  hi  "), capitalize("hELLO"), title("hello world")', 'hi Hello Hello World');
+eq('string padding', 'say pad_left("7", 3, "0"), pad_right("x", 3, "."), center("ab", 6), zfill("-7", 4)', '007 x..   ab   -007');
+eq('string search', 'say count_text("banana", "a"), rfind("banana", "a"), contains("abc", "b"), starts_with("abc", "a"), ends_with("abc", "c")', '3 5 true true true');
+eq('string prefix and suffix', 'say remove_prefix("unhappy", "un"), remove_suffix("file.az", ".az")', 'happy file');
+eq('string lines and words', 'say lines("a\\n\\nb"), words("  one   two  "), reverse_text("abc"), repeat_text("ab", 2)', '["a", "", "b"] ["one", "two"] cba abab');
+eq('string truncate and slice', 'say truncate("abcdef", 5, ".."), substring("abcdef", 1, 4), replace_first("aXaX", "X", "Y")', 'abc.. bcd aYaX');
+eq('string encoding', 'say url_encode("a b&c"), url_decode("a%20b%26c"), base64_decode(base64_encode("سلام")), escape_html("<a>&")', 'a%20b%26c a b&c سلام &lt;a&gt;&amp;');
+
+eq('collection edges', 'say first([]), first([], "none"), last([1, 2]), take([1, 2, 3], 2), drop([1, 2, 3], 2), chunk([1, 2, 3, 4, 5], 2)', 'null none 2 [1, 2] [3] [[1, 2], [3, 4], [5]]');
+eq('collection cleanup', 'say compact([1, null, 2]), without([1, 2, 1], 1), difference([1, 2, 3], [2]), intersection([1, 2, 3], [2, 3, 4]), union([1, 2], [2, 3])', '[1, 2] [2] [1, 3] [2, 3] [1, 2, 3]');
+eq('map helpers', 'say merge({a: 1}, {b: 2}), has_key({a: 1}, "a"), pick({a: 1, b: 2}, ["a"]), omit({a: 1, b: 2}, ["b"]), from_entries([["x", 1]]), invert({a: "b"})', '{a: 1, b: 2} true {a: 1} {a: 1} {x: 1} {b: "a"}');
+eq('higher-order grouping', 'say flat_map([1, 2], x => [x, x]), find_index([5, 6, 7], x => x == 6), sort_by([{n: 2}, {n: 1}], x => x.n), group_by([1, 2, 3, 4], x => x % 2)', '[1, 1, 2, 2] 1 [{n: 1}, {n: 2}] {"0": [2, 4], "1": [1, 3]}');
+eq('higher-order summaries', 'say count_by(["a", "b", "a"], x => x), index_by([{id: 1}, {id: 2}], x => x.id), min_by([{n: 2}, {n: 1}], x => x.n), max_by([{n: 2}, {n: 1}], x => x.n), sum_by([{n: 2}, {n: 3}], x => x.n)', '{a: 2, b: 1} {"1": {id: 1}, "2": {id: 2}} {n: 1} {n: 2} 5');
+eq('partition and map transforms', 'say partition([1, 2, 3, 4], x => x % 2 == 0), map_values({a: 1}, v => v + 1), map_keys({a: 1}, k => upper(k))', '[[2, 4], [1, 3]] {a: 2} {A: 1}');
+
+console.log('\n- null-safe data -');
+eq('type checks', 'say is_null(null), is_missing(null), is_map({}), is_list([]), is_string(""), is_number(1), is_bool(true), is_empty([]), is_empty(null)', 'true true true true true true true true true');
+eq('fallbacks', 'say coalesce(null, null, "x"), fallback(null, 2), or_else("a", "b"), ensure_map(null), ensure_list(null)', 'x 2 a {} []');
+eq('safe paths', 'let d = {user: {name: "Ada", tags: ["x"]}}\nsay get_path(d, "user.name"), get_path(d, "user.age", 0), get_path(d, "user.tags[0]"), has_path(d, "user.tags[0]"), has_path(d, "user.nope")', 'Ada 0 x true false');
+eq('safe paths on wrong types', 'say get_path(null, "a.b"), get_path([1], "x"), get_path("text", "0"), get_path({a: null}, "a.b", "fallback")', 'null null t fallback');
+
 console.log('\n- sessions -');
 const seen = [];
 const session = az.createSession({ onOutput: (s) => seen.push(s) });
@@ -208,8 +231,308 @@ session.execute('x += 2');
 session.execute('say x');
 report(seen.join('') === '42', 'REPL-style variables persist', 'got: ' + JSON.stringify(seen));
 
-console.log('\n' + (fail === 0
-  ? '\u2714 all ' + pass + ' tests passed.'
-  : '\u2718 ' + fail + ' failed, ' + pass + ' passed.') + '\n');
+console.log('\n- async, network, and modules -');
 
-process.exit(fail === 0 ? 0 : 1);
+async function asyncEq(label, code, expected, options) {
+  const out = [];
+  try {
+    await az.runAsync(code, Object.assign({
+      ask: () => 'Ada',
+      onOutput: (s) => out.push(s)
+    }, options || {}));
+  } catch (e) {
+    report(false, label, 'unexpected error: ' + e.message);
+    return;
+  }
+  const got = out.join('\n');
+  report(got === expected, label, 'expected: ' + JSON.stringify(expected) + '  |  got: ' + JSON.stringify(got));
+}
+
+async function asyncErr(label, code, part, options) {
+  try {
+    await az.runAsync(code, Object.assign({ ask: () => '', onOutput: () => {} }, options || {}));
+    report(false, label, 'expected an error, but the program ran');
+  } catch (e) {
+    const haystack = String(e.message || '') + ' ' + String(e.hint || '');
+    report(e instanceof az.AzError && haystack.includes(part), label,
+      'expected error containing ' + JSON.stringify(part) + ', got: ' + e.message);
+  }
+}
+
+(async function runAsyncTests() {
+  const http = require('http');
+  const fs = require('fs');
+  const os = require('os');
+  const path = require('path');
+
+  let flaky = 0;
+  const sockets = new Set();
+  const server = http.createServer(function (req, res) {
+    const url = new URL(req.url, 'http://studio.local');
+    let body = '';
+    req.on('data', function (chunk) { body += chunk; });
+    req.on('end', function () {
+      function json(value, status) {
+        res.writeHead(status || 200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(value));
+      }
+
+      if (url.pathname === '/json') {
+        res.setHeader('X-Test', 'yes');
+        let parsed = null;
+        try { parsed = body ? JSON.parse(body) : null; } catch (e) { /* plain body */ }
+        json({
+          ok: true,
+          method: req.method,
+          path: url.pathname,
+          q: url.searchParams.get('q'),
+          header: req.headers['x-test'] || null,
+          type: req.headers['content-type'] || null,
+          body: body,
+          n: parsed && parsed.n !== undefined ? parsed.n : null
+        });
+        return;
+      }
+      if (url.pathname === '/text') {
+        res.writeHead(200, { 'Content-Type': 'text/plain' });
+        res.end('hello');
+        return;
+      }
+      if (url.pathname === '/gql') {
+        let query = '';
+        try { query = JSON.parse(body).query || ''; } catch (e) { /* ignore */ }
+        if (query.indexOf('fail') !== -1) {
+          json({ errors: [{ message: 'bad field' }], data: null });
+        } else {
+          json({ data: { hello: 'world' } });
+        }
+        return;
+      }
+      if (url.pathname === '/bad') {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end('{oops');
+        return;
+      }
+      if (url.pathname === '/big') {
+        res.writeHead(200, { 'Content-Type': 'text/plain' });
+        res.end('x'.repeat(2000));
+        return;
+      }
+      if (url.pathname === '/missing') {
+        json({ error: 'not found' }, 404);
+        return;
+      }
+      if (url.pathname === '/slow') {
+        return;
+      }
+      if (url.pathname === '/flaky') {
+        flaky += 1;
+        if (flaky < 3) json({ error: 'try again' }, 500);
+        else json({ ok: 1 });
+        return;
+      }
+      if (url.pathname === '/module.az') {
+        res.writeHead(200, { 'Content-Type': 'text/plain' });
+        res.end('export fun add(a, b)\n  return a + b\nend\n');
+        return;
+      }
+      res.writeHead(200, { 'Content-Type': 'text/plain' });
+      res.end('hi');
+    });
+  });
+
+  server.on('connection', function (socket) {
+    sockets.add(socket);
+    socket.on('close', function () { sockets.delete(socket); });
+  });
+
+  await new Promise(function (resolve) { server.listen(0, '127.0.0.1', resolve); });
+  const base = 'http://127.0.0.1:' + server.address().port;
+
+  try {
+    await asyncEq('async function and await', [
+      'async fun double(x)',
+      '  await sleep(5)',
+      '  return x * 2',
+      'end',
+      'say await double(21)',
+      'say await map([1, 2], async x => await double(x))'
+    ].join('\n'), '42\n[2, 4]');
+
+    await asyncEq('async callbacks in collection helpers', [
+      'async fun double(x)',
+      '  await sleep(1)',
+      '  return x * 2',
+      'end',
+      'say await filter([1, 2, 3, 4], async x => (await double(x)) > 4)',
+      'say await reduce([1, 2, 3], async (a, b) => a + b, 0)'
+    ].join('\n'), '[3, 4]\n6');
+
+    await asyncEq('Promise helpers', [
+      'async fun double(x)',
+      '  await sleep(2)',
+      '  return x * 2',
+      'end',
+      'async fun boom()',
+      '  throw {message: "nope"}',
+      'end',
+      'let all = await Promise.all([double(1), double(2)])',
+      'let settled = await Promise.all_settled([double(1), boom()])',
+      'say all',
+      'say settled[0].status, settled[1].status',
+      'say await Promise.race([double(1), sleep(40)])'
+    ].join('\n'), '[2, 4]\nfulfilled rejected\n2');
+
+    await asyncEq('HTTP GET, headers, and query parameters', [
+      'let r = await http_get("' + base + '/json", {headers: {"X-Test": "yes"}, query: {q: "a b"}})',
+      'say r.status, r.ok, r.headers["x-test"], r.json.q, r.json.header'
+    ].join('\n'), '200 true yes a b yes');
+
+    await asyncEq('HTTP JSON body and content type', [
+      'let r = await http_post("' + base + '/json", {name: "Ada", n: 2})',
+      'say r.json.method, r.json.type, response_json(r).n',
+      'say (await http_post_json("' + base + '/json", {n: 7})).n'
+    ].join('\n'), 'POST application/json; charset=utf-8 2\n7');
+
+    await asyncEq('response text and JSON fallback', [
+      'let r = await http_get("' + base + '/text")',
+      'say response_text(r), r.has_json, response_json(r, "fallback")',
+      'let bad = await http_get("' + base + '/bad")',
+      'say bad.has_json, bad.json_error != null, response_json(bad, "fallback")'
+    ].join('\n'), 'hello false fallback\nfalse true fallback');
+
+    await asyncEq('HTTP errors are catchable', [
+      'try',
+      '  let r = await http_get("' + base + '/missing")',
+      '  raise_for_status(r)',
+      'catch e',
+      '  say e.kind, e.status',
+      'end'
+    ].join('\n'), 'http 404');
+
+    await asyncEq('GraphQL data and errors', [
+      'let data = await graphql("' + base + '/gql", r"query { hello }")',
+      'say data.hello',
+      'try',
+      '  await graphql("' + base + '/gql", r"query { fail }")',
+      'catch e',
+      '  say e.kind, e.errors[0].message, e.data',
+      'end'
+    ].join('\n'), 'world\ngraphql bad field null');
+
+    await asyncEq('response size limit', [
+      'try',
+      '  await http_get("' + base + '/big", {max_bytes: 100})',
+      'catch e',
+      '  say e.kind',
+      'end'
+    ].join('\n'), 'limit');
+
+    await asyncErr('request timeout',
+      'await http_get("' + base + '/slow", {timeout_ms: 50})', 'timed out');
+
+    await asyncErr('request count limit',
+      'await http_get("' + base + '/text")\nawait http_get("' + base + '/text")',
+      'Request limit', { maxRequests: 1 });
+
+    await asyncErr('execution time limit',
+      'while true\n  let x = 1\nend', 'time limit', { maxTimeMs: 50 });
+
+    await asyncEq('net namespace and retry', [
+      'import net from "net"',
+      'say net.build_query({a: 1, b: "x y"})',
+      'let r = await net.get("' + base + '/json")',
+      'say net.raise_for_status(r).status',
+      'say (await net.get_json("' + base + '/json")).ok',
+      'say await retry(async i => await http_get_json("' + base + '/flaky"), 4, 5)'
+    ].join('\n'), 'a=1&b=x%20y\n200\ntrue\n{ok: 1}');
+
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'azlang-tests-'));
+    const modulePath = path.join(dir, 'math.az');
+    const mainPath = path.join(dir, 'main.az');
+    fs.writeFileSync(modulePath, [
+      'export fun add(a, b)',
+      '  return a + b',
+      'end',
+      'export const answer = 42',
+      'export default "root"',
+      'export class Point',
+      '  fun init(x)',
+      '    this.x = x',
+      '  end',
+      'end',
+      'let hidden = 1',
+      'fun next()',
+      '  return hidden + 1',
+      'end',
+      'export { next as bump }',
+      ''
+    ].join('\n'));
+    fs.writeFileSync(mainPath, [
+      'import math from "./math.az"',
+      'import { add, answer as n, bump } from "./math.az"',
+      'say math.add(2, 3), add(4, 5), n, math.default, bump()',
+      'let p = new math.Point(7)',
+      'say p.x',
+      ''
+    ].join('\n'));
+
+    await asyncEq('local modules and exports',
+      fs.readFileSync(mainPath, 'utf8'), '5 9 42 root 2\n7', { filename: mainPath });
+
+    await asyncErr('module missing export',
+      'import { nope } from "./math.az"\nsay nope', 'does not export', { filename: mainPath });
+
+    await asyncEq('remote modules over HTTP',
+      'import { add } from "' + base + '/module.az"\nsay add(10, 5)', '15',
+      { filename: base + '/main.az' });
+
+    // A browser has no require or filesystem. Relative imports must resolve
+    // against the page URL, not fail with "no module loader".
+    const browserSandbox = {
+      console: console,
+      fetch: fetch,
+      URL: URL,
+      TextDecoder: TextDecoder,
+      TextEncoder: TextEncoder,
+      AbortController: AbortController,
+      setTimeout: setTimeout,
+      clearTimeout: clearTimeout,
+      document: { baseURI: base + '/ide.html' },
+      location: { protocol: 'http:', href: base + '/ide.html' }
+    };
+    vm.createContext(browserSandbox);
+    vm.runInContext(fs.readFileSync(path.join(__dirname, 'azlang.js'), 'utf8'),
+      browserSandbox, { filename: 'azlang.js' });
+    const browserOutput = [];
+    await browserSandbox.AzLang.runAsync(
+      'import { add } from "./module.az"\nsay add(20, 22)',
+      { onOutput: function (s) { browserOutput.push(s); } }
+    );
+    report(browserOutput.join('\n') === '42', 'browser modules resolve against the page URL',
+      'got: ' + JSON.stringify(browserOutput.join('\n')));
+
+    const seen = [];
+    const session = az.createSession({ onOutput: function (s) { seen.push(s); } });
+    await session.executeAsync('async fun triple(x)\n  return x * 3\nend');
+    await session.executeAsync('say await triple(4)');
+    report(seen.join('\n') === '12', 'async session execution', 'got: ' + JSON.stringify(seen));
+
+    let syncBlocked = false;
+    try {
+      az.run('say await sleep(1)');
+    } catch (e) {
+      syncBlocked = e instanceof az.AzError && /asynchronous/i.test(e.message);
+    }
+    report(syncBlocked, 'sync run rejects async code');
+  } finally {
+    server.close();
+    for (const socket of sockets) socket.destroy();
+  }
+
+  console.log('\n' + (fail === 0
+    ? '\u2714 all ' + pass + ' tests passed.'
+    : '\u2718 ' + fail + ' failed, ' + pass + ' passed.') + '\n');
+
+  process.exit(fail === 0 ? 0 : 1);
+})();

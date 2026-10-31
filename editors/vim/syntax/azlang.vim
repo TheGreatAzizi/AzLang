@@ -11,21 +11,30 @@ syn case match
 
 syn keyword azKeyword let const say if elif else end while for in repeat
 syn keyword azKeyword break continue fun return class extends new try catch
-syn keyword azKeyword throw match case default
+syn keyword azKeyword throw match case default async await import export
 
 syn keyword azBoolean true false
 syn keyword azNull null
 syn keyword azLanguage this super
 syn keyword azWordOperator and or not
-syn keyword azBuiltin len type str num int bool assert fail clock input
-syn keyword azBuiltin abs floor ceil round sqrt pow log min max sum avg clamp
-syn keyword azBuiltin random random_float choice upper lower trim starts ends
-syn keyword azBuiltin find replace split join chars char_code from_char append
-syn keyword azBuiltin prepend insert remove discard pop sort sorted reverse
-syn keyword azBuiltin reversed slice concat unique flatten index_of has list
-syn keyword azBuiltin keys values items get set update range enumerate zip map
-syn keyword azBuiltin each filter reduce find_item count any all json_encode
-syn keyword azBuiltin json_decode to_json from_json
+syn keyword azBuiltin abs all any append assert avg base64_decode base64_encode bool capitalize ceil
+syn keyword azBuiltin center char_code chars choice chunk clamp clock coalesce compact concat
+syn keyword azBuiltin contains count count_by count_text difference discard drop each ends ends_with
+syn keyword azBuiltin ensure_list ensure_map enumerate escape_html fail fallback filter find
+syn keyword azBuiltin find_index find_item first flat_map flatten floor from_char from_entries
+syn keyword azBuiltin from_json get get_in get_path graphql group_by has has_key has_path
+syn keyword azBuiltin http_delete http_get http_get_json http_patch http_post http_post_json
+syn keyword azBuiltin http_put http_request index_by index_of input insert int intersection invert
+syn keyword azBuiltin is_bool is_empty is_function is_list is_map is_missing is_null is_number
+syn keyword azBuiltin is_string items join json_decode json_encode keys last len lines list log
+syn keyword azBuiltin lower lstrip map map_keys map_values max max_by merge min min_by num omit
+syn keyword azBuiltin or_else pad_left pad_right partition pick pop pow prepend raise_for_status
+syn keyword azBuiltin random random_float range reduce remove remove_prefix remove_suffix
+syn keyword azBuiltin repeat_text replace replace_first response_json response_text retry reverse
+syn keyword azBuiltin reverse_text reversed rfind round rstrip set sleep slice sort sort_by sorted
+syn keyword azBuiltin split sqrt starts starts_with str strip substring sum sum_by take title
+syn keyword azBuiltin to_json trim truncate type union unique update upper url_decode url_encode
+syn keyword azBuiltin values without words zfill zip net Promise
 syn keyword azBuiltinConstant PI E TAU
 
 syn match azComment '#.*$' contains=@Spell

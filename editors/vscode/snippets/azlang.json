@@ -8,6 +8,15 @@
     ],
     "description": "Define a function"
   },
+  "Async function": {
+    "prefix": "asyncfun",
+    "body": [
+      "async fun ${1:name}(${2:args})",
+      "  return await ${3:work()}",
+      "end"
+    ],
+    "description": "Define an asynchronous function"
+  },
   "If / else": {
     "prefix": "if",
     "body": [
@@ -90,6 +99,40 @@
       "say \"${1:Hello}, {${2:name}}!\""
     ],
     "description": "Print a string with an interpolated value"
+  },
+  "Import module": {
+    "prefix": "import",
+    "body": [
+      "import ${1:name} from \"${2:./module.az}\""
+    ],
+    "description": "Import a module as a namespace"
+  },
+  "Named import": {
+    "prefix": "importn",
+    "body": [
+      "import { ${1:name} } from \"${2:./module.az}\""
+    ],
+    "description": "Import selected names from a module"
+  },
+  "Export function": {
+    "prefix": "exportfun",
+    "body": [
+      "export fun ${1:name}(${2:args})",
+      "  ${3:return null}",
+      "end"
+    ],
+    "description": "Export a function from a module"
+  },
+  "HTTP request": {
+    "prefix": "http",
+    "body": [
+      "async fun ${1:fetch_data}()",
+      "  let response = await http_get(\"${2:https://example.com/api}\", {timeout_ms: ${3:10000}})",
+      "  raise_for_status(response)",
+      "  return response_json(response)",
+      "end"
+    ],
+    "description": "Fetch and decode a JSON API"
   },
   "Main program": {
     "prefix": "azmain",

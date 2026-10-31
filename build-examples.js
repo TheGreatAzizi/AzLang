@@ -11,7 +11,10 @@ const meta = [
   ['inventory', '📦', 'Inventory', 'Classes, maps, JSON, and errors', 'Classes'],
   ['word-count', '📊', 'Word frequency', 'Strings, maps, and higher-order functions', 'Collections'],
   ['bank', '🏦', 'Bank account', 'Validation, custom errors, and history', 'Exceptions'],
-  ['shapes', '🔷', 'Shapes', 'Inheritance, super, and polymorphism', 'Classes']
+  ['shapes', '🔷', 'Shapes', 'Inheritance, super, and polymorphism', 'Classes'],
+  ['network', '🌐', 'Live API request', 'HTTP, JSON, headers, and error handling', 'Networking'],
+  ['modules', '🧩', 'Modules', 'Import and export reusable code', 'Modules'],
+  ['safe-data', '🛡️', 'Safe data access', 'Missing API fields without crashes', 'Collections']
 ];
 
 const examples = meta.map(function (m) {

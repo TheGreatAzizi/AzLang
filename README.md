@@ -2,7 +2,7 @@
 
 **A small language with serious features.**
 
-AzLang is a friendly, Python-like programming language designed for people who want to learn the real ideas of programming without the ceremony. It has variables, collections, functions, closures, classes, inheritance, exceptions, pattern matching, JSON, and more than seventy built-in functions — all in a single dependency-free JavaScript file that runs in Node.js and in any modern browser.
+AzLang is a friendly, Python-like programming language designed for people who want to learn the real ideas of programming without the ceremony. It has variables, collections, functions, closures, classes, inheritance, exceptions, pattern matching, async/await, modules, HTTP and GraphQL clients, JSON, null-safe data helpers, and more than 130 built-in functions — all in a single dependency-free JavaScript file that runs in Node.js and in any modern browser.
 
 - **Website:** <https://thegreatazizi.github.io/AzLang/>
 - **Studio (browser IDE):** <https://thegreatazizi.github.io/AzLang/ide.html>
@@ -32,19 +32,39 @@ Hello, Grace!
 Hello, Linus!
 ```
 
+Network calls and other slow work use the same straightforward style:
+
+```az
+async fun repo_info(name)
+  let response = await http_get("https://api.github.com/repos/TheGreatAzizi/" + name, {
+    headers: {"User-Agent": "AzLang"},
+    timeout_ms: 10000
+  })
+  raise_for_status(response)
+  let repo = response_json(response)
+  return {
+    name: get_path(repo, "full_name", name),
+    stars: get_path(repo, "stargazers_count", 0)
+  }
+end
+
+let info = await repo_info("AzLang")
+say "{info.name} has {info.stars} stars"
+```
+
 ## Install
 
 ### Windows installer (recommended)
 
-Download `AzLang-2.0.0-Setup.exe` from the
+Download `AzLang-2.1.0-Setup.exe` from the
 [latest release](https://github.com/TheGreatAzizi/AzLang/releases/latest) and run
 it. Setup installs for the current user, so no administrator rights are required.
 
 The installer adds:
 
 - `azlang.exe` on your user `PATH`, so the command works in any new terminal.
-- AzLang Studio, with Start Menu and desktop shortcuts.
-- The documentation, all eight examples, and a bundled Node.js runtime.
+- AzLang Studio, a browser-based IDE started by a small local Node.js process, with Start Menu and desktop shortcuts.
+- The documentation, all eleven examples, and a bundled Node.js runtime.
 - A `.az` file association and an entry in **Settings > Apps > Uninstall**.
 
 The default location is `%LOCALAPPDATA%\Programs\AzLang`. Uninstall from
@@ -53,21 +73,27 @@ autosaved Studio code is kept.
 
 ### Portable ZIP
 
-Download `AzLang-2.0.0-windows-x64-portable.zip`, unzip it anywhere, and run
-`bin\AzLangStudio.exe` or `bin\azlang.exe`. It does not change PATH, file
-associations, or the registry.
+Download `AzLang-2.1.0-windows-x64-portable.zip`, unzip it anywhere, and run
+`studio\AzLang Studio.vbs` or `bin\azlang.exe`. The Studio launcher starts the
+local server and opens your default browser. The portable ZIP does not change
+PATH, file associations, or the registry.
 
 Every release also includes `SHA256SUMS.txt`. Verify a download with:
 
 ```powershell
-Get-FileHash .\AzLang-2.0.0-Setup.exe -Algorithm SHA256
+Get-FileHash .\AzLang-2.1.0-Setup.exe -Algorithm SHA256
 ```
 
 ### Browser
 
 Open the [AzLang Studio](https://thegreatazizi.github.io/AzLang/ide.html) and
-press <kbd>Ctrl</kbd> + <kbd>Enter</kbd>. No installation and no Node.js
-required.
+press <kbd>Ctrl</kbd> + <kbd>Enter</kbd>. The hosted Studio needs no installation.
+
+For a local, installable Studio, run `node studio-server.js` from a checkout (or
+`IDE.bat` on Windows) and open the printed address. The installed and portable
+builds use the same page with a bundled Node.js runtime, so networking and module
+imports work under a normal `http://` origin. Close the browser tabs and the
+local server exits after ten minutes without a heartbeat.
 
 ### Manual
 
@@ -80,10 +106,11 @@ node azlang.js examples/hello.az
 ## Why AzLang
 
 - **Learnable in an afternoon.** One keyword per idea, blocks that close with `end`, no semicolons, no braces around blocks.
-- **Modern where it matters.** Classes, inheritance, `super`, closures, default parameters, arrow lambdas, destructuring loops, and pattern matching.
-- **Batteries included.** Strings, lists, maps, math, sorting, higher-order helpers, random numbers, and JSON.
-- **Errors that teach.** Plain-English messages with line numbers, hints, and “did you mean?” suggestions.
-- **Truly portable.** No packages, no build step, no network access. A text editor and Node.js — or just a browser.
+- **Modern where it matters.** Classes, inheritance, `super`, closures, default parameters, arrow lambdas, destructuring loops, pattern matching, async/await, promises, and modules.
+- **Batteries included.** Strings, lists, maps, math, sorting, higher-order helpers, random numbers, JSON, null-safe path access, HTTP/HTTPS, GraphQL, and a standard `net` library.
+- **Errors that teach.** Plain-English messages with line numbers, hints, and “did you mean?” suggestions. API failures carry status, URL, body, and GraphQL error fields.
+- **Truly portable.** No packages, no build step, no external services. A text editor and Node.js — or just a browser — are enough.
+- **Safe by default.** Execution time, request count, response size, and per-request time are bounded, and can be adjusted per run.
 - **Unicode by design.** Persian text, identifiers, and digits work naturally alongside English.
 
 ## Quick start
@@ -101,6 +128,7 @@ azlang examples\hello.az
 azlang
 azlang -e "say 6 * 7"
 azlang --check examples\tour.az
+azlang --timeout 10000 --max-requests 20 examples\network.az
 ```
 
 From a source checkout, use `node azlang.js` instead. Node.js 18 or newer is
@@ -113,7 +141,8 @@ node azlang.js examples/hello.az
 ### From Windows Explorer
 
 - Installed: double-click any `.az` file, or open **AzLang Studio** from the
-  Start Menu or desktop.
+  Start Menu or desktop. The shortcut starts the local server and opens your
+  default browser.
 - Source checkout: double-click `IDE.bat` to open the Studio, or drag a `.az`
   file onto `azlang.bat` to run it.
 
@@ -216,6 +245,96 @@ let user = json_decode(r'{"name": "Ada", "tags": ["math", "logic"]}')
 say user.name
 ```
 
+## Networking and async
+
+HTTP and HTTPS are part of the standard library, not an add-on. Requests are
+asynchronous and use the same `async` / `await` syntax as the rest of the
+language:
+
+```az
+async fun latest_release()
+  let response = await net.get(
+    "https://api.github.com/repos/TheGreatAzizi/AzLang/releases/latest",
+    {headers: {"User-Agent": "AzLang"}, timeout_ms: 10000}
+  )
+  net.raise_for_status(response)
+  return net.json(response)
+end
+
+let release = await latest_release()
+say release.tag_name
+```
+
+The global helpers `http_get`, `http_post`, `http_put`, `http_patch`,
+`http_delete`, `http_get_json`, `http_post_json`, and `graphql` are equivalent to
+the `net` namespace. Request options include `headers`, `query`, `body`, `json`,
+`timeout_ms`, `max_bytes`, and `redirect`. Responses expose `ok`, `status`,
+`headers`, `body`, `json`, `content_type`, and `elapsed_ms`.
+
+`graphql(url, query, variables?, options?)` sends a GraphQL POST, checks the HTTP
+status, and throws on GraphQL errors. Use a raw string for the query:
+`r"query { viewer { login } }"`.
+
+## Modules
+
+Split code with `import` and `export`; there is no package manager and no build
+step.
+
+```az
+# mathlib.az
+export const version = "1.0"
+
+export fun add(a, b)
+  return a + b
+end
+```
+
+```az
+# app.az
+import math from "./mathlib.az"
+import { add as plus } from "./mathlib.az"
+
+say math.version
+say plus(2, 3)
+```
+
+Paths resolve relative to the importing file, then the current directory.
+Extension and `index.az` fallbacks are supported. Modules run once and are
+cached; remote `https://` module URLs work in Node and the browser. The built-in
+`net` module is imported with `import net from "net"` or used directly.
+
+## Null-safe data
+
+API responses are often incomplete. `get_path`, `coalesce`, and the type
+predicates keep programs running when a field is absent:
+
+```az
+let data = await http_get_json("https://example.com/api/user")
+let name = coalesce(get_path(data, "user.name"), "anonymous")
+let city = get_path(data, "user.address.city", "unknown")
+let tags = ensure_list(get_path(data, "user.tags"))
+
+if is_map(data)
+  say "{name} from {city} with {len(tags)} tags"
+end
+```
+
+Other helpers include `has_path`, `get_in`, `fallback`, `or_else`, `is_null`,
+`is_missing`, `is_map`, `is_list`, `is_string`, `is_number`, `is_bool`,
+`is_function`, `is_empty`, `ensure_map`, and `ensure_list`.
+
+## Resource limits
+
+| Limit | Default | CLI flag | Embedding option |
+| --- | --- | --- | --- |
+| Execution time | 60,000 ms | `--timeout` | `maxTimeMs` |
+| Requests per run | 100 | `--max-requests` | `maxRequests` |
+| Response size | 5 MiB | `--max-response` | `maxResponseBytes` |
+| Time per request | 30,000 ms | `--request-timeout` | `requestTimeoutMs` |
+
+Set a numeric limit to `0` to disable it. Per-request `timeout_ms` and
+`max_bytes` can tighten the run-wide values.
+
 ## Command line
 
 The installed `azlang` command and `node azlang.js` from a checkout accept the
@@ -223,10 +342,14 @@ same arguments.
 
 | Command | What it does |
 | --- | --- |
-| `azlang file.az` | Run a program. Exit code is `0` on success and `1` on error. |
+| `azlang file.az` | Run a program asynchronously. Exit code is `0` on success and `1` on error. |
 | `azlang` | Start the interactive shell (REPL). Variables persist between lines. |
 | `azlang -e "code"` | Run a snippet directly. |
 | `azlang --check file.az` | Parse a file and report syntax errors without running it. |
+| `azlang --timeout <ms>` | Total execution time limit. Default `60000`; `0` disables it. |
+| `azlang --request-timeout <ms>` | Per-request timeout. Default `30000`; `0` disables it. |
+| `azlang --max-requests <n>` | Maximum HTTP requests per run. Default `100`; `0` disables it. |
+| `azlang --max-response <bytes>` | Maximum response body size. Default `5242880` (5 MiB). |
 | `azlang -h` | Show help. |
 | `azlang -v` | Print the version. |
 
@@ -249,7 +372,7 @@ All integrations are dependency-free and share the same grammar.
 Install the VS Code extension from the latest release:
 
 ```bash
-code --install-extension azlang-2.0.0.vsix
+code --install-extension azlang-2.1.0.vsix
 ```
 
 The extension provides **AzLang: Run File** (<kbd>Ctrl</kbd> + <kbd>Alt</kbd> +
@@ -266,23 +389,27 @@ TextMate, Sublime Text, Vim, Neovim, and JetBrains setup.
 | `site/site.az` | The AzLang program that writes the landing page. |
 | `docs.html` | The complete language guide and reference. |
 | `ide.html` | AzLang Studio, the browser editor and runner. |
+| `studio-server.js` | Tiny dependency-free server that hosts the Studio locally and opens the browser. |
 | `404.html` | Friendly not-found page for GitHub Pages. |
-| `examples/` | Eight complete example programs. |
+| `examples/` | Eleven example programs and libraries. |
 | `examples.js` | Generated bundle of the examples used by the Studio. |
-| `tests.js` | 131 automated tests. |
+| `tests.js` | 167 automated tests, including async, HTTP, module, and null-safe data coverage. |
 | `assets/site.css` | Styles for the landing page. |
 | `assets/site.js` | Interactive behavior for the landing page. |
 | `build-site.js` | Runs `site/site.az` and writes `index.html`. |
 | `build-examples.js` | Regenerates `examples.js` from `examples/`. |
 | `build-pages.js` | Assembles the deployable site in `_site/`. |
 | `build-release.js` | Builds the Windows Setup, portable ZIP, editors ZIP, VSIX, and checksums. |
-| `packaging/` | C# launchers, installer, uninstaller, icon, and release helpers. |
+| `packaging/` | C# installer, uninstaller, icons, browser Studio launcher, and release helpers. |
 | `editors/` | VS Code, TextMate, Sublime Text, Vim, Neovim, and JetBrains integrations. |
 | `server.js` | Optional local static server. |
 | `.github/workflows/pages.yml` | Tests, rebuilds, and deploys the site to GitHub Pages. |
 | `.github/workflows/release.yml` | Builds and publishes GitHub Releases when a `v*` tag is pushed. |
 | `RELEASE_NOTES.md` | Release body published by the workflow. |
 | `azlang.bat`, `IDE.bat` | Windows shortcuts for a source checkout. |
+
+`IDE.bat` runs `studio-server.js`; the Studio itself is the ordinary browser page
+`ide.html`, not a desktop executable.
 
 ## Building
 
@@ -315,20 +442,20 @@ The release build is dependency-free: it uses the installed `node` and the
 node build-release.js
 ```
 
-It validates the version, compiles the launchers, installer, and uninstaller,
-stages the language runtime, Studio, docs, examples, and editors, and writes
-these files to `dist/`:
+It validates the version, compiles the installer and uninstaller, stages the
+language runtime, browser Studio files, local Studio server, docs, examples, and
+editors, and writes these files to `dist/`:
 
 | File | What it is |
 | --- | --- |
-| `AzLang-2.0.0-Setup.exe` | Per-user Windows installer with a bundled Node.js runtime. |
-| `AzLang-2.0.0-windows-x64-portable.zip` | Portable build; unzip and run. |
-| `AzLang-2.0.0-editors.zip` | TextMate, Sublime Text, Vim, Neovim, and JetBrains files. |
-| `azlang-2.0.0.vsix` | VS Code extension. |
+| `AzLang-2.1.0-Setup.exe` | Per-user Windows installer with a bundled Node.js runtime. |
+| `AzLang-2.1.0-windows-x64-portable.zip` | Portable build; unzip, then run `studio\AzLang Studio.vbs`. |
+| `AzLang-2.1.0-editors.zip` | TextMate, Sublime Text, Vim, Neovim, and JetBrains files. |
+| `azlang-2.1.0.vsix` | VS Code extension. |
 | `azlang.js` | Standalone runtime. |
 | `SHA256SUMS.txt` | SHA-256 checksums for every artifact. |
 
-Pass `--expect-tag v2.0.0` to fail the build when the tag does not match the
+Pass `--expect-tag v2.1.0` to fail the build when the tag does not match the
 version in `azlang.js`. The release workflow uses this check.
 
 ## Tests
@@ -337,7 +464,7 @@ version in `azlang.js`. The release workflow uses this check.
 node tests.js
 ```
 
-The suite covers the lexer, parser, evaluator, collections, classes, exceptions, pattern matching, JSON, error messages, and the session API. All 131 tests pass.
+The suite covers the lexer, parser, evaluator, collections, classes, exceptions, pattern matching, JSON, error messages, the session API, async/await and promise helpers, HTTP requests and error kinds, resource limits, module loading, and null-safe data helpers. All 167 tests pass.
 
 ## Embedding
 
@@ -364,7 +491,31 @@ session.execute('total += 42');
 session.execute('say total');
 ```
 
-In the browser, load `azlang.js` with a `<script>` tag and use `window.AzLang`. See the [embedding guide](https://thegreatazizi.github.io/AzLang/docs.html#embedding) for the full API.
+Use `az.runAsync()` for programs that contain `await`, and
+`session.executeAsync()` for persistent async sessions:
+
+```js
+async function main() {
+  const result = await az.runAsync(`
+    let response = await http_get("https://example.com/api")
+    raise_for_status(response)
+    say response_json(response).title
+  `, {
+    maxTimeMs: 15000,
+    maxRequests: 10,
+    requestTimeoutMs: 5000
+  });
+  console.log(result.steps);
+}
+
+main().catch((err) => console.error(err.kind, err.message));
+```
+
+`run()` remains synchronous. Calling async work through it raises an error that
+points to `runAsync`, rather than silently dropping unfinished work. In the
+browser, load `azlang.js` with a `<script>` tag and use `window.AzLang`. See the
+[embedding guide](https://thegreatazizi.github.io/AzLang/docs.html#embedding) for
+the full API.
 
 ## Unicode and Persian
 
@@ -396,8 +547,8 @@ Releases are built on Windows by `.github/workflows/release.yml`. Push a tag
 that matches the version in `azlang.js`:
 
 ```bash
-git tag v2.0.0
-git push origin v2.0.0
+git tag v2.1.0
+git push origin v2.1.0
 ```
 
 The workflow runs the tests, regenerates generated files, builds the artifacts

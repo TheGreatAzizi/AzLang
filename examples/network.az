@@ -1,0 +1,28 @@
+# HTTP requests with the standard net library.
+# This example reads public data from the GitHub API. If the network is
+# unavailable, it reports the error instead of crashing.
+
+import net from "net"
+
+let url = "https://api.github.com/repos/TheGreatAzizi/AzLang"
+
+try
+  let response = await net.get(url, {
+    headers: {
+      "Accept": "application/vnd.github+json",
+      "User-Agent": "AzLang-example"
+    },
+    timeout_ms: 15000
+  })
+
+  net.raise_for_status(response)
+  let repo = net.json(response)
+
+  say "Repository:", get_path(repo, "full_name", "unknown")
+  say "Stars:     ", get_path(repo, "stargazers_count", 0)
+  say "Language:  ", coalesce(get_path(repo, "language"), "not set")
+  say "URL:       ", get_path(repo, "html_url", "")
+catch err
+  say "Could not reach GitHub:", err.message
+  say "Check your connection, then run the example again."
+end

@@ -2,7 +2,7 @@
 
 # --- values ---
 let title = "AzLang"
-let version = 2.0
+let version = 2.1
 let stable = true
 let nothing = null
 let colors = ["red", "green", "blue"]
@@ -13,7 +13,7 @@ say type(title), type(version), type(stable), type(nothing)
 say type(colors), type(scores), type(x => x)
 
 # --- conditions ---
-if version >= 2.0
+if version >= 2.1
   say "Modern version"
 elif version >= 1.0
   say "Classic version"

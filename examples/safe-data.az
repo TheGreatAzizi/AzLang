@@ -1,0 +1,29 @@
+# Real APIs often leave fields out. These helpers let you read nested data
+# without checking every level by hand.
+
+let payload = {
+  user: {name: "Ada", email: null},
+  posts: [{title: "Hello"}, {body: "No title here"}],
+  meta: {}
+}
+
+say get_path(payload, "user.name", "anonymous")
+say coalesce(get_path(payload, "user.email"), "no email")
+say get_path(payload, "meta.page", 1)
+say has_path(payload, "user.name"), has_path(payload, "user.phone")
+
+for post in ensure_list(get_path(payload, "posts"))
+  say "-", get_path(post, "title", "(untitled)")
+end
+
+# ensure_map returns an empty map instead of null, so lookups stay safe.
+let settings = ensure_map(get_path(payload, "user.settings"))
+say "theme:", get_path(settings, "theme", "dark")
+
+# Type checks are handy when a response can contain anything.
+say is_map(payload), is_list(payload.posts), is_null(payload.user.email)
+say is_empty(payload.meta), is_empty(payload.user.name)
+
+# fallback and or_else are short aliases for "use the default if null".
+say fallback(get_path(payload, "user.phone"), "no phone")
+say or_else(get_path(payload, "user.name"), "anonymous")

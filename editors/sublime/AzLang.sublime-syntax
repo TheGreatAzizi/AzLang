@@ -116,7 +116,7 @@ contexts:
         2: entity.name.function.azlang
 
   keywords:
-    - match: '\b(let|const|say|if|elif|else|end|while|for|in|repeat|break|continue|fun|return|class|extends|new|try|catch|throw|match|case|default)\b'
+    - match: '\b(let|const|say|if|elif|else|end|while|for|in|repeat|break|continue|fun|return|class|extends|new|try|catch|throw|match|case|default|async|await|import|export)\b'
       scope: keyword.control.azlang
     - match: '\b(and|or|not)\b'
       scope: keyword.operator.word.azlang
@@ -132,7 +132,7 @@ contexts:
       scope: support.constant.azlang
 
   builtins:
-    - match: '\b(len|type|str|num|int|bool|assert|fail|clock|input|abs|floor|ceil|round|sqrt|pow|log|min|max|sum|avg|clamp|random|random_float|choice|upper|lower|trim|starts|ends|find|replace|split|join|chars|char_code|from_char|append|prepend|insert|remove|discard|pop|sort|sorted|reverse|reversed|slice|concat|unique|flatten|index_of|has|list|keys|values|items|get|set|update|range|enumerate|zip|map|each|filter|reduce|find_item|count|any|all|json_encode|json_decode|to_json|from_json)\b'
+    - match: '\b(abs|all|any|append|assert|avg|base64_decode|base64_encode|bool|capitalize|ceil|center|char_code|chars|choice|chunk|clamp|clock|coalesce|compact|concat|contains|count|count_by|count_text|difference|discard|drop|each|ends|ends_with|ensure_list|ensure_map|enumerate|escape_html|fail|fallback|filter|find|find_index|find_item|first|flat_map|flatten|floor|from_char|from_entries|from_json|get|get_in|get_path|graphql|group_by|has|has_key|has_path|http_delete|http_get|http_get_json|http_patch|http_post|http_post_json|http_put|http_request|index_by|index_of|input|insert|int|intersection|invert|is_bool|is_empty|is_function|is_list|is_map|is_missing|is_null|is_number|is_string|items|join|json_decode|json_encode|keys|last|len|lines|list|log|lower|lstrip|map|map_keys|map_values|max|max_by|merge|min|min_by|num|omit|or_else|pad_left|pad_right|partition|pick|pop|pow|prepend|raise_for_status|random|random_float|range|reduce|remove|remove_prefix|remove_suffix|repeat_text|replace|replace_first|response_json|response_text|retry|reverse|reverse_text|reversed|rfind|round|rstrip|set|sleep|slice|sort|sort_by|sorted|split|sqrt|starts|starts_with|str|strip|substring|sum|sum_by|take|title|to_json|trim|truncate|type|union|unique|update|upper|url_decode|url_encode|values|without|words|zfill|zip|net|Promise)\b'
       scope: support.function.builtin.azlang
 
   calls:

@@ -40,7 +40,8 @@ internal static class InstallerEngine
 
         ExtractPayload(root);
 
-        if (!File.Exists(AzInstall.CliExe(root)) || !File.Exists(AzInstall.StudioExe(root)))
+        if (!File.Exists(AzInstall.CliExe(root)) || !File.Exists(AzInstall.StudioLauncher(root)) ||
+            !File.Exists(AzInstall.StudioServer(root)))
         {
             throw new InvalidOperationException("The installer payload is incomplete.");
         }
@@ -102,9 +103,11 @@ internal static class InstallerEngine
 
     public static void LaunchStudio(string root)
     {
-        string studio = AzInstall.StudioExe(root);
-        if (!File.Exists(studio)) throw new FileNotFoundException("AzLang Studio was not installed.");
-        System.Diagnostics.Process.Start(studio);
+        string launcher = AzInstall.StudioLauncher(root);
+        if (!File.Exists(launcher)) throw new FileNotFoundException("AzLang Studio was not installed.");
+        System.Diagnostics.Process.Start(
+            Path.Combine(Environment.SystemDirectory, "wscript.exe"),
+            AzInstall.Quote(launcher));
     }
 
     public static void WriteErrorLog(Exception error)

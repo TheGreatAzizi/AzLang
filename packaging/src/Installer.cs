@@ -11,8 +11,8 @@ using System.Windows.Forms;
 [assembly: AssemblyProduct("AzLang")]
 [assembly: AssemblyCompany("TheGreatAzizi")]
 [assembly: AssemblyCopyright("MIT License")]
-[assembly: AssemblyVersion("2.0.0.0")]
-[assembly: AssemblyFileVersion("2.0.0.0")]
+[assembly: AssemblyVersion("2.1.0.0")]
+[assembly: AssemblyFileVersion("2.1.0.0")]
 
 internal sealed class InstallerForm : Form
 {
@@ -34,7 +34,7 @@ internal sealed class InstallerForm : Form
         existingInstall = existing != null;
         string target = existing ?? AzInstall.DefaultDirectory();
 
-        Text = "AzLang 2.0 Setup";
+        Text = "AzLang " + AzInstall.DisplayVersion + " Setup";
         ClientSize = new Size(640, 520);
         MinimumSize = new Size(640, 520);
         MaximumSize = new Size(640, 520);
@@ -65,7 +65,7 @@ internal sealed class InstallerForm : Form
         header.Controls.Add(iconBox);
 
         Label title = new Label();
-        title.Text = "AzLang 2.0";
+        title.Text = "AzLang " + AzInstall.DisplayVersion;
         title.ForeColor = Color.White;
         title.Font = new Font("Segoe UI Semibold", 20F, FontStyle.Regular, GraphicsUnit.Point);
         title.AutoSize = true;
@@ -93,7 +93,7 @@ internal sealed class InstallerForm : Form
         Label intro = new Label();
         intro.Text = existingInstall
             ? "AzLang is already installed. Setup will update it in place."
-            : "Install the AzLang command line, the desktop Studio, and the complete language guide. No administrator rights are required.";
+            : "Install the AzLang command line, the browser-based Studio, and the complete language guide. No administrator rights are required.";
         intro.Location = new Point(24, 124);
         intro.Size = new Size(592, 38);
         intro.ForeColor = Color.FromArgb(60, 60, 60);
@@ -362,7 +362,7 @@ internal static class InstallerProgram
         Application.EnableVisualStyles();
         Application.SetCompatibleTextRenderingDefault(false);
         InstallerForm form = new InstallerForm();
-        if (!String.IsNullOrEmpty(directory)) form.Text = "AzLang 2.0 Setup";
+        if (!String.IsNullOrEmpty(directory)) form.Text = "AzLang " + AzInstall.DisplayVersion + " Setup";
         Application.Run(form);
         return 0;
     }

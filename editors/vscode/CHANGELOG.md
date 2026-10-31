@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.1.0
+
+- Added highlighting for `async`, `await`, `import`, and `export`.
+- Updated the built-in function list with networking, promise, module, null-safe, text, and collection helpers.
+- Added snippets for async functions, imports, exports, and HTTP requests.
+- Works with the 2.1 CLI, async execution, modules, and the browser Studio.
+
 ## 2.0.0
 
 - Initial release.

@@ -1,5 +1,5 @@
 /*!
- * AzLang 2.0 — a small language with serious features.
+ * AzLang 2.1 — a small language with serious features.
  * Zero dependencies. Runs in Node.js and in the browser.
  *
  *   node azlang.js program.az
@@ -12,7 +12,7 @@
 (function (root) {
   'use strict';
 
-  var VERSION = '2.0.0';
+  var VERSION = '2.1.0';
 
   /* ============================================================
      ERRORS
@@ -43,7 +43,8 @@
     'while', 'for', 'in', 'repeat', 'break', 'continue',
     'fun', 'return', 'true', 'false', 'null', 'and', 'or', 'not',
     'class', 'extends', 'new', 'this', 'super',
-    'try', 'catch', 'throw', 'match', 'case', 'default'
+    'try', 'catch', 'throw', 'match', 'case', 'default',
+    'async', 'await', 'import', 'export'
   ]);
 
   const ID_START = /[A-Za-z_\p{L}]/u;
@@ -381,6 +382,16 @@
           case 'throw': return this.parseThrow();
           case 'match': return this.parseMatch();
           case 'return': return this.parseReturn();
+          case 'async': {
+            this.next();
+            if (!this.isKw('fun')) {
+              this.error('"async" must be followed by a function declaration', this.peek(),
+                'Write: async fun fetch_data() ... end');
+            }
+            return this.parseFun(false, true);
+          }
+          case 'import': return this.parseImport();
+          case 'export': return this.parseExport();
           case 'break':
             this.next();
             return { type: 'Break', line: t.line };
@@ -413,7 +424,6 @@
           True: ['true', 'Use lowercase true'],
           False: ['false', 'Use lowercase false'],
           None: ['null', 'Use null instead of None'],
-          import: ['no imports', 'AzLang programs are single files; there is no import statement'],
           function: ['fun', 'Use fun instead of function']
         };
         if (migration[t.value]) {
@@ -557,7 +567,7 @@
       return { type: 'Repeat', count: count, body: body, line: line };
     }
 
-    parseFun(isMethod) {
+    parseFun(isMethod, isAsync) {
       const line = this.next().line;
       const name = this.expect('ident', undefined, 'Expected a function name after "fun"', 'Example: fun greet(name)');
       this.expect('op', '(', 'Expected "(" after the function name', 'Example: fun greet(name)');
@@ -585,7 +595,105 @@
       this.expectNl('the function signature');
       const body = this.parseBlock(['end']);
       this.expectKw('end', 'Every function needs a closing "end"', BLOCK_STOP_HINT);
-      return { type: 'Fun', name: name.value, params: params, body: body, line: line, isMethod: !!isMethod };
+      return { type: 'Fun', name: name.value, params: params, body: body, line: line, isMethod: !!isMethod, isAsync: !!isAsync };
+    }
+
+    parseImport() {
+      const line = this.next().line;
+      let alias = null;
+      const names = [];
+      let spec = null;
+
+      if (this.is('str')) {
+        spec = this.moduleSpec();
+      } else if (this.is('op', '{')) {
+        this.next();
+        if (!this.is('op', '}')) {
+          for (;;) {
+            const local = this.expect('ident', undefined, 'Expected an exported name inside the braces');
+            let remote = local.value;
+            if (this.is('ident') && this.peek().value === 'as') {
+              this.next();
+              remote = this.expect('ident', undefined, 'Expected a local name after "as"').value;
+            }
+            names.push({ name: local.value, alias: remote });
+            if (!this.eat('op', ',')) break;
+            if (this.is('op', '}')) break;
+          }
+        }
+        this.expect('op', '}', 'The import list is missing a closing "}"');
+        this.expect('ident', undefined, 'Expected "from" and a module path', 'Example: import { add } from "./math.az"');
+        if (this.tokens[this.pos - 1].value !== 'from') {
+          this.error('Expected "from" after the import list', this.tokens[this.pos - 1]);
+        }
+        spec = this.moduleSpec();
+      } else if (this.is('ident')) {
+        alias = this.next().value;
+        if (!(this.is('ident') && this.peek().value === 'from')) {
+          this.error('Expected "from" and a module path', this.peek(), 'Example: import math from "./math.az"');
+        }
+        this.next();
+        spec = this.moduleSpec();
+      } else {
+        this.error('Expected a module path or import list after "import"', this.peek(),
+          'Examples: import "./setup.az"   import math from "./math.az"   import { add } from "./math.az"');
+      }
+
+      return { type: 'Import', spec: spec, alias: alias, names: names, line: line };
+    }
+
+    moduleSpec() {
+      const token = this.peek();
+      if (token.type !== 'str' || token.value.triple) {
+        this.error('A module path must be a single-line string', token);
+      }
+      this.next();
+      return unescapeText(token.value.raw);
+    }
+
+    parseExport() {
+      const line = this.next().line;
+
+      if (this.isKw('let') || this.isKw('const') || this.isKw('fun') || this.isKw('class') || this.isKw('async')) {
+        let decl;
+        if (this.isKw('async')) {
+          this.next();
+          if (!this.isKw('fun')) this.error('"async" must be followed by a function declaration', this.peek());
+          decl = this.parseFun(false, true);
+        } else {
+          decl = this.parseStatement();
+        }
+        if (!decl.name) this.error('This declaration cannot be exported', this.peek());
+        return { type: 'Export', decl: decl, line: line };
+      }
+
+      if (this.isKw('default')) {
+        this.next();
+        return { type: 'Export', decl: null, expr: this.parseExpression(), line: line };
+      }
+
+      if (this.is('op', '{')) {
+        this.next();
+        const names = [];
+        if (!this.is('op', '}')) {
+          for (;;) {
+            const local = this.expect('ident', undefined, 'Expected a name inside the export braces');
+            let alias = local.value;
+            if (this.is('ident') && this.peek().value === 'as') {
+              this.next();
+              alias = this.expect('ident', undefined, 'Expected an exported name after "as"').value;
+            }
+            names.push({ name: local.value, alias: alias });
+            if (!this.eat('op', ',')) break;
+            if (this.is('op', '}')) break;
+          }
+        }
+        this.expect('op', '}', 'The export list is missing a closing "}"');
+        return { type: 'Export', decl: null, names: names, line: line };
+      }
+
+      this.error('Expected a declaration, "default", or a name list after "export"', this.peek(),
+        'Example: export fun add(a, b) ... end');
     }
 
     parseClass() {
@@ -602,10 +710,18 @@
       const methods = [];
       this.skipNl();
       while (!this.isKw('end') && this.peek().type !== 'eof') {
+        let asyncMethod = false;
+        if (this.isKw('async')) {
+          this.next();
+          asyncMethod = true;
+          if (!this.isKw('fun')) {
+            this.error('"async" inside a class must be followed by a method', this.peek());
+          }
+        }
         if (!this.isKw('fun')) {
           this.error('Only method definitions (fun ...) are allowed inside a class', this.peek(), 'Move other statements outside the class');
         }
-        methods.push(this.parseFun(true));
+        methods.push(this.parseFun(true, asyncMethod));
         this.skipNl();
       }
       this.expectKw('end', 'Every class needs a closing "end"', BLOCK_STOP_HINT);
@@ -800,6 +916,10 @@
     }
 
     parseUnary() {
+      if (this.isKw('await')) {
+        const tok = this.next();
+        return { type: 'Await', expr: this.parseUnary(), line: tok.line };
+      }
       if (this.is('op', '-')) {
         const tok = this.next();
         return { type: 'Unary', op: '-', expr: this.parsePower(), line: tok.line };
@@ -862,8 +982,13 @@
 
         if (this.is('op', '.')) {
           const tok = this.next();
-          const name = this.expect('ident', undefined, 'Expected a property name after "."');
-          expr = { type: 'Member', object: expr, name: name.value, line: tok.line };
+          const nameTok = this.peek();
+          if (nameTok.type !== 'ident' && nameTok.type !== 'kw') {
+            this.error('Expected a property name after "."', nameTok,
+              'Property names can be identifiers or keywords, for example value.default');
+          }
+          this.next();
+          expr = { type: 'Member', object: expr, name: nameTok.value, line: tok.line };
           continue;
         }
 
@@ -894,7 +1019,6 @@
         }
       }
 
-      if (names.length === 0) return null;
       if (!(this.tokens[p] && this.tokens[p].type === 'op' && this.tokens[p].value === ')')) return null;
       if (!(this.tokens[p + 1] && this.tokens[p + 1].type === 'op' && this.tokens[p + 1].value === '=>')) return null;
 
@@ -947,13 +1071,36 @@
         }
         if (t.value === 'new') {
           this.next();
-          const target = this.parsePrimary();
+          let target = this.parsePrimary();
+          while (this.is('op', '.')) {
+            const dot = this.next();
+            const name = this.expect('ident', undefined, 'Expected a class name after "."');
+            target = { type: 'Member', object: target, name: name.value, line: dot.line };
+          }
           let args = [];
           if (this.is('op', '(')) args = this.parseArguments();
           return { type: 'New', target: target, args: args, line: t.line };
         }
         if (t.value === 'fun') {
           this.error('Anonymous functions use arrow syntax', t, 'Write: x => x * 2');
+        }
+        if (t.value === 'async') {
+          this.next();
+          let lambda = null;
+          if (this.is('ident') && this.tokens[this.pos + 1] &&
+              this.tokens[this.pos + 1].type === 'op' && this.tokens[this.pos + 1].value === '=>') {
+            const name = this.next();
+            this.next();
+            lambda = { type: 'Lambda', params: [name.value], body: this.parseExpression(), line: name.line };
+          } else if (this.is('op', '(')) {
+            lambda = this.tryParenLambda();
+          }
+          if (!lambda) {
+            this.error('"async" needs an arrow function', this.peek(),
+              'Write: async x => await work(x)');
+          }
+          lambda.isAsync = true;
+          return lambda;
         }
       }
 
@@ -1139,13 +1286,14 @@
      ============================================================ */
 
   class AzFunction {
-    constructor(name, params, body, closure, line, exprBody) {
+    constructor(name, params, body, closure, line, exprBody, isAsync) {
       this.name = name || '<lambda>';
       this.params = params || [];
       this.body = body || [];
       this.closure = closure;
       this.line = line || 0;
       this.exprBody = exprBody || null;
+      this.isAsync = !!isAsync;
     }
   }
 
@@ -1193,13 +1341,88 @@
     }
   }
 
+  class BoundMethod {
+    constructor(fn, instance, owner) {
+      this.fn = fn;
+      this.instance = instance;
+      this.owner = owner;
+    }
+  }
+
+  class AzPromise {
+    constructor(promise) {
+      this.promise = promise;
+    }
+  }
+
+  function isThenable(v) {
+    return v !== null && v !== undefined && (typeof v === 'object' || typeof v === 'function') &&
+      typeof v.then === 'function';
+  }
+
+  function isAzPromise(v) {
+    return v instanceof AzPromise;
+  }
+
+  function makeAzPromise(promise) {
+    // Mark the original promise as handled so an unawaited async function does
+    // not crash Node with an unhandled rejection. Awaiting it still throws.
+    if (promise && typeof promise.catch === 'function') promise.catch(function () {});
+    return new AzPromise(promise);
+  }
+
+  function toNativePromise(v) {
+    if (v instanceof AzPromise) return v.promise;
+    return Promise.resolve(v);
+  }
+
+  function isGenerator(v) {
+    return v !== null && typeof v === 'object' &&
+      typeof v.next === 'function' && typeof v.throw === 'function';
+  }
+
+  const ASYNC_HINT = 'This program uses asynchronous work. Run it with runAsync (the CLI and Studio do this automatically).';
+
+  function driveSync(gen) {
+    let step = gen.next();
+    while (!step.done) {
+      const value = step.value;
+      if (isAzPromise(value) || isThenable(value)) {
+        const err = new AzError('An asynchronous operation was used in synchronous code');
+        err.hint = ASYNC_HINT;
+        try { gen.throw(err); } catch (ignored) { /* the throw above is the real error */ }
+        throw err;
+      }
+      step = gen.next(value);
+    }
+    return step.value;
+  }
+
+  async function driveAsync(gen) {
+    let step = gen.next();
+    for (;;) {
+      if (step.done) return step.value;
+      let value = step.value;
+      try {
+        if (isAzPromise(value)) value = await value.promise;
+        else if (isThenable(value)) value = await value;
+      } catch (error) {
+        step = gen.throw(error);
+        continue;
+      }
+      step = gen.next(value);
+    }
+  }
+
   /* ============================================================
      VALUE HELPERS
      ============================================================ */
 
   function isMap(v) {
     return typeof v === 'object' && v !== null && !Array.isArray(v) &&
-      !(v instanceof AzInstance) && !(v instanceof AzClass) && !(v instanceof SuperRef);
+      !(v instanceof AzInstance) && !(v instanceof AzClass) && !(v instanceof SuperRef) &&
+      !(v instanceof AzFunction) && !(v instanceof BoundMethod) && !(v instanceof AzPromise) &&
+      !isThenable(v);
   }
 
   function truthy(v) {
@@ -1232,6 +1455,9 @@
     }
     if (v instanceof AzClass) return '<class ' + v.name + '>';
     if (v instanceof AzFunction) return '<fun ' + v.name + '>';
+    if (v instanceof AzPromise) return '<promise>';
+    if (isThenable(v)) return '<promise>';
+    if (v instanceof BoundMethod) return '<fun ' + v.fn.name + '>';
     if (typeof v === 'function') return '<builtin ' + (v.azName || 'function') + '>';
     if (isMap(v)) {
       return '{' + Object.keys(v).map(function (k) {
@@ -1254,6 +1480,9 @@
     if (typeof v === 'boolean') return 'boolean';
     if (Array.isArray(v)) return 'list';
     if (v instanceof AzFunction) return 'function';
+    if (v instanceof AzPromise) return 'promise';
+    if (isThenable(v)) return 'promise';
+    if (v instanceof BoundMethod) return 'function';
     if (v instanceof AzClass) return 'class';
     if (v instanceof AzInstance) return 'instance';
     if (typeof v === 'function') return 'function';
@@ -1428,26 +1657,72 @@
       this.steps = 0;
       this.depth = 0;
       this.maxDepth = 256;
+
+      this.filename = options.filename || null;
+      this.currentFile = this.filename;
+      this.moduleLoader = options.moduleLoader || null;
+      this.modules = new Map();
+      this.globalEnv = null;
+      this.exportTarget = null;
+      this.asyncMode = false;
+
+      this.maxTimeMs = options.maxTimeMs === undefined ? 60000 : options.maxTimeMs;
+      this.maxRequests = options.maxRequests === undefined ? 100 : options.maxRequests;
+      this.maxResponseBytes = options.maxResponseBytes === undefined
+        ? 5 * 1024 * 1024
+        : options.maxResponseBytes;
+      this.requestTimeoutMs = options.requestTimeoutMs === undefined
+        ? 30000
+        : options.requestTimeoutMs;
+      this.requests = 0;
+      this.deadline = 0;
+    }
+
+    beginExecution() {
+      this.requests = 0;
+      this.deadline = this.maxTimeMs > 0 ? Date.now() + this.maxTimeMs : 0;
+    }
+
+    remainingTime() {
+      if (!this.deadline) return Infinity;
+      return Math.max(0, this.deadline - Date.now());
     }
 
     tick(line) {
       this.steps += 1;
       if (this.steps > this.maxSteps) {
-        const err = new AzError('Execution stopped: the program ran for too long', line);
+        const err = new AzError('Execution stopped: the program ran for too long', line, 'limit');
         err.hint = 'Check for an infinite loop, or increase the step limit';
+        throw err;
+      }
+      if (this.deadline && Date.now() > this.deadline) {
+        const err = new AzError('Execution stopped: the time limit was reached', line, 'timeout');
+        err.hint = 'Increase maxTimeMs (CLI: --timeout <ms>) or make the program faster';
         throw err;
       }
     }
 
     run(program) {
-      const env = new Env(null);
-      installBuiltins(env);
-      env.define('PI', Math.PI, true);
-      env.define('E', Math.E, true);
-      env.define('TAU', Math.PI * 2, true);
+      this.asyncMode = false;
+      this.beginExecution();
+      return driveSync(this.runGen(program));
+    }
 
+    runAsync(program) {
+      this.asyncMode = true;
+      this.beginExecution();
+      return driveAsync(this.runGen(program));
+    }
+
+    *runGen(program) {
+      const env = makeGlobalEnv();
+      this.globalEnv = env;
+      yield* this.executeInEnv(program, env);
+    }
+
+    *executeInEnv(program, env) {
       try {
-        this.execBlock(program.body, env);
+        yield* this.execBlock(program.body, env);
       } catch (e) {
         if (e instanceof BreakSignal) throw new AzError('"break" can only be used inside a loop', e.line);
         if (e instanceof ContinueSignal) throw new AzError('"continue" can only be used inside a loop', e.line);
@@ -1464,34 +1739,37 @@
       }
     }
 
-    execBlock(body, env) {
-      for (let i = 0; i < body.length; i += 1) this.exec(body[i], env);
+    *execBlock(body, env) {
+      for (let i = 0; i < body.length; i += 1) yield* this.exec(body[i], env);
     }
 
-    exec(stmt, env) {
+    *exec(stmt, env) {
       this.tick(stmt.line);
 
       switch (stmt.type) {
         case 'Let': {
-          env.define(stmt.name, this.eval(stmt.value, env), stmt.constant);
+          env.define(stmt.name, yield* this.eval(stmt.value, env), stmt.constant);
           return;
         }
 
         case 'Assign': {
           let value;
           if (stmt.op === '=') {
-            value = this.eval(stmt.value, env);
+            value = yield* this.eval(stmt.value, env);
           } else {
-            const current = this.readTarget(stmt.target, env);
-            const next = this.eval(stmt.value, env);
+            const current = yield* this.readTarget(stmt.target, env);
+            const next = yield* this.eval(stmt.value, env);
             value = this.applyBinary(stmt.op.slice(0, -1), current, next, stmt.line);
           }
-          this.setTarget(stmt.target, value, env);
+          yield* this.setTarget(stmt.target, value, env);
           return;
         }
 
         case 'Say': {
-          const parts = stmt.values.map((v) => display(this.eval(v, env)));
+          const parts = [];
+          for (let i = 0; i < stmt.values.length; i += 1) {
+            parts.push(display(yield* this.eval(stmt.values[i], env)));
+          }
           this.out(parts.join(' '));
           return;
         }
@@ -1499,21 +1777,21 @@
         case 'If': {
           for (let i = 0; i < stmt.branches.length; i += 1) {
             const branch = stmt.branches[i];
-            if (truthy(this.eval(branch.cond, env))) {
-              this.execBlock(branch.body, env);
+            if (truthy(yield* this.eval(branch.cond, env))) {
+              yield* this.execBlock(branch.body, env);
               return;
             }
           }
-          if (stmt.elseBody) this.execBlock(stmt.elseBody, env);
+          if (stmt.elseBody) yield* this.execBlock(stmt.elseBody, env);
           return;
         }
 
         case 'While': {
           for (;;) {
             this.tick(stmt.line);
-            if (!truthy(this.eval(stmt.cond, env))) break;
+            if (!truthy(yield* this.eval(stmt.cond, env))) break;
             try {
-              this.execBlock(stmt.body, env);
+              yield* this.execBlock(stmt.body, env);
             } catch (e) {
               if (e instanceof BreakSignal) break;
               if (e instanceof ContinueSignal) continue;
@@ -1524,7 +1802,7 @@
         }
 
         case 'For': {
-          const iterable = this.eval(stmt.iterable, env);
+          const iterable = yield* this.eval(stmt.iterable, env);
           let items;
 
           if (stmt.names.length > 1 && isMap(iterable)) {
@@ -1554,7 +1832,7 @@
             }
 
             try {
-              this.execBlock(stmt.body, env);
+              yield* this.execBlock(stmt.body, env);
             } catch (e) {
               if (e instanceof BreakSignal) break;
               if (e instanceof ContinueSignal) continue;
@@ -1565,7 +1843,7 @@
         }
 
         case 'Repeat': {
-          const count = this.eval(stmt.count, env);
+          const count = yield* this.eval(stmt.count, env);
           if (typeof count !== 'number' || !Number.isInteger(count)) {
             throw new AzError('repeat needs a whole number, not ' + typeName(count), stmt.line);
           }
@@ -1575,7 +1853,7 @@
           for (let i = 0; i < count; i += 1) {
             this.tick(stmt.line);
             try {
-              this.execBlock(stmt.body, env);
+              yield* this.execBlock(stmt.body, env);
             } catch (e) {
               if (e instanceof BreakSignal) break;
               if (e instanceof ContinueSignal) continue;
@@ -1586,7 +1864,47 @@
         }
 
         case 'Fun': {
-          env.define(stmt.name, new AzFunction(stmt.name, stmt.params, stmt.body, env, stmt.line));
+          env.define(stmt.name, new AzFunction(
+            stmt.name, stmt.params, stmt.body, env, stmt.line, null, stmt.isAsync
+          ));
+          return;
+        }
+
+        case 'Import': {
+          const ns = yield* this.importModule(stmt.spec, stmt.line);
+          if (stmt.alias) env.define(stmt.alias, ns, true);
+          for (let i = 0; i < stmt.names.length; i += 1) {
+            const wanted = stmt.names[i];
+            if (!Object.prototype.hasOwnProperty.call(ns, wanted.name)) {
+              const err = new AzError(
+                'Module "' + stmt.spec + '" does not export "' + wanted.name + '"',
+                stmt.line
+              );
+              const available = Object.keys(ns);
+              if (available.length) err.hint = 'Available exports: ' + available.join(', ');
+              throw err;
+            }
+            env.define(wanted.alias, ns[wanted.name], true);
+          }
+          return;
+        }
+
+        case 'Export': {
+          if (!this.exportTarget) {
+            throw new AzError('export can only be used at the top level of an imported module', stmt.line);
+          }
+          if (stmt.decl) {
+            yield* this.exec(stmt.decl, env);
+            const name = stmt.decl.name;
+            this.exportTarget[name] = env.get(name, stmt.line);
+          } else if (stmt.expr) {
+            this.exportTarget['default'] = yield* this.eval(stmt.expr, env);
+          } else {
+            for (let i = 0; i < stmt.names.length; i += 1) {
+              const item = stmt.names[i];
+              this.exportTarget[item.alias] = env.get(item.name, stmt.line);
+            }
+          }
           return;
         }
 
@@ -1602,7 +1920,9 @@
           const klass = new AzClass(stmt.name, parentClass);
           for (let i = 0; i < stmt.methods.length; i += 1) {
             const m = stmt.methods[i];
-            klass.methods.set(m.name, new AzFunction(m.name, m.params, m.body, env, m.line));
+            klass.methods.set(m.name, new AzFunction(
+              m.name, m.params, m.body, env, m.line, null, m.isAsync
+            ));
           }
           env.define(stmt.name, klass);
           return;
@@ -1610,7 +1930,7 @@
 
         case 'Try': {
           try {
-            this.execBlock(stmt.body, env);
+            yield* this.execBlock(stmt.body, env);
           } catch (e) {
             if (e instanceof BreakSignal || e instanceof ContinueSignal || e instanceof ReturnSignal) throw e;
             if (!stmt.catchBody) throw e;
@@ -1623,6 +1943,9 @@
                 kind: e.kind,
                 hint: e.hint || null
               };
+              ['status', 'url', 'body', 'errors', 'data', 'response', 'cause'].forEach(function (key) {
+                if (e[key] !== undefined) value[key] = e[key];
+              });
             } else if (e instanceof ThrownSignal) {
               value = e.value;
             } else {
@@ -1630,17 +1953,17 @@
             }
 
             env.define(stmt.catchName, value);
-            this.execBlock(stmt.catchBody, env);
+            yield* this.execBlock(stmt.catchBody, env);
           }
           return;
         }
 
         case 'Throw': {
-          throw new ThrownSignal(this.eval(stmt.value, env), stmt.line);
+          throw new ThrownSignal(yield* this.eval(stmt.value, env), stmt.line);
         }
 
         case 'Match': {
-          const subject = this.eval(stmt.subject, env);
+          const subject = yield* this.eval(stmt.subject, env);
           let matched = false;
 
           for (let i = 0; i < stmt.cases.length && !matched; i += 1) {
@@ -1650,19 +1973,19 @@
               if (pattern.type === 'Var' && pattern.name === '_') {
                 matched = true;
               } else {
-                matched = deepEqual(subject, this.eval(pattern, env));
+                matched = deepEqual(subject, yield* this.eval(pattern, env));
               }
               if (matched) break;
             }
-            if (matched) this.execBlock(c.body, env);
+            if (matched) yield* this.execBlock(c.body, env);
           }
 
-          if (!matched && stmt.defaultBody) this.execBlock(stmt.defaultBody, env);
+          if (!matched && stmt.defaultBody) yield* this.execBlock(stmt.defaultBody, env);
           return;
         }
 
         case 'Return':
-          throw new ReturnSignal(stmt.value ? this.eval(stmt.value, env) : null, stmt.line);
+          throw new ReturnSignal(stmt.value ? yield* this.eval(stmt.value, env) : null, stmt.line);
 
         case 'Break':
           throw new BreakSignal(stmt.line);
@@ -1671,7 +1994,7 @@
           throw new ContinueSignal(stmt.line);
 
         case 'ExprStmt':
-          this.eval(stmt.expr, env);
+          yield* this.eval(stmt.expr, env);
           return;
 
         default:
@@ -1679,30 +2002,30 @@
       }
     }
 
-    readTarget(target, env) {
+    *readTarget(target, env) {
       if (target.type === 'Var') return env.get(target.name, target.line);
       if (target.type === 'Index') {
         return this.getIndex(
-          this.eval(target.object, env),
-          this.eval(target.index, env),
+          yield* this.eval(target.object, env),
+          yield* this.eval(target.index, env),
           target.line
         );
       }
       if (target.type === 'Member') {
-        return this.getMember(this.eval(target.object, env), target.name, target.line);
+        return this.getMember(yield* this.eval(target.object, env), target.name, target.line);
       }
       throw new AzError('Invalid assignment target', target.line);
     }
 
-    setTarget(target, value, env) {
+    *setTarget(target, value, env) {
       if (target.type === 'Var') {
         env.setExisting(target.name, value, target.line);
         return;
       }
 
       if (target.type === 'Index') {
-        const obj = this.eval(target.object, env);
-        const idx = this.eval(target.index, env);
+        const obj = yield* this.eval(target.object, env);
+        const idx = yield* this.eval(target.index, env);
 
         if (Array.isArray(obj)) {
           obj[normalizeIndex(obj, idx, target.line)] = value;
@@ -1716,7 +2039,7 @@
       }
 
       if (target.type === 'Member') {
-        const obj = this.eval(target.object, env);
+        const obj = yield* this.eval(target.object, env);
         this.setMember(obj, target.name, value, target.line);
         return;
       }
@@ -1726,7 +2049,7 @@
 
     /* ---------- expressions ---------- */
 
-    eval(node, env) {
+    *eval(node, env) {
       this.tick(node.line);
 
       switch (node.type) {
@@ -1743,7 +2066,7 @@
           let out = '';
           for (let i = 0; i < node.parts.length; i += 1) {
             const part = node.parts[i];
-            out += part.kind === 'text' ? part.value : display(this.eval(part.expr, env));
+            out += part.kind === 'text' ? part.value : display(yield* this.eval(part.expr, env));
           }
           return out;
         }
@@ -1757,14 +2080,19 @@
         case 'Super':
           return env.get('super', node.line);
 
-        case 'List':
-          return node.items.map((item) => this.eval(item, env));
+        case 'List': {
+          const items = [];
+          for (let i = 0; i < node.items.length; i += 1) {
+            items.push(yield* this.eval(node.items[i], env));
+          }
+          return items;
+        }
 
         case 'Map': {
           const obj = Object.create(null);
           for (let i = 0; i < node.entries.length; i += 1) {
             const entry = node.entries[i];
-            obj[entry.key] = this.eval(entry.value, env);
+            obj[entry.key] = yield* this.eval(entry.value, env);
           }
           return obj;
         }
@@ -1776,11 +2104,12 @@
             [],
             env,
             node.line,
-            node.body
+            node.body,
+            node.isAsync
           );
 
         case 'Unary': {
-          const v = this.eval(node.expr, env);
+          const v = yield* this.eval(node.expr, env);
           if (node.op === 'not') return !truthy(v);
           if (typeof v !== 'number') {
             throw new AzError('Unary "-" needs a number, not ' + typeName(v), node.line);
@@ -1788,29 +2117,40 @@
           return -v;
         }
 
+        case 'Await': {
+          const value = yield* this.eval(node.expr, env);
+          if (isAzPromise(value)) return yield value.promise;
+          if (isThenable(value)) return yield value;
+          return value;
+        }
+
         case 'Binary':
-          return this.evalBinary(node, env);
+          return yield* this.evalBinary(node, env);
 
         case 'Call':
-          return this.evalCall(node, env);
+          return yield* this.evalCall(node, env);
 
         case 'Index': {
-          const obj = this.eval(node.object, env);
-          const idx = this.eval(node.index, env);
+          const obj = yield* this.eval(node.object, env);
+          const idx = yield* this.eval(node.index, env);
           return this.getIndex(obj, idx, node.line);
         }
 
         case 'Member': {
-          const obj = this.eval(node.object, env);
+          const obj = yield* this.eval(node.object, env);
           return this.getMember(obj, node.name, node.line);
         }
 
         case 'New': {
-          const klass = this.eval(node.target, env);
+          const klass = yield* this.eval(node.target, env);
           if (!(klass instanceof AzClass)) {
             throw new AzError('"new" needs a class, not ' + typeName(klass), node.line);
           }
-          return this.construct(klass, node.args.map((a) => this.eval(a, env)), node);
+          const args = [];
+          for (let i = 0; i < node.args.length; i += 1) {
+            args.push(yield* this.eval(node.args[i], env));
+          }
+          return yield* this.construct(klass, args, node);
         }
 
         default:
@@ -1818,23 +2158,23 @@
       }
     }
 
-    evalBinary(node, env) {
+    *evalBinary(node, env) {
       const op = node.op;
 
       if (op === 'and') {
-        const left = this.eval(node.left, env);
+        const left = yield* this.eval(node.left, env);
         if (!truthy(left)) return false;
-        return truthy(this.eval(node.right, env));
+        return truthy(yield* this.eval(node.right, env));
       }
 
       if (op === 'or') {
-        const left = this.eval(node.left, env);
+        const left = yield* this.eval(node.left, env);
         if (truthy(left)) return true;
-        return truthy(this.eval(node.right, env));
+        return truthy(yield* this.eval(node.right, env));
       }
 
-      const a = this.eval(node.left, env);
-      const b = this.eval(node.right, env);
+      const a = yield* this.eval(node.left, env);
+      const b = yield* this.eval(node.right, env);
       return this.applyBinary(op, a, b, node.line);
     }
 
@@ -1942,16 +2282,23 @@
       }
     }
 
-    evalCall(node, env) {
-      const callee = this.eval(node.callee, env);
-      const args = node.args.map((a) => this.eval(a, env));
+    *evalCall(node, env) {
+      const callee = yield* this.eval(node.callee, env);
+      const args = [];
+      for (let i = 0; i < node.args.length; i += 1) {
+        args.push(yield* this.eval(node.args[i], env));
+      }
+
+      if (callee instanceof BoundMethod) {
+        return yield* this.callFunction(callee.fn, args, node, callee.instance, callee.owner);
+      }
 
       if (callee instanceof SuperRef) {
         const found = this.findMethod(callee.klass, 'init');
         if (!found) {
           throw new AzError('The parent class has no "init" method', node.line);
         }
-        return this.callFunction(found.fn, args, node, callee.instance, found.owner);
+        return yield* this.callFunction(found.fn, args, node, callee.instance, found.owner);
       }
 
       if (callee instanceof AzClass) {
@@ -1961,7 +2308,7 @@
       }
 
       if (callee instanceof AzFunction || typeof callee === 'function') {
-        return this.callFunction(callee, args, node);
+        return yield* this.callFunction(callee, args, node);
       }
 
       throw new AzError(
@@ -1971,12 +2318,31 @@
       );
     }
 
-    callFunction(fn, args, node, thisValue, ownerClass) {
-      if (typeof fn === 'function') return fn(this, args, node);
+    *callFunction(fn, args, node, thisValue, ownerClass) {
+      if (typeof fn === 'function') {
+        let result = fn(this, args, node);
+        if (isGenerator(result)) result = yield* result;
+        if (isAzPromise(result)) result = yield result.promise;
+        else if (isThenable(result)) result = yield result;
+        return result;
+      }
       if (!(fn instanceof AzFunction)) {
         throw new AzError('This value is not callable (' + typeName(fn) + ')', node.line);
       }
 
+      if (fn.isAsync) {
+        if (!this.asyncMode) {
+          const err = new AzError('Async function "' + fn.name + '" needs asynchronous execution', node.line);
+          err.hint = ASYNC_HINT;
+          throw err;
+        }
+        return makeAzPromise(driveAsync(this.invokeFunction(fn, args, node, thisValue, ownerClass)));
+      }
+
+      return yield* this.invokeFunction(fn, args, node, thisValue, ownerClass);
+    }
+
+    *invokeFunction(fn, args, node, thisValue, ownerClass) {
       const params = fn.params;
       if (args.length > params.length) {
         throw new AzError(
@@ -1993,7 +2359,7 @@
         if (i < args.length) {
           local.define(p.name, args[i]);
         } else if (p.def !== null && p.def !== undefined) {
-          local.define(p.name, this.eval(p.def, local));
+          local.define(p.name, yield* this.eval(p.def, local));
         } else {
           const err = new AzError(
             'Function "' + fn.name + '" is missing argument "' + p.name + '"',
@@ -2019,10 +2385,10 @@
       this.depth += 1;
       try {
         if (fn.exprBody) {
-          return this.eval(fn.exprBody, local);
+          return yield* this.eval(fn.exprBody, local);
         }
         try {
-          this.execBlock(fn.body, local);
+          yield* this.execBlock(fn.body, local);
         } catch (e) {
           if (e instanceof ReturnSignal) return e.value;
           throw e;
@@ -2045,19 +2411,15 @@
     }
 
     makeBound(fn, instance, owner) {
-      const bound = function (it, args, node) {
-        return it.callFunction(fn, args, node, instance, owner);
-      };
-      bound.azName = fn.name;
-      return bound;
+      return new BoundMethod(fn, instance, owner);
     }
 
-    construct(klass, args, node) {
+    *construct(klass, args, node) {
       const instance = new AzInstance(klass);
       const init = this.findMethod(klass, 'init');
 
       if (init) {
-        this.callFunction(init.fn, args, node, instance, init.owner);
+        yield* this.callFunction(init.fn, args, node, instance, init.owner);
       } else if (args.length > 0) {
         throw new AzError(
           'Class "' + klass.name + '" has no init method, but got ' + args.length + ' argument(s)',
@@ -2066,6 +2428,66 @@
       }
 
       return instance;
+    }
+
+    *awaitValue(value) {
+      if (isAzPromise(value)) return yield value.promise;
+      if (isThenable(value)) return yield value;
+      return value;
+    }
+
+    *importModule(spec, line) {
+      if (spec === 'net') return buildNetNamespace();
+
+      const loader = this.moduleLoader || defaultModuleLoader;
+      let loaded;
+      try {
+        loaded = loader(spec, this.currentFile);
+      } catch (e) {
+        if (e instanceof AzError) throw e;
+        throw new AzError('Could not load module "' + spec + '": ' + (e && e.message ? e.message : e), line);
+      }
+      if (isThenable(loaded)) loaded = yield loaded;
+
+      if (!loaded) {
+        throw new AzError('Could not load module "' + spec + '"', line);
+      }
+
+      if (loaded.exports) return loaded.exports;
+
+      const source = typeof loaded === 'string' ? loaded : loaded.source;
+      const id = typeof loaded === 'string' ? spec : (loaded.id || spec);
+      if (typeof source !== 'string') {
+        throw new AzError('Module "' + spec + '" did not provide source code', line);
+      }
+
+      if (this.modules.has(id)) return this.modules.get(id).exports;
+
+      const exportsMap = Object.create(null);
+      const record = { exports: exportsMap };
+      this.modules.set(id, record);
+
+      const env = new Env(this.globalEnv || makeGlobalEnv());
+      const program = parse(source);
+
+      const previousFile = this.currentFile;
+      const previousTarget = this.exportTarget;
+      this.currentFile = id;
+      this.exportTarget = exportsMap;
+      try {
+        yield* this.execBlock(program.body, env);
+      } catch (e) {
+        this.modules.delete(id);
+        if (e instanceof AzError && !e.hint) {
+          e.hint = 'While importing "' + spec + '"';
+        }
+        throw e;
+      } finally {
+        this.currentFile = previousFile;
+        this.exportTarget = previousTarget;
+      }
+
+      return exportsMap;
     }
 
     getMember(obj, name, line) {
@@ -2252,7 +2674,7 @@
   }
 
   function wantFn(v, name, line) {
-    if (!(v instanceof AzFunction) && typeof v !== 'function') {
+    if (!(v instanceof AzFunction) && !(v instanceof BoundMethod) && typeof v !== 'function') {
       throw new AzError('"' + name + '" needs a function, not ' + typeName(v), line);
     }
     return v;
@@ -2298,6 +2720,563 @@
     if (typeof a === 'number' && typeof b === 'number') return a - b;
     if (typeof a === 'string' && typeof b === 'string') return a.localeCompare(b);
     throw new AzError('"' + name + '" needs a list of only numbers or only strings', line);
+  }
+
+  function* callCallback(it, fn, args, node) {
+    const result = yield* it.callFunction(fn, args, node);
+    return yield* it.awaitValue(result);
+  }
+
+  /* ============================================================
+     NETWORKING HELPERS
+     ============================================================ */
+
+  function hasOwn(obj, key) {
+    return Object.prototype.hasOwnProperty.call(obj, key);
+  }
+
+  function httpError(message, line, kind, extra) {
+    const err = new AzError(message, line, kind);
+    if (extra) {
+      Object.keys(extra).forEach(function (key) { err[key] = extra[key]; });
+    }
+    return err;
+  }
+
+  function responseText(res) {
+    return typeof res.body === 'string' ? res.body : '';
+  }
+
+  function bodySnippet(text) {
+    const s = String(text || '').replace(/\s+/g, ' ').trim();
+    return s.length > 300 ? s.slice(0, 300) + '…' : s;
+  }
+
+  function requireOk(res, line) {
+    if (truthy(res.ok)) return res;
+    const err = httpError(
+      'HTTP ' + res.status + (res.status_text ? ' ' + res.status_text : '') +
+      ' for ' + res.url,
+      line,
+      'http',
+      { status: res.status, url: res.url, body: bodySnippet(responseText(res)), response: res }
+    );
+    err.hint = 'Use raise_for_status(res) inside try/catch, or inspect res.ok and res.status';
+    throw err;
+  }
+
+  function responseJsonValue(res, line, hasFallback, fallback) {
+    if (!isMap(res)) {
+      throw new AzError('response_json needs an HTTP response map', line, 'invalid-response');
+    }
+    if (res.has_json) return res.json;
+    if (hasFallback) return fallback;
+    if (!responseText(res).trim()) return null;
+    const err = httpError(
+      'The response is not valid JSON' +
+      (res.json_error ? ': ' + res.json_error : ''),
+      line,
+      'invalid-response',
+      { status: res.status, url: res.url, body: bodySnippet(responseText(res)), response: res }
+    );
+    err.hint = 'Check res.content_type, or use res.body for the raw text';
+    throw err;
+  }
+
+  function graphqlError(payload, line, res) {
+    const first = payload.errors[0];
+    let message = 'GraphQL error';
+    if (isMap(first) && typeof first.message === 'string') message = 'GraphQL error: ' + first.message;
+    else if (first !== undefined) message = 'GraphQL error: ' + display(first);
+    const err = httpError(message, line, 'graphql', {
+      errors: fromPlain(payload.errors),
+      data: payload.data === undefined ? null : fromPlain(payload.data),
+      status: res.status,
+      url: res.url,
+      response: res
+    });
+    err.hint = 'Inspect err.errors for every GraphQL error';
+    return err;
+  }
+
+  function requestHeaders(value, line) {
+    const headers = {};
+    if (value === undefined || value === null) return headers;
+    if (!isMap(value)) throw new AzError('The "headers" option must be a map', line);
+    Object.keys(value).forEach(function (key) {
+      const item = value[key];
+      headers[key] = typeof item === 'string' ? item : display(item);
+    });
+    return headers;
+  }
+
+  function appendQuery(url, query, line) {
+    if (query === undefined || query === null) return url;
+    if (!isMap(query)) throw new AzError('The "query" option must be a map', line);
+    const parts = [];
+    Object.keys(query).forEach(function (key) {
+      const value = query[key];
+      if (value === null || value === undefined) return;
+      if (Array.isArray(value)) {
+        value.forEach(function (item) {
+          parts.push(encodeURIComponent(key) + '=' + encodeURIComponent(display(item)));
+        });
+      } else {
+        parts.push(encodeURIComponent(key) + '=' + encodeURIComponent(display(value)));
+      }
+    });
+    if (!parts.length) return url;
+    return url + (url.indexOf('?') === -1 ? '?' : '&') + parts.join('&');
+  }
+
+  async function readLimitedBody(response, maxBytes) {
+    if (!response.body || typeof response.body.getReader !== 'function') {
+      const buffer = await response.arrayBuffer();
+      if (maxBytes > 0 && buffer.byteLength > maxBytes) {
+        throw new AzError('The response is larger than the ' + maxBytes + ' byte limit');
+      }
+      return new TextDecoder('utf-8').decode(buffer);
+    }
+
+    const reader = response.body.getReader();
+    const chunks = [];
+    let total = 0;
+    for (;;) {
+      const part = await reader.read();
+      if (part.done) break;
+      total += part.value.byteLength;
+      if (maxBytes > 0 && total > maxBytes) {
+        try { await reader.cancel(); } catch (ignored) { /* already closed */ }
+        const err = new AzError('The response is larger than the ' + maxBytes + ' byte limit');
+        err.kind = 'limit';
+        throw err;
+      }
+      chunks.push(part.value);
+    }
+
+    const joined = new Uint8Array(total);
+    let offset = 0;
+    for (let i = 0; i < chunks.length; i += 1) {
+      joined.set(chunks[i], offset);
+      offset += chunks[i].byteLength;
+    }
+    return new TextDecoder('utf-8').decode(joined);
+  }
+
+  function performHttp(it, urlValue, options, node) {
+    const line = node.line;
+    if (typeof fetch !== 'function') {
+      throw new AzError('This environment does not provide fetch, so HTTP requests are unavailable', line, 'network');
+    }
+    const url = wantStr(urlValue, 'http_request', line);
+    const opts = options === undefined || options === null ? Object.create(null) : wantMap(options, 'http_request', line);
+
+    it.requests += 1;
+    if (it.maxRequests > 0 && it.requests > it.maxRequests) {
+      const err = new AzError(
+        'Request limit reached (' + it.maxRequests + ' requests)',
+        line,
+        'limit'
+      );
+      err.hint = 'Increase maxRequests (CLI: --max-requests <n>) or reuse a response';
+      throw err;
+    }
+
+    const method = hasOwn(opts, 'method') ? String(opts.method).toUpperCase() : 'GET';
+    const headers = requestHeaders(opts.headers, line);
+    let body;
+
+    if (hasOwn(opts, 'json')) {
+      try {
+        body = JSON.stringify(toPlain(opts.json, line));
+      } catch (e) {
+        if (e instanceof AzError) throw e;
+        throw new AzError('The "json" option could not be encoded as JSON', line);
+      }
+      if (!Object.keys(headers).some(function (k) { return k.toLowerCase() === 'content-type'; })) {
+        headers['Content-Type'] = 'application/json; charset=utf-8';
+      }
+    } else if (hasOwn(opts, 'body')) {
+      if (typeof opts.body === 'string') {
+        body = opts.body;
+      } else {
+        try {
+          body = JSON.stringify(toPlain(opts.body, line));
+        } catch (e) {
+          if (e instanceof AzError) throw e;
+          throw new AzError('The "body" option could not be encoded as JSON', line);
+        }
+        if (!Object.keys(headers).some(function (k) { return k.toLowerCase() === 'content-type'; })) {
+          headers['Content-Type'] = 'application/json; charset=utf-8';
+        }
+      }
+    }
+
+    const finalUrl = appendQuery(url, opts.query, line);
+    const maxBytes = hasOwn(opts, 'max_bytes')
+      ? wantInt(opts.max_bytes, 'max_bytes', line)
+      : it.maxResponseBytes;
+    if (maxBytes < 0) throw new AzError('max_bytes cannot be negative', line);
+
+    let timeout = hasOwn(opts, 'timeout_ms')
+      ? wantInt(opts.timeout_ms, 'timeout_ms', line)
+      : it.requestTimeoutMs;
+    if (timeout < 0) throw new AzError('timeout_ms cannot be negative', line);
+    if (timeout === 0) timeout = Infinity;
+    const remaining = it.remainingTime();
+    if (Number.isFinite(remaining)) timeout = Math.min(timeout, remaining);
+    if (timeout <= 0) {
+      throw new AzError('The execution time limit was reached before the request started', line, 'timeout');
+    }
+
+    const redirect = hasOwn(opts, 'redirect') ? String(opts.redirect) : 'follow';
+    if (['follow', 'error', 'manual'].indexOf(redirect) === -1) {
+      throw new AzError('redirect must be "follow", "error", or "manual"', line);
+    }
+
+    const controller = typeof AbortController === 'function' ? new AbortController() : null;
+    let timedOut = false;
+    let timer = null;
+
+    const started = Date.now();
+    const fetchCall = fetch(finalUrl, {
+      method: method,
+      headers: headers,
+      body: body,
+      redirect: redirect,
+      signal: controller ? controller.signal : undefined
+    });
+
+    let timeoutCall = null;
+    if (Number.isFinite(timeout)) {
+      timeoutCall = new Promise(function (resolve, reject) {
+        timer = setTimeout(function () {
+          timedOut = true;
+          if (controller) {
+            try { controller.abort(); } catch (ignored) { /* older runtime */ }
+          }
+          reject(new AzError('Request timed out after ' + timeout + ' ms', line, 'timeout'));
+        }, timeout);
+      });
+    }
+
+    const raced = timeoutCall ? Promise.race([fetchCall, timeoutCall]) : fetchCall;
+    return raced.then(function (response) {
+      const contentType = response.headers.get('content-type') || '';
+      const contentLength = Number(response.headers.get('content-length') || 0);
+      if (maxBytes > 0 && contentLength > maxBytes) {
+        if (controller) {
+          try { controller.abort(); } catch (ignored) { /* ignore */ }
+        }
+        const err = new AzError(
+          'The response is larger than the ' + maxBytes + ' byte limit (Content-Length is ' + contentLength + ')',
+          line,
+          'limit'
+        );
+        throw err;
+      }
+      return readLimitedBody(response, maxBytes).then(function (text) {
+        const headerMap = Object.create(null);
+        response.headers.forEach(function (value, key) {
+          headerMap[key.toLowerCase()] = value;
+        });
+
+        let parsed = null;
+        let hasJson = false;
+        let jsonError = null;
+        if (text.trim()) {
+          try {
+            parsed = fromPlain(JSON.parse(text));
+            hasJson = true;
+          } catch (e) {
+            jsonError = e.message;
+          }
+        }
+
+        return {
+          ok: response.ok,
+          status: response.status,
+          status_text: response.statusText || '',
+          url: response.url || finalUrl,
+          headers: headerMap,
+          content_type: contentType,
+          body: text,
+          has_json: hasJson,
+          json: parsed,
+          json_error: jsonError,
+          elapsed_ms: Date.now() - started,
+          method: method
+        };
+      });
+    }).catch(function (error) {
+      if (error instanceof AzError) throw error;
+      if (timedOut || (error && error.name === 'AbortError')) {
+        throw httpError('Request timed out after ' + timeout + ' ms', line, 'timeout', { url: finalUrl });
+      }
+      const err = httpError(
+        'Network request failed: ' + (error && error.message ? error.message : String(error)),
+        line,
+        'network',
+        { url: finalUrl, cause: error }
+      );
+      err.hint = 'Check the URL, your connection, and (in a browser) the server\'s CORS headers';
+      throw err;
+    }).finally(function () {
+      if (timer) clearTimeout(timer);
+    });
+  }
+
+  function httpMethodBuiltin(name, method, hasBody) {
+    return function (it, args, node) {
+      needBetween(args, hasBody ? 1 : 1, hasBody ? 3 : 2, name, node.line);
+      const options = Object.create(null);
+      if (hasBody) {
+        if (args.length >= 2) options.body = args[1];
+        if (args.length === 3) {
+          const extra = wantMap(args[2], name, node.line);
+          Object.keys(extra).forEach(function (k) { options[k] = extra[k]; });
+        }
+      } else if (args.length === 2) {
+        const extra = wantMap(args[1], name, node.line);
+        Object.keys(extra).forEach(function (k) { options[k] = extra[k]; });
+      }
+      options.method = method;
+      return performHttp(it, args[0], options, node);
+    };
+  }
+
+  function httpJsonBuiltin(name, method, hasBody) {
+    return function (it, args, node) {
+      needBetween(args, hasBody ? 1 : 1, hasBody ? 3 : 2, name, node.line);
+      const options = Object.create(null);
+      if (hasBody) {
+        if (args.length >= 2) options.body = args[1];
+        if (args.length === 3) {
+          const extra = wantMap(args[2], name, node.line);
+          Object.keys(extra).forEach(function (k) { options[k] = extra[k]; });
+        }
+      } else if (args.length === 2) {
+        const extra = wantMap(args[1], name, node.line);
+        Object.keys(extra).forEach(function (k) { options[k] = extra[k]; });
+      }
+      options.method = method;
+      return performHttp(it, args[0], options, node).then(function (res) {
+        requireOk(res, node.line);
+        return responseJsonValue(res, node.line, false, null);
+      });
+    };
+  }
+
+  function graphqlBuiltin(it, args, node) {
+    needBetween(args, 2, 4, 'graphql', node.line);
+    const url = wantStr(args[0], 'graphql', node.line);
+    const query = wantStr(args[1], 'graphql', node.line);
+    const variables = args.length >= 3 ? args[2] : undefined;
+    const extra = args.length === 4 ? wantMap(args[3], 'graphql', node.line) : Object.create(null);
+    const options = Object.create(null);
+    Object.keys(extra).forEach(function (k) { options[k] = extra[k]; });
+    const payload = Object.create(null);
+    payload.query = query;
+    if (variables !== undefined) payload.variables = variables;
+    if (hasOwn(extra, 'operation_name')) payload.operationName = extra.operation_name;
+    options.method = 'POST';
+    options.json = payload;
+    return performHttp(it, url, options, node).then(function (res) {
+      requireOk(res, node.line);
+      const payloadResult = responseJsonValue(res, node.line, false, null);
+      if (!isMap(payloadResult)) {
+        throw httpError('GraphQL response is not a JSON object', node.line, 'invalid-response', {
+          status: res.status, url: res.url, response: res
+        });
+      }
+      if (Array.isArray(payloadResult.errors) && payloadResult.errors.length &&
+          extra.raise_errors !== false) {
+        throw graphqlError(payloadResult, node.line, res);
+      }
+      if (extra.raise_errors === false) return payloadResult;
+      return hasOwn(payloadResult, 'data') ? payloadResult.data : null;
+    });
+  }
+
+  function sleepBuiltin(it, args, node) {
+    needBetween(args, 1, 1, 'sleep', node.line);
+    let ms = wantInt(args[0], 'sleep', node.line);
+    if (ms < 0) throw new AzError('sleep needs a number that is zero or larger', node.line);
+    const remaining = it.remainingTime();
+    if (Number.isFinite(remaining)) ms = Math.min(ms, Math.max(0, remaining));
+    return makeAzPromise(new Promise(function (resolve) { setTimeout(resolve, ms); }));
+  }
+
+  function promiseItems(list) {
+    return list.map(function (item) {
+      if (isAzPromise(item)) return item.promise;
+      if (isThenable(item)) return item;
+      return Promise.resolve(item);
+    });
+  }
+
+  function promiseAllBuiltin(it, args, node) {
+    need(args, 1, 'Promise.all', node.line);
+    return makeAzPromise(Promise.all(promiseItems(wantList(args[0], 'Promise.all', node.line))));
+  }
+
+  function promiseRaceBuiltin(it, args, node) {
+    need(args, 1, 'Promise.race', node.line);
+    return makeAzPromise(Promise.race(promiseItems(wantList(args[0], 'Promise.race', node.line))));
+  }
+
+  function promiseAllSettledBuiltin(it, args, node) {
+    need(args, 1, 'Promise.all_settled', node.line);
+    return makeAzPromise(Promise.allSettled(promiseItems(wantList(args[0], 'Promise.all_settled', node.line)))
+      .then(function (results) {
+        return results.map(function (item) {
+          if (item.status === 'fulfilled') {
+            return { status: 'fulfilled', value: item.value };
+          }
+          const reason = item.reason;
+          return {
+            status: 'rejected',
+            reason: reason instanceof AzError ? reason.message : display(reason)
+          };
+        });
+      }));
+  }
+
+  function* retryBuiltin(it, args, node) {
+    needBetween(args, 1, 3, 'retry', node.line);
+    const fn = wantFn(args[0], 'retry', node.line);
+    const attempts = args.length >= 2 ? wantInt(args[1], 'retry', node.line) : 3;
+    const delay = args.length >= 3 ? wantInt(args[2], 'retry', node.line) : 250;
+    if (attempts < 1) throw new AzError('retry needs at least one attempt', node.line);
+    if (delay < 0) throw new AzError('retry delay cannot be negative', node.line);
+
+    let last;
+    for (let attempt = 1; attempt <= attempts; attempt += 1) {
+      try {
+        const target = fn instanceof BoundMethod ? fn.fn : fn;
+        const wantsAttempt = !(target instanceof AzFunction) || target.params.length > 0;
+        return yield* callCallback(it, fn, wantsAttempt ? [attempt] : [], node);
+      } catch (error) {
+        last = error;
+        if (attempt === attempts) break;
+        yield* it.awaitValue(sleepBuiltin(it, [delay], node));
+      }
+    }
+    throw last;
+  }
+
+  function buildNetNamespace() {
+    const ns = Object.create(null);
+    ns.request = builtin('net.request', function (it, args, node) {
+      needBetween(args, 1, 2, 'net.request', node.line);
+      return performHttp(it, args[0], args.length === 2 ? args[1] : undefined, node);
+    });
+    ns.get = builtin('net.get', httpMethodBuiltin('net.get', 'GET', false));
+    ns.post = builtin('net.post', httpMethodBuiltin('net.post', 'POST', true));
+    ns.put = builtin('net.put', httpMethodBuiltin('net.put', 'PUT', true));
+    ns.patch = builtin('net.patch', httpMethodBuiltin('net.patch', 'PATCH', true));
+    ns.delete = builtin('net.delete', httpMethodBuiltin('net.delete', 'DELETE', false));
+    ns.get_json = builtin('net.get_json', httpJsonBuiltin('net.get_json', 'GET', false));
+    ns.post_json = builtin('net.post_json', httpJsonBuiltin('net.post_json', 'POST', true));
+    ns.graphql = builtin('net.graphql', graphqlBuiltin);
+    ns.raise_for_status = builtin('net.raise_for_status', raiseForStatusBuiltin);
+    ns.json = builtin('net.json', responseJsonBuiltin);
+    ns.text = builtin('net.text', function (it, args, node) {
+      need(args, 1, 'net.text', node.line);
+      const res = wantMap(args[0], 'net.text', node.line);
+      return responseText(res);
+    });
+    ns.retry = builtin('net.retry', retryBuiltin);
+    ns.sleep = builtin('net.sleep', sleepBuiltin);
+    ns.build_query = builtin('net.build_query', function (it, args, node) {
+      need(args, 1, 'net.build_query', node.line);
+      const map = wantMap(args[0], 'net.build_query', node.line);
+      return appendQuery('', map, node.line).replace(/^\?/, '');
+    });
+    return ns;
+  }
+
+  function raiseForStatusBuiltin(it, args, node) {
+    need(args, 1, 'raise_for_status', node.line);
+    const res = wantMap(args[0], 'raise_for_status', node.line);
+    return requireOk(res, node.line);
+  }
+
+  function responseJsonBuiltin(it, args, node) {
+    needBetween(args, 1, 2, 'response_json', node.line);
+    const res = wantMap(args[0], 'response_json', node.line);
+    return responseJsonValue(res, node.line, args.length === 2, args.length === 2 ? args[1] : null);
+  }
+
+  /* ---------- null-safe path helpers ---------- */
+
+  function pathParts(path, line) {
+    if (Array.isArray(path)) return path.map(function (p) { return String(p); });
+    if (typeof path !== 'string') {
+      throw new AzError('A path must be a string or a list of keys', line);
+    }
+    const parts = [];
+    const re = /([^.[\]]+)|\[([^\]]*)\]/g;
+    let match;
+    while ((match = re.exec(path)) !== null) {
+      const value = match[1] !== undefined ? match[1] : match[2];
+      if (value !== '') parts.push(value);
+    }
+    return parts;
+  }
+
+  function safeGet(value, key) {
+    if (value === null || value === undefined) return { found: false, value: null };
+    if (isMap(value)) {
+      const name = String(key);
+      if (hasOwn(value, name)) return { found: true, value: value[name] };
+      return { found: false, value: null };
+    }
+    if (value instanceof AzInstance) {
+      const name = String(key);
+      if (hasOwn(value.fields, name)) return { found: true, value: value.fields[name] };
+      return { found: false, value: null };
+    }
+    if (Array.isArray(value) || typeof value === 'string') {
+      const seq = Array.isArray(value) ? value : Array.from(value);
+      const index = Number(key);
+      if (!Number.isInteger(index)) return { found: false, value: null };
+      const at = index < 0 ? seq.length + index : index;
+      if (at < 0 || at >= seq.length) return { found: false, value: null };
+      return { found: true, value: seq[at] };
+    }
+    return { found: false, value: null };
+  }
+
+  function getPath(value, path, line) {
+    const parts = pathParts(path, line);
+    let current = value;
+    for (let i = 0; i < parts.length; i += 1) {
+      const step = safeGet(current, parts[i]);
+      if (!step.found) return { found: false, value: null };
+      current = step.value;
+    }
+    return { found: true, value: current };
+  }
+
+  function base64Encode(text) {
+    if (typeof Buffer !== 'undefined' && typeof Buffer.from === 'function') {
+      return Buffer.from(text, 'utf8').toString('base64');
+    }
+    const bytes = new TextEncoder().encode(text);
+    let binary = '';
+    for (let i = 0; i < bytes.length; i += 1) binary += String.fromCharCode(bytes[i]);
+    return btoa(binary);
+  }
+
+  function base64Decode(text) {
+    if (typeof Buffer !== 'undefined' && typeof Buffer.from === 'function') {
+      return Buffer.from(text, 'base64').toString('utf8');
+    }
+    const binary = atob(text);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+    return new TextDecoder('utf-8').decode(bytes);
   }
 
   function installBuiltins(env) {
@@ -2386,6 +3365,87 @@
       const question = args.length === 1 ? display(args[0]) : '';
       const answer = it.ask(question);
       return answer === null || answer === undefined ? '' : String(answer);
+    });
+
+    /* ---------- null-safe access and type checks ---------- */
+
+    def('is_null', function (it, args, node) {
+      need(args, 1, 'is_null', node.line);
+      return args[0] === null || args[0] === undefined;
+    });
+    def('is_missing', function (it, args, node) {
+      need(args, 1, 'is_missing', node.line);
+      return args[0] === null || args[0] === undefined;
+    });
+    def('is_map', function (it, args, node) {
+      need(args, 1, 'is_map', node.line);
+      return isMap(args[0]);
+    });
+    def('is_list', function (it, args, node) {
+      need(args, 1, 'is_list', node.line);
+      return Array.isArray(args[0]);
+    });
+    def('is_string', function (it, args, node) {
+      need(args, 1, 'is_string', node.line);
+      return typeof args[0] === 'string';
+    });
+    def('is_number', function (it, args, node) {
+      need(args, 1, 'is_number', node.line);
+      return typeof args[0] === 'number';
+    });
+    def('is_bool', function (it, args, node) {
+      need(args, 1, 'is_bool', node.line);
+      return typeof args[0] === 'boolean';
+    });
+    def('is_function', function (it, args, node) {
+      need(args, 1, 'is_function', node.line);
+      return args[0] instanceof AzFunction || args[0] instanceof BoundMethod || typeof args[0] === 'function';
+    });
+    def('is_empty', function (it, args, node) {
+      need(args, 1, 'is_empty', node.line);
+      const v = args[0];
+      if (v === null || v === undefined) return true;
+      if (typeof v === 'string' || Array.isArray(v)) return v.length === 0;
+      if (isMap(v)) return Object.keys(v).length === 0;
+      throw new AzError('is_empty works with strings, lists, maps, and null', node.line);
+    });
+    def('coalesce', function (it, args, node) {
+      for (let i = 0; i < args.length; i += 1) {
+        if (args[i] !== null && args[i] !== undefined) return args[i];
+      }
+      return null;
+    });
+    def('fallback', function (it, args, node) {
+      need(args, 2, 'fallback', node.line);
+      return args[0] === null || args[0] === undefined ? args[1] : args[0];
+    });
+    def('or_else', function (it, args, node) {
+      need(args, 2, 'or_else', node.line);
+      return args[0] === null || args[0] === undefined ? args[1] : args[0];
+    });
+    def('get_path', function (it, args, node) {
+      needBetween(args, 2, 3, 'get_path', node.line);
+      const result = getPath(args[0], args[1], node.line);
+      if (result.found) return result.value;
+      return args.length === 3 ? args[2] : null;
+    });
+    def('get_in', function (it, args, node) {
+      needBetween(args, 2, 3, 'get_in', node.line);
+      const result = getPath(args[0], args[1], node.line);
+      if (result.found) return result.value;
+      return args.length === 3 ? args[2] : null;
+    });
+    def('has_path', function (it, args, node) {
+      need(args, 2, 'has_path', node.line);
+      return getPath(args[0], args[1], node.line).found;
+    });
+    def('ensure_map', function (it, args, node) {
+      need(args, 1, 'ensure_map', node.line);
+      return isMap(args[0]) ? args[0] : Object.create(null);
+    });
+    def('ensure_list', function (it, args, node) {
+      need(args, 1, 'ensure_list', node.line);
+      return Array.isArray(args[0]) ? args[0] : [];
     });
 
     /* ---------- math ---------- */
@@ -2598,6 +3658,204 @@
       const code = wantInt(args[0], 'from_char', node.line);
       if (code < 0 || code > 0x10ffff) throw new AzError('from_char code is out of range', node.line);
       return String.fromCodePoint(code);
+    });
+
+    def('strip', function (it, args, node) {
+      need(args, 1, 'strip', node.line);
+      return wantStr(args[0], 'strip', node.line).trim();
+    });
+    def('lstrip', function (it, args, node) {
+      need(args, 1, 'lstrip', node.line);
+      return wantStr(args[0], 'lstrip', node.line).replace(/^\s+/, '');
+    });
+    def('rstrip', function (it, args, node) {
+      need(args, 1, 'rstrip', node.line);
+      return wantStr(args[0], 'rstrip', node.line).replace(/\s+$/, '');
+    });
+    def('capitalize', function (it, args, node) {
+      need(args, 1, 'capitalize', node.line);
+      const s = wantStr(args[0], 'capitalize', node.line);
+      const chars = Array.from(s);
+      return chars.length ? chars[0].toUpperCase() + chars.slice(1).join('').toLowerCase() : '';
+    });
+    def('title', function (it, args, node) {
+      need(args, 1, 'title', node.line);
+      const s = wantStr(args[0], 'title', node.line);
+      return s.replace(/(^|\s)(\S)/gu, function (m, space, ch) { return space + ch.toUpperCase(); });
+    });
+    def('pad_left', function (it, args, node) {
+      needBetween(args, 2, 3, 'pad_left', node.line);
+      const s = wantStr(args[0], 'pad_left', node.line);
+      const width = wantInt(args[1], 'pad_left', node.line);
+      const pad = args.length === 3 ? wantStr(args[2], 'pad_left', node.line) : ' ';
+      if (!pad) throw new AzError('pad_left padding cannot be empty', node.line);
+      const len = Array.from(s).length;
+      if (len >= width) return s;
+      let fill = '';
+      while (Array.from(fill).length < width - len) fill += pad;
+      return Array.from(fill).slice(0, width - len).join('') + s;
+    });
+    def('pad_right', function (it, args, node) {
+      needBetween(args, 2, 3, 'pad_right', node.line);
+      const s = wantStr(args[0], 'pad_right', node.line);
+      const width = wantInt(args[1], 'pad_right', node.line);
+      const pad = args.length === 3 ? wantStr(args[2], 'pad_right', node.line) : ' ';
+      if (!pad) throw new AzError('pad_right padding cannot be empty', node.line);
+      const len = Array.from(s).length;
+      if (len >= width) return s;
+      let fill = '';
+      while (Array.from(fill).length < width - len) fill += pad;
+      return s + Array.from(fill).slice(0, width - len).join('');
+    });
+    def('center', function (it, args, node) {
+      needBetween(args, 2, 3, 'center', node.line);
+      const s = wantStr(args[0], 'center', node.line);
+      const width = wantInt(args[1], 'center', node.line);
+      const pad = args.length === 3 ? wantStr(args[2], 'center', node.line) : ' ';
+      if (!pad) throw new AzError('center padding cannot be empty', node.line);
+      const len = Array.from(s).length;
+      if (len >= width) return s;
+      const total = width - len;
+      const left = Math.floor(total / 2);
+      let fill = '';
+      while (Array.from(fill).length < total) fill += pad;
+      const chars = Array.from(fill).slice(0, total).join('');
+      return chars.slice(0, left) + s + chars.slice(left);
+    });
+    def('zfill', function (it, args, node) {
+      need(args, 2, 'zfill', node.line);
+      const s = wantStr(args[0], 'zfill', node.line);
+      const width = wantInt(args[1], 'zfill', node.line);
+      const negative = s.charAt(0) === '-';
+      const body = negative ? s.slice(1) : s;
+      const padded = body.padStart(Math.max(0, width - (negative ? 1 : 0)), '0');
+      return negative ? '-' + padded : padded;
+    });
+    def('count_text', function (it, args, node) {
+      need(args, 2, 'count_text', node.line);
+      const s = wantStr(args[0], 'count_text', node.line);
+      const sub = wantStr(args[1], 'count_text', node.line);
+      if (!sub) return Array.from(s).length + 1;
+      let total = 0;
+      let at = 0;
+      while ((at = s.indexOf(sub, at)) !== -1) {
+        total += 1;
+        at += sub.length;
+      }
+      return total;
+    });
+    def('rfind', function (it, args, node) {
+      need(args, 2, 'rfind', node.line);
+      return wantStr(args[0], 'rfind', node.line).lastIndexOf(wantStr(args[1], 'rfind', node.line));
+    });
+    def('contains', function (it, args, node) {
+      need(args, 2, 'contains', node.line);
+      return wantStr(args[0], 'contains', node.line).indexOf(wantStr(args[1], 'contains', node.line)) !== -1;
+    });
+    def('starts_with', function (it, args, node) {
+      need(args, 2, 'starts_with', node.line);
+      return wantStr(args[0], 'starts_with', node.line).startsWith(wantStr(args[1], 'starts_with', node.line));
+    });
+    def('ends_with', function (it, args, node) {
+      need(args, 2, 'ends_with', node.line);
+      return wantStr(args[0], 'ends_with', node.line).endsWith(wantStr(args[1], 'ends_with', node.line));
+    });
+    def('remove_prefix', function (it, args, node) {
+      need(args, 2, 'remove_prefix', node.line);
+      const s = wantStr(args[0], 'remove_prefix', node.line);
+      const prefix = wantStr(args[1], 'remove_prefix', node.line);
+      return s.startsWith(prefix) ? s.slice(prefix.length) : s;
+    });
+    def('remove_suffix', function (it, args, node) {
+      need(args, 2, 'remove_suffix', node.line);
+      const s = wantStr(args[0], 'remove_suffix', node.line);
+      const suffix = wantStr(args[1], 'remove_suffix', node.line);
+      return s.endsWith(suffix) ? s.slice(0, s.length - suffix.length) : s;
+    });
+    def('lines', function (it, args, node) {
+      need(args, 1, 'lines', node.line);
+      const s = wantStr(args[0], 'lines', node.line);
+      return s === '' ? [] : s.split(/\r?\n/);
+    });
+    def('words', function (it, args, node) {
+      need(args, 1, 'words', node.line);
+      const s = wantStr(args[0], 'words', node.line).trim();
+      return s === '' ? [] : s.split(/\s+/);
+    });
+    def('reverse_text', function (it, args, node) {
+      need(args, 1, 'reverse_text', node.line);
+      return Array.from(wantStr(args[0], 'reverse_text', node.line)).reverse().join('');
+    });
+    def('repeat_text', function (it, args, node) {
+      need(args, 2, 'repeat_text', node.line);
+      const s = wantStr(args[0], 'repeat_text', node.line);
+      const times = wantInt(args[1], 'repeat_text', node.line);
+      if (times < 0) throw new AzError('repeat_text count cannot be negative', node.line);
+      if (times > 1000000) throw new AzError('repeat_text count is too large', node.line);
+      return s.repeat(times);
+    });
+    def('truncate', function (it, args, node) {
+      needBetween(args, 2, 3, 'truncate', node.line);
+      const s = wantStr(args[0], 'truncate', node.line);
+      const max = wantInt(args[1], 'truncate', node.line);
+      const suffix = args.length === 3 ? wantStr(args[2], 'truncate', node.line) : '...';
+      const chars = Array.from(s);
+      if (max < 0) throw new AzError('truncate length cannot be negative', node.line);
+      if (chars.length <= max) return s;
+      if (max <= Array.from(suffix).length) return Array.from(suffix).slice(0, max).join('');
+      return chars.slice(0, max - Array.from(suffix).length).join('') + suffix;
+    });
+    def('substring', function (it, args, node) {
+      needBetween(args, 2, 3, 'substring', node.line);
+      const s = wantStr(args[0], 'substring', node.line);
+      const start = wantInt(args[1], 'substring', node.line);
+      const end = args.length === 3 ? wantInt(args[2], 'substring', node.line) : undefined;
+      const chars = Array.from(s);
+      const b = sliceBounds(chars.length, start, end);
+      return chars.slice(b[0], b[1]).join('');
+    });
+    def('replace_first', function (it, args, node) {
+      need(args, 3, 'replace_first', node.line);
+      const s = wantStr(args[0], 'replace_first', node.line);
+      const from = wantStr(args[1], 'replace_first', node.line);
+      const to = wantStr(args[2], 'replace_first', node.line);
+      if (!from) throw new AzError('replace_first cannot search for an empty string', node.line);
+      const at = s.indexOf(from);
+      return at === -1 ? s : s.slice(0, at) + to + s.slice(at + from.length);
+    });
+    def('url_encode', function (it, args, node) {
+      need(args, 1, 'url_encode', node.line);
+      return encodeURIComponent(wantStr(args[0], 'url_encode', node.line));
+    });
+    def('url_decode', function (it, args, node) {
+      need(args, 1, 'url_decode', node.line);
+      const s = wantStr(args[0], 'url_decode', node.line);
+      try {
+        return decodeURIComponent(s);
+      } catch (e) {
+        throw new AzError('url_decode received an invalid percent-encoded string', node.line);
+      }
+    });
+    def('base64_encode', function (it, args, node) {
+      need(args, 1, 'base64_encode', node.line);
+      return base64Encode(wantStr(args[0], 'base64_encode', node.line));
+    });
+    def('base64_decode', function (it, args, node) {
+      need(args, 1, 'base64_decode', node.line);
+      try {
+        return base64Decode(wantStr(args[0], 'base64_decode', node.line).replace(/\s+/g, ''));
+      } catch (e) {
+        throw new AzError('base64_decode received invalid input', node.line);
+      }
+    });
+    def('escape_html', function (it, args, node) {
+      need(args, 1, 'escape_html', node.line);
+      return wantStr(args[0], 'escape_html', node.line)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
     });
 
     /* ---------- lists & maps ---------- */
@@ -2876,41 +4134,342 @@
       return out;
     });
 
+    def('first', function (it, args, node) {
+      needBetween(args, 1, 2, 'first', node.line);
+      const seq = args[0];
+      if (typeof seq === 'string') {
+        const chars = Array.from(seq);
+        return chars.length ? chars[0] : (args.length === 2 ? args[1] : null);
+      }
+      const list = wantList(seq, 'first', node.line);
+      return list.length ? list[0] : (args.length === 2 ? args[1] : null);
+    });
+    def('last', function (it, args, node) {
+      needBetween(args, 1, 2, 'last', node.line);
+      const seq = args[0];
+      if (typeof seq === 'string') {
+        const chars = Array.from(seq);
+        return chars.length ? chars[chars.length - 1] : (args.length === 2 ? args[1] : null);
+      }
+      const list = wantList(seq, 'last', node.line);
+      return list.length ? list[list.length - 1] : (args.length === 2 ? args[1] : null);
+    });
+    def('take', function (it, args, node) {
+      need(args, 2, 'take', node.line);
+      const list = wantList(args[0], 'take', node.line);
+      const n = Math.max(0, wantInt(args[1], 'take', node.line));
+      return list.slice(0, n);
+    });
+    def('drop', function (it, args, node) {
+      need(args, 2, 'drop', node.line);
+      const list = wantList(args[0], 'drop', node.line);
+      const n = Math.max(0, wantInt(args[1], 'drop', node.line));
+      return list.slice(n);
+    });
+    def('chunk', function (it, args, node) {
+      need(args, 2, 'chunk', node.line);
+      const list = wantList(args[0], 'chunk', node.line);
+      const size = wantInt(args[1], 'chunk', node.line);
+      if (size < 1) throw new AzError('chunk size must be at least 1', node.line);
+      const out = [];
+      for (let i = 0; i < list.length; i += size) out.push(list.slice(i, i + size));
+      return out;
+    });
+    def('compact', function (it, args, node) {
+      need(args, 1, 'compact', node.line);
+      return wantList(args[0], 'compact', node.line).filter(function (v) {
+        return v !== null && v !== undefined;
+      });
+    });
+    def('without', function (it, args, node) {
+      need(args, 2, 'without', node.line);
+      return wantList(args[0], 'without', node.line).filter(function (v) {
+        return !deepEqual(v, args[1]);
+      });
+    });
+    def('difference', function (it, args, node) {
+      need(args, 2, 'difference', node.line);
+      const a = wantList(args[0], 'difference', node.line);
+      const b = wantList(args[1], 'difference', node.line);
+      return a.filter(function (v) {
+        return !b.some(function (x) { return deepEqual(v, x); });
+      });
+    });
+    def('intersection', function (it, args, node) {
+      need(args, 2, 'intersection', node.line);
+      const a = wantList(args[0], 'intersection', node.line);
+      const b = wantList(args[1], 'intersection', node.line);
+      const out = [];
+      for (let i = 0; i < a.length; i += 1) {
+        if (b.some(function (x) { return deepEqual(a[i], x); }) &&
+            !out.some(function (x) { return deepEqual(a[i], x); })) {
+          out.push(a[i]);
+        }
+      }
+      return out;
+    });
+    def('union', function (it, args, node) {
+      if (args.length < 1) throw new AzError('union needs at least one list', node.line);
+      const out = [];
+      args.forEach(function (value) {
+        const list = wantList(value, 'union', node.line);
+        list.forEach(function (item) {
+          if (!out.some(function (x) { return deepEqual(item, x); })) out.push(item);
+        });
+      });
+      return out;
+    });
+    def('merge', function (it, args, node) {
+      if (args.length < 1) throw new AzError('merge needs at least one map', node.line);
+      const out = Object.create(null);
+      args.forEach(function (value) {
+        const map = wantMap(value, 'merge', node.line);
+        Object.keys(map).forEach(function (k) { out[k] = map[k]; });
+      });
+      return out;
+    });
+    def('has_key', function (it, args, node) {
+      need(args, 2, 'has_key', node.line);
+      return hasOwn(wantMap(args[0], 'has_key', node.line), String(args[1]));
+    });
+    def('pick', function (it, args, node) {
+      need(args, 2, 'pick', node.line);
+      const map = wantMap(args[0], 'pick', node.line);
+      const keys = wantList(args[1], 'pick', node.line);
+      const out = Object.create(null);
+      keys.forEach(function (k) {
+        const key = String(k);
+        if (hasOwn(map, key)) out[key] = map[key];
+      });
+      return out;
+    });
+    def('omit', function (it, args, node) {
+      need(args, 2, 'omit', node.line);
+      const map = wantMap(args[0], 'omit', node.line);
+      const keys = wantList(args[1], 'omit', node.line).map(String);
+      const out = Object.create(null);
+      Object.keys(map).forEach(function (k) {
+        if (keys.indexOf(k) === -1) out[k] = map[k];
+      });
+      return out;
+    });
+    def('from_entries', function (it, args, node) {
+      need(args, 1, 'from_entries', node.line);
+      const list = wantList(args[0], 'from_entries', node.line);
+      const out = Object.create(null);
+      for (let i = 0; i < list.length; i += 1) {
+        const pair = list[i];
+        if (!Array.isArray(pair) || pair.length < 2) {
+          throw new AzError('from_entries needs a list of [key, value] pairs', node.line);
+        }
+        out[String(pair[0])] = pair[1];
+      }
+      return out;
+    });
+    def('invert', function (it, args, node) {
+      need(args, 1, 'invert', node.line);
+      const map = wantMap(args[0], 'invert', node.line);
+      const out = Object.create(null);
+      Object.keys(map).forEach(function (k) { out[String(map[k])] = k; });
+      return out;
+    });
+    def('flat_map', function* (it, args, node) {
+      need(args, 2, 'flat_map', node.line);
+      const list = wantList(args[0], 'flat_map', node.line);
+      const fn = wantFn(args[1], 'flat_map', node.line);
+      const out = [];
+      for (let i = 0; i < list.length; i += 1) {
+        const value = yield* callCallback(it, fn, [list[i]], node);
+        if (!Array.isArray(value)) {
+          throw new AzError('flat_map callback must return a list', node.line);
+        }
+        out.push.apply(out, value);
+      }
+      return out;
+    });
+    def('find_index', function* (it, args, node) {
+      need(args, 2, 'find_index', node.line);
+      const list = wantList(args[0], 'find_index', node.line);
+      const test = args[1];
+      if (test instanceof AzFunction || test instanceof BoundMethod || typeof test === 'function') {
+        for (let i = 0; i < list.length; i += 1) {
+          if (truthy(yield* callCallback(it, test, [list[i]], node))) return i;
+        }
+        return -1;
+      }
+      for (let i = 0; i < list.length; i += 1) {
+        if (deepEqual(list[i], test)) return i;
+      }
+      return -1;
+    });
+    def('sort_by', function* (it, args, node) {
+      needBetween(args, 2, 3, 'sort_by', node.line);
+      const list = wantList(args[0], 'sort_by', node.line);
+      const fn = wantFn(args[1], 'sort_by', node.line);
+      const dir = args.length === 3 ? wantStr(args[2], 'sort_by', node.line) : 'asc';
+      if (dir !== 'asc' && dir !== 'desc') {
+        throw new AzError('sort_by direction must be "asc" or "desc"', node.line);
+      }
+      const keyed = [];
+      for (let i = 0; i < list.length; i += 1) {
+        keyed.push({ value: list[i], key: yield* callCallback(it, fn, [list[i]], node), index: i });
+      }
+      keyed.sort(function (a, b) {
+        const cmp = compareForSort(a.key, b.key, 'sort_by', node.line);
+        return cmp === 0 ? a.index - b.index : cmp;
+      });
+      if (dir === 'desc') keyed.reverse();
+      return keyed.map(function (item) { return item.value; });
+    });
+    def('group_by', function* (it, args, node) {
+      need(args, 2, 'group_by', node.line);
+      const list = wantList(args[0], 'group_by', node.line);
+      const fn = wantFn(args[1], 'group_by', node.line);
+      const out = Object.create(null);
+      for (let i = 0; i < list.length; i += 1) {
+        const key = display(yield* callCallback(it, fn, [list[i]], node));
+        if (!hasOwn(out, key)) out[key] = [];
+        out[key].push(list[i]);
+      }
+      return out;
+    });
+    def('count_by', function* (it, args, node) {
+      need(args, 2, 'count_by', node.line);
+      const list = wantList(args[0], 'count_by', node.line);
+      const fn = wantFn(args[1], 'count_by', node.line);
+      const out = Object.create(null);
+      for (let i = 0; i < list.length; i += 1) {
+        const key = display(yield* callCallback(it, fn, [list[i]], node));
+        out[key] = (hasOwn(out, key) ? out[key] : 0) + 1;
+      }
+      return out;
+    });
+    def('index_by', function* (it, args, node) {
+      need(args, 2, 'index_by', node.line);
+      const list = wantList(args[0], 'index_by', node.line);
+      const fn = wantFn(args[1], 'index_by', node.line);
+      const out = Object.create(null);
+      for (let i = 0; i < list.length; i += 1) {
+        out[display(yield* callCallback(it, fn, [list[i]], node))] = list[i];
+      }
+      return out;
+    });
+    def('min_by', function* (it, args, node) {
+      need(args, 2, 'min_by', node.line);
+      const list = wantList(args[0], 'min_by', node.line);
+      if (!list.length) throw new AzError('min_by cannot work with an empty list', node.line);
+      const fn = wantFn(args[1], 'min_by', node.line);
+      let best = list[0];
+      let bestKey = yield* callCallback(it, fn, [best], node);
+      for (let i = 1; i < list.length; i += 1) {
+        const key = yield* callCallback(it, fn, [list[i]], node);
+        if (compareForSort(key, bestKey, 'min_by', node.line) < 0) {
+          best = list[i];
+          bestKey = key;
+        }
+      }
+      return best;
+    });
+    def('max_by', function* (it, args, node) {
+      need(args, 2, 'max_by', node.line);
+      const list = wantList(args[0], 'max_by', node.line);
+      if (!list.length) throw new AzError('max_by cannot work with an empty list', node.line);
+      const fn = wantFn(args[1], 'max_by', node.line);
+      let best = list[0];
+      let bestKey = yield* callCallback(it, fn, [best], node);
+      for (let i = 1; i < list.length; i += 1) {
+        const key = yield* callCallback(it, fn, [list[i]], node);
+        if (compareForSort(key, bestKey, 'max_by', node.line) > 0) {
+          best = list[i];
+          bestKey = key;
+        }
+      }
+      return best;
+    });
+    def('sum_by', function* (it, args, node) {
+      need(args, 2, 'sum_by', node.line);
+      const list = wantList(args[0], 'sum_by', node.line);
+      const fn = wantFn(args[1], 'sum_by', node.line);
+      let total = 0;
+      for (let i = 0; i < list.length; i += 1) {
+        const value = yield* callCallback(it, fn, [list[i]], node);
+        if (typeof value !== 'number') {
+          throw new AzError('sum_by callback must return numbers', node.line);
+        }
+        total += value;
+      }
+      return clean(total);
+    });
+    def('partition', function* (it, args, node) {
+      need(args, 2, 'partition', node.line);
+      const list = wantList(args[0], 'partition', node.line);
+      const fn = wantFn(args[1], 'partition', node.line);
+      const yes = [];
+      const no = [];
+      for (let i = 0; i < list.length; i += 1) {
+        if (truthy(yield* callCallback(it, fn, [list[i]], node))) yes.push(list[i]);
+        else no.push(list[i]);
+      }
+      return [yes, no];
+    });
+    def('map_values', function* (it, args, node) {
+      need(args, 2, 'map_values', node.line);
+      const map = wantMap(args[0], 'map_values', node.line);
+      const fn = wantFn(args[1], 'map_values', node.line);
+      const out = Object.create(null);
+      const keys = Object.keys(map);
+      for (let i = 0; i < keys.length; i += 1) {
+        out[keys[i]] = yield* callCallback(it, fn, [map[keys[i]]], node);
+      }
+      return out;
+    });
+    def('map_keys', function* (it, args, node) {
+      need(args, 2, 'map_keys', node.line);
+      const map = wantMap(args[0], 'map_keys', node.line);
+      const fn = wantFn(args[1], 'map_keys', node.line);
+      const out = Object.create(null);
+      const keys = Object.keys(map);
+      for (let i = 0; i < keys.length; i += 1) {
+        out[display(yield* callCallback(it, fn, [keys[i]], node))] = map[keys[i]];
+      }
+      return out;
+    });
+
     /* ---------- higher-order helpers ---------- */
 
-    def('map', function (it, args, node) {
+    def('map', function* (it, args, node) {
       need(args, 2, 'map', node.line);
       const list = wantList(args[0], 'map', node.line);
       const fn = wantFn(args[1], 'map', node.line);
       const out = [];
       for (let i = 0; i < list.length; i += 1) {
-        out.push(it.callFunction(fn, [list[i]], node));
+        out.push(yield* callCallback(it, fn, [list[i]], node));
       }
       return out;
     });
 
-    def('each', function (it, args, node) {
+    def('each', function* (it, args, node) {
       need(args, 2, 'each', node.line);
       const list = wantList(args[0], 'each', node.line);
       const fn = wantFn(args[1], 'each', node.line);
       for (let i = 0; i < list.length; i += 1) {
-        it.callFunction(fn, [list[i]], node);
+        yield* callCallback(it, fn, [list[i]], node);
       }
       return null;
     });
 
-    def('filter', function (it, args, node) {
+    def('filter', function* (it, args, node) {
       need(args, 2, 'filter', node.line);
       const list = wantList(args[0], 'filter', node.line);
       const fn = wantFn(args[1], 'filter', node.line);
       const out = [];
       for (let i = 0; i < list.length; i += 1) {
-        if (truthy(it.callFunction(fn, [list[i]], node))) out.push(list[i]);
+        if (truthy(yield* callCallback(it, fn, [list[i]], node))) out.push(list[i]);
       }
       return out;
     });
 
-    def('reduce', function (it, args, node) {
+    def('reduce', function* (it, args, node) {
       needBetween(args, 2, 3, 'reduce', node.line);
       const list = wantList(args[0], 'reduce', node.line);
       const fn = wantFn(args[1], 'reduce', node.line);
@@ -2927,19 +4486,19 @@
       }
 
       for (let i = start; i < list.length; i += 1) {
-        acc = it.callFunction(fn, [acc, list[i]], node);
+        acc = yield* callCallback(it, fn, [acc, list[i]], node);
       }
       return acc;
     });
 
-    def('find_item', function (it, args, node) {
+    def('find_item', function* (it, args, node) {
       need(args, 2, 'find_item', node.line);
       const list = wantList(args[0], 'find_item', node.line);
       const test = args[1];
 
-      if (test instanceof AzFunction || typeof test === 'function') {
+      if (test instanceof AzFunction || test instanceof BoundMethod || typeof test === 'function') {
         for (let i = 0; i < list.length; i += 1) {
-          if (truthy(it.callFunction(test, [list[i]], node))) return list[i];
+          if (truthy(yield* callCallback(it, test, [list[i]], node))) return list[i];
         }
         return null;
       }
@@ -2950,15 +4509,15 @@
       return null;
     });
 
-    def('count', function (it, args, node) {
+    def('count', function* (it, args, node) {
       need(args, 2, 'count', node.line);
       const list = wantList(args[0], 'count', node.line);
       const test = args[1];
       let total = 0;
 
-      if (test instanceof AzFunction || typeof test === 'function') {
+      if (test instanceof AzFunction || test instanceof BoundMethod || typeof test === 'function') {
         for (let i = 0; i < list.length; i += 1) {
-          if (truthy(it.callFunction(test, [list[i]], node))) total += 1;
+          if (truthy(yield* callCallback(it, test, [list[i]], node))) total += 1;
         }
       } else {
         for (let i = 0; i < list.length; i += 1) {
@@ -2968,23 +4527,23 @@
       return total;
     });
 
-    def('any', function (it, args, node) {
+    def('any', function* (it, args, node) {
       needBetween(args, 1, 2, 'any', node.line);
       const list = wantList(args[0], 'any', node.line);
       const fn = args.length === 2 ? wantFn(args[1], 'any', node.line) : null;
       for (let i = 0; i < list.length; i += 1) {
-        const v = fn ? it.callFunction(fn, [list[i]], node) : list[i];
+        const v = fn ? yield* callCallback(it, fn, [list[i]], node) : list[i];
         if (truthy(v)) return true;
       }
       return false;
     });
 
-    def('all', function (it, args, node) {
+    def('all', function* (it, args, node) {
       needBetween(args, 1, 2, 'all', node.line);
       const list = wantList(args[0], 'all', node.line);
       const fn = args.length === 2 ? wantFn(args[1], 'all', node.line) : null;
       for (let i = 0; i < list.length; i += 1) {
-        const v = fn ? it.callFunction(fn, [list[i]], node) : list[i];
+        const v = fn ? yield* callCallback(it, fn, [list[i]], node) : list[i];
         if (!truthy(v)) return false;
       }
       return true;
@@ -3019,6 +4578,49 @@
     def('to_json', encode);
     def('json_decode', decode);
     def('from_json', decode);
+
+    /* ---------- HTTP, promises, and the net library ---------- */
+
+    def('http_request', function (it, args, node) {
+      needBetween(args, 1, 2, 'http_request', node.line);
+      return performHttp(it, args[0], args.length === 2 ? args[1] : undefined, node);
+    });
+    def('http_get', builtin('http_get', httpMethodBuiltin('http_get', 'GET', false)));
+    def('http_post', builtin('http_post', httpMethodBuiltin('http_post', 'POST', true)));
+    def('http_put', builtin('http_put', httpMethodBuiltin('http_put', 'PUT', true)));
+    def('http_patch', builtin('http_patch', httpMethodBuiltin('http_patch', 'PATCH', true)));
+    def('http_delete', builtin('http_delete', httpMethodBuiltin('http_delete', 'DELETE', false)));
+    def('http_get_json', builtin('http_get_json', httpJsonBuiltin('http_get_json', 'GET', false)));
+    def('http_post_json', builtin('http_post_json', httpJsonBuiltin('http_post_json', 'POST', true)));
+    def('graphql', graphqlBuiltin);
+    def('raise_for_status', raiseForStatusBuiltin);
+    def('response_json', responseJsonBuiltin);
+    def('response_text', function (it, args, node) {
+      need(args, 1, 'response_text', node.line);
+      return responseText(wantMap(args[0], 'response_text', node.line));
+    });
+    def('sleep', sleepBuiltin);
+    def('retry', retryBuiltin);
+
+    env.define('net', buildNetNamespace(), true);
+
+    const promiseObject = Object.create(null);
+    promiseObject.all = builtin('Promise.all', promiseAllBuiltin);
+    promiseObject.race = builtin('Promise.race', promiseRaceBuiltin);
+    promiseObject.all_settled = builtin('Promise.all_settled', promiseAllSettledBuiltin);
+    promiseObject.allSettled = promiseObject.all_settled;
+    promiseObject.resolve = builtin('Promise.resolve', function (it, args, node) {
+      needBetween(args, 0, 1, 'Promise.resolve', node.line);
+      const value = args.length ? args[0] : null;
+      if (isAzPromise(value)) return value;
+      if (isThenable(value)) return makeAzPromise(value);
+      return makeAzPromise(Promise.resolve(value));
+    });
+    promiseObject.reject = builtin('Promise.reject', function (it, args, node) {
+      need(args, 1, 'Promise.reject', node.line);
+      return makeAzPromise(Promise.reject(args[0]));
+    });
+    env.define('Promise', promiseObject, true);
   }
 
   /* ============================================================
@@ -3029,6 +4631,115 @@
     return new Parser(tokenize(source), source).parse();
   }
 
+  let nodeModules = null;
+
+  function getNodeModules() {
+    if (nodeModules !== null) return nodeModules || null;
+    if (typeof require !== 'function') {
+      nodeModules = false;
+      return null;
+    }
+    try {
+      nodeModules = { fs: require('fs'), path: require('path') };
+    } catch (e) {
+      nodeModules = false;
+    }
+    return nodeModules || null;
+  }
+
+  function moduleError(spec, message, hint) {
+    const err = new AzError('Could not load module "' + spec + '": ' + message, 0);
+    if (hint) err.hint = hint;
+    return err;
+  }
+
+  function fetchModuleSource(spec, base) {
+    if (typeof fetch !== 'function') {
+      throw moduleError(spec, 'this environment cannot fetch modules');
+    }
+    let url;
+    try {
+      url = new URL(spec, base || undefined).href;
+    } catch (e) {
+      throw moduleError(spec, 'the module path is not a valid URL');
+    }
+    return fetch(url, { cache: 'no-store' }).then(function (response) {
+      if (!response.ok) {
+        throw moduleError(spec, 'HTTP ' + response.status + ' while fetching ' + url);
+      }
+      return response.text().then(function (source) {
+        return { id: url, source: source };
+      });
+    }).catch(function (error) {
+      if (error instanceof AzError) throw error;
+      throw moduleError(
+        spec,
+        'could not fetch ' + url + ': ' + (error && error.message ? error.message : error),
+        'Check the URL and your connection. In a browser, the server must allow CORS.'
+      );
+    });
+  }
+
+  function defaultModuleLoader(spec, from) {
+    const isRemote = /^[a-z][a-z0-9+.-]*:\/\//i.test(spec);
+    const fromIsRemote = typeof from === 'string' && /^[a-z][a-z0-9+.-]*:\/\//i.test(from);
+
+    if (isRemote || fromIsRemote) {
+      let base = from;
+      if (!base && typeof document !== 'undefined' && document.baseURI) base = document.baseURI;
+      return fetchModuleSource(spec, base);
+    }
+
+    const node = getNodeModules();
+    if (!node) {
+      if (typeof document === 'undefined' || !document.baseURI ||
+          typeof fetch !== 'function') {
+        throw moduleError(spec, 'no module loader is available in this environment',
+          'Pass a moduleLoader option, or run the Studio over http://');
+      }
+      if (typeof location !== 'undefined' && location.protocol === 'file:') {
+        throw moduleError(spec, 'browser modules need an http:// or https:// page',
+          'Start the Studio with studio-server.js (or IDE.bat) and open the printed address');
+      }
+      return fetchModuleSource(spec, document.baseURI);
+    }
+
+    const path = node.path;
+    const fs = node.fs;
+    let base = process.cwd();
+    if (typeof from === 'string' && from.length) {
+      base = path.dirname(path.resolve(from));
+    }
+    const target = path.resolve(base, spec);
+    const candidates = [target];
+    if (!path.extname(target)) {
+      candidates.push(target + '.az');
+      candidates.push(path.join(target, 'index.az'));
+    }
+    const fromCwd = path.resolve(process.cwd(), spec);
+    if (fromCwd !== target) {
+      candidates.push(fromCwd);
+      if (!path.extname(fromCwd)) {
+        candidates.push(fromCwd + '.az');
+        candidates.push(path.join(fromCwd, 'index.az'));
+      }
+    }
+
+    for (let i = 0; i < candidates.length; i += 1) {
+      const candidate = candidates[i];
+      try {
+        if (fs.statSync(candidate).isFile()) {
+          return { id: candidate, source: fs.readFileSync(candidate, 'utf8') };
+        }
+      } catch (e) {
+        // Try the next candidate.
+      }
+    }
+
+    throw moduleError(spec, 'file not found (looked for ' + candidates.join(', ') + ')',
+      'Module paths are resolved relative to the importing file, then the current directory');
+  }
+
   function makeGlobalEnv() {
     const env = new Env(null);
     installBuiltins(env);
@@ -3036,6 +4747,20 @@
     env.define('E', Math.E, true);
     env.define('TAU', Math.PI * 2, true);
     return env;
+  }
+
+  function interpreterOptions(options, emit) {
+    return {
+      out: emit,
+      ask: options.ask,
+      maxSteps: options.maxSteps,
+      maxTimeMs: options.maxTimeMs,
+      maxRequests: options.maxRequests,
+      maxResponseBytes: options.maxResponseBytes,
+      requestTimeoutMs: options.requestTimeoutMs,
+      filename: options.filename,
+      moduleLoader: options.moduleLoader
+    };
   }
 
   function run(source, options) {
@@ -3049,12 +4774,7 @@
     };
 
     const program = parse(source);
-    const interp = new Interpreter({
-      out: emit,
-      ask: options.ask,
-      maxSteps: options.maxSteps
-    });
-
+    const interp = new Interpreter(interpreterOptions(options, emit));
     interp.run(program);
 
     return {
@@ -3062,6 +4782,30 @@
       steps: interp.steps,
       ms: Date.now() - started
     };
+  }
+
+  function runAsync(source, options) {
+    options = options || {};
+    const started = Date.now();
+    const output = [];
+    const emit = function (text) {
+      const s = String(text);
+      output.push(s);
+      if (options.onOutput) options.onOutput(s);
+    };
+
+    const program = parse(source);
+    const interp = new Interpreter(interpreterOptions(options, emit));
+
+    return interp.runAsync(program).then(function () {
+      return {
+        output: output,
+        steps: interp.steps,
+        ms: Date.now() - started
+      };
+    }, function (e) {
+      throw topLevelError(e);
+    });
   }
 
   const TOP_SIGNAL_MESSAGES = {
@@ -3088,19 +4832,34 @@
   class Session {
     constructor(options) {
       options = options || {};
-      this.interp = new Interpreter({
-        out: options.onOutput || function (s) { console.log(s); },
-        ask: options.ask,
-        maxSteps: options.maxSteps
-      });
+      this.interp = new Interpreter(interpreterOptions(options, options.onOutput || function (s) { console.log(s); }));
       this.env = makeGlobalEnv();
+      this.interp.globalEnv = this.env;
     }
 
     execute(source) {
       const program = parse(source);
       const before = this.interp.steps;
+      this.interp.asyncMode = false;
+      this.interp.beginExecution();
       try {
-        this.interp.execBlock(program.body, this.env);
+        driveSync(this.interp.execBlock(program.body, this.env));
+      } catch (e) {
+        throw topLevelError(e);
+      }
+      return {
+        steps: this.interp.steps - before,
+        totalSteps: this.interp.steps
+      };
+    }
+
+    async executeAsync(source) {
+      const program = parse(source);
+      const before = this.interp.steps;
+      this.interp.asyncMode = true;
+      this.interp.beginExecution();
+      try {
+        await driveAsync(this.interp.execBlock(program.body, this.env));
       } catch (e) {
         throw topLevelError(e);
       }
@@ -3116,6 +4875,7 @@
     tokenize: tokenize,
     parse: parse,
     run: run,
+    runAsync: runAsync,
     Session: Session,
     createSession: function (options) { return new Session(options); },
     Parser: Parser,
@@ -3211,24 +4971,27 @@
         return fs.readFileSync(path.resolve(process.cwd(), file), 'utf8');
       }
 
-      function runSource(source) {
-        try {
-          const started = Date.now();
-          const result = run(source, {
-            ask: askFromStdin,
-            onOutput: function (s) { process.stdout.write(s + '\n'); }
-          });
+      function runSource(source, filename) {
+        return runAsync(source, {
+          ask: askFromStdin,
+          onOutput: function (s) { process.stdout.write(s + '\n'); },
+          filename: filename || null,
+          maxTimeMs: cliOptions.maxTimeMs,
+          maxRequests: cliOptions.maxRequests,
+          maxResponseBytes: cliOptions.maxResponseBytes,
+          requestTimeoutMs: cliOptions.requestTimeoutMs
+        }).then(function (result) {
           if (process.env.AZLANG_VERBOSE) {
-            process.stderr.write(paint('90', '- ' + (Date.now() - started) + 'ms, ' + result.steps + ' steps') + '\n');
+            process.stderr.write(paint('90', '- ' + result.ms + 'ms, ' + result.steps + ' steps') + '\n');
           }
           return 0;
-        } catch (e) {
+        }).catch(function (e) {
           if (e instanceof AzError) {
             printError(e, source);
             return 1;
           }
           throw e;
-        }
+        });
       }
 
       function blockDepth(code) {
@@ -3237,7 +5000,7 @@
         for (let i = 0; i < lines.length; i += 1) {
           const line = lines[i].replace(/#.*$/, '').trim();
           if (!line) continue;
-          if (/^(if|while|for|repeat|fun|class|try|match)\b/.test(line)) depth += 1;
+          if (/^(if|while|for|repeat|fun|class|try|match|async fun)\b/.test(line)) depth += 1;
           if (/^end\b/.test(line)) depth = Math.max(0, depth - 1);
         }
         return depth;
@@ -3252,15 +5015,21 @@
 
         const session = new Session({
           ask: askFromStdin,
-          onOutput: function (s) { process.stdout.write(s + '\n'); }
+          onOutput: function (s) { process.stdout.write(s + '\n'); },
+          maxTimeMs: cliOptions.maxTimeMs,
+          maxRequests: cliOptions.maxRequests,
+          maxResponseBytes: cliOptions.maxResponseBytes,
+          requestTimeoutMs: cliOptions.requestTimeoutMs
         });
 
         let buffer = '';
+        let busy = false;
 
         process.stdout.write(paint('36', 'AzLang ' + VERSION) + paint('90', ' - type .exit to quit') + '\n');
         rl.prompt();
 
-        rl.on('line', function (line) {
+        rl.on('line', async function (line) {
+          if (busy) return;
           if (line.trim() === '.exit' || line.trim() === 'exit') {
             rl.close();
             return;
@@ -3275,11 +5044,16 @@
           }
 
           if (buffer.trim()) {
+            busy = true;
+            const source = buffer;
+            buffer = '';
             try {
-              session.execute(buffer);
+              await session.executeAsync(source);
             } catch (e) {
-              if (e instanceof AzError) printError(e, buffer);
+              if (e instanceof AzError) printError(e, source);
               else process.stderr.write(String(e && e.stack ? e.stack : e) + '\n');
+            } finally {
+              busy = false;
             }
           }
 
@@ -3306,15 +5080,53 @@
           '    node azlang.js --check <file>  parse without running',
           '',
           paint('1', '  Options:'),
-          '    -h, --help       show this help',
-          '    -v, --version    show the version',
+          '    --timeout <ms>        execution time limit (default 60000)',
+          '    --request-timeout <ms> per-request timeout (default 30000)',
+          '    --max-requests <n>    HTTP request limit (default 100)',
+          '    --max-response <n>    response size limit in bytes (default 5242880)',
+          '    -h, --help            show this help',
+          '    -v, --version         show the version',
           '',
           paint('90', '  Example:  node azlang.js examples/hello.az'),
           ''
         ].join('\n') + '\n');
       }
 
-      const argv = process.argv.slice(2);
+      const cliOptions = {
+        maxTimeMs: 60000,
+        maxRequests: 100,
+        maxResponseBytes: 5 * 1024 * 1024,
+        requestTimeoutMs: 30000
+      };
+
+      function optionNumber(name, value) {
+        const n = Number(value);
+        if (!Number.isFinite(n) || n < 0) {
+          process.stderr.write('error: ' + name + ' needs a non-negative number\n');
+          process.exitCode = 2;
+          return null;
+        }
+        return Math.floor(n);
+      }
+
+      const rawArgs = process.argv.slice(2);
+      const argv = [];
+      for (let i = 0; i < rawArgs.length; i += 1) {
+        const arg = rawArgs[i];
+        const match = /^--(timeout|request-timeout|max-requests|max-response)(?:=(.*))?$/.exec(arg);
+        if (match) {
+          const value = match[2] !== undefined ? match[2] : rawArgs[i + 1];
+          if (match[2] === undefined) i += 1;
+          const n = optionNumber('--' + match[1], value);
+          if (n === null) return;
+          if (match[1] === 'timeout') cliOptions.maxTimeMs = n;
+          else if (match[1] === 'request-timeout') cliOptions.requestTimeoutMs = n;
+          else if (match[1] === 'max-requests') cliOptions.maxRequests = n;
+          else cliOptions.maxResponseBytes = n;
+          continue;
+        }
+        argv.push(arg);
+      }
 
       if (argv.length === 0) {
         repl();
@@ -3332,7 +5144,9 @@
       }
 
       if (argv[0] === '-e') {
-        process.exitCode = runSource(argv.slice(1).join(' '));
+        runSource(argv.slice(1).join(' '), null).then(function (code) {
+          process.exitCode = code;
+        });
         return;
       }
 
@@ -3374,7 +5188,9 @@
         return;
       }
 
-      process.exitCode = runSource(source);
+      runSource(source, path.resolve(process.cwd(), file)).then(function (code) {
+        process.exitCode = code;
+      });
     })();
   }
 

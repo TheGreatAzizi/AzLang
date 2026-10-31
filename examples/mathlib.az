@@ -1,0 +1,28 @@
+# A small reusable module. Import it with:
+#
+#   import { add, average, Circle } from "./examples/mathlib.az"
+#   import math from "./examples/mathlib.az"
+#
+# Exported names are visible to other files. Everything else stays private.
+
+export const version = "1.0"
+
+export fun add(a, b)
+  return a + b
+end
+
+export fun average(numbers)
+  if len(numbers) == 0
+    return 0
+  end
+  return sum(numbers) / len(numbers)
+end
+
+export class Circle
+  fun init(radius)
+    this.radius = radius
+  end
+  fun area()
+    return round(PI * this.radius ** 2, 2)
+  end
+end

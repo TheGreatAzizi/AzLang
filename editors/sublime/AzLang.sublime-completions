@@ -4,6 +4,12 @@
   "completions": [
     "let ${1:name} = ${2:value}",
     "say ${1:value}",
+    "async fun ${1:name}(${2:args})",
+    "await ${1:expression}",
+    "import ${1:name} from \"${2:./module.az}\"",
+    "import { ${1:name} } from \"${2:./module.az}\"",
+    "export fun ${1:name}(${2:args})",
+    "export { ${1:name} }",
     "if ${1:condition}",
     "elif ${1:condition}",
     "else",

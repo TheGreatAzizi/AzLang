@@ -1,0 +1,16 @@
+# Modules let one file reuse code from another.
+# This example imports the same library twice: once as a namespace and once
+# with named imports. AzLang loads and runs the module only once.
+
+import math from "./examples/mathlib.az"
+import { add, average, Circle } from "./examples/mathlib.az"
+
+say "Library version:", math.version
+say "2 + 3 =", add(2, 3)
+say "average =", average([4, 8, 15, 16, 23, 42])
+
+let circle = new Circle(3)
+say "circle area =", circle.area()
+
+# Exports can be renamed on the way in:
+#   import { add as plus } from "./examples/mathlib.az"

@@ -131,17 +131,11 @@ function main() {
   fs.mkdirSync(workDir, { recursive: true });
   fs.mkdirSync(distDir, { recursive: true });
 
-  console.log('\n[1/6] Compiling launchers and the uninstaller');
+  console.log('\n[1/6] Compiling the CLI launcher and the uninstaller');
   compile(csc, {
     target: 'exe',
     out: path.join(payloadDir, 'bin', 'azlang.exe'),
     sources: [path.join(root, 'packaging', 'src', 'AzLangLauncher.cs')]
-  });
-  compile(csc, {
-    target: 'winexe',
-    out: path.join(payloadDir, 'bin', 'AzLangStudio.exe'),
-    sources: [path.join(root, 'packaging', 'src', 'AzLangStudioLauncher.cs')],
-    references: ['System.Windows.Forms.dll']
   });
   compile(csc, {
     target: 'winexe',
@@ -166,9 +160,10 @@ function main() {
 
   const studioDir = path.join(payloadDir, 'studio');
   fs.mkdirSync(studioDir, { recursive: true });
-  for (const name of ['ide.html', 'docs.html', 'index.html', '404.html', 'azlang.js', 'examples.js']) {
+  for (const name of ['ide.html', 'docs.html', 'index.html', '404.html', 'azlang.js', 'examples.js', 'studio-server.js']) {
     copyFile(path.join(root, name), path.join(studioDir, name));
   }
+  copyFile(path.join(root, 'packaging', 'studio-launcher.vbs'), path.join(studioDir, 'AzLang Studio.vbs'));
   copyTree(path.join(root, 'assets'), path.join(studioDir, 'assets'));
   copyTree(path.join(root, 'site'), path.join(studioDir, 'site'));
   copyTree(path.join(root, 'examples'), path.join(studioDir, 'examples'));

@@ -15,11 +15,11 @@ dependency-free and use the same language rules as the interpreter.
 
 ### VS Code and compatible editors
 
-Download `azlang-2.0.0.vsix` from the
+Download `azlang-2.1.0.vsix` from the
 [latest release](https://github.com/TheGreatAzizi/AzLang/releases/latest), then:
 
 ```sh
-code --install-extension azlang-2.0.0.vsix
+code --install-extension azlang-2.1.0.vsix
 ```
 
 Or open the Extensions view, choose **Views and More Actions... > Install from

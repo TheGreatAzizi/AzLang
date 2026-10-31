@@ -1361,7 +1361,7 @@
           </div>
           <div class="side-card">
             <h3>Installed runtime</h3>
-            <p>AzLang 2.0 runs entirely in this page. No server, no packages, no telemetry.</p>
+            <p>AzLang 2.1 runs entirely in your browser tab. The included local server only serves these files; no packages, no telemetry.</p>
           </div>
         </div>
       </section>
@@ -1380,7 +1380,7 @@
             <div>
               <h3>AzLang for VS Code</h3>
               <p>Syntax highlighting, indentation, snippets, and a Run command for VS Code, Cursor, Windsurf, and VSCodium.</p>
-              <div class="ext-meta"><span>2.0.0</span><span>·</span><span>Included in every release</span></div>
+              <div class="ext-meta"><span>2.1.0</span><span>·</span><span>Included in every release</span></div>
             </div>
           </div>
           <div class="side-list">
@@ -1435,7 +1435,7 @@
           <div class="setting-note">Settings are stored locally in your browser. The Studio never sends code anywhere.</div>
           <div class="side-card">
             <h3>About AzLang Studio</h3>
-            <p>Version 2.0.0 · The zero-dependency editor for AzLang. Built with plain HTML, CSS, and JavaScript.</p>
+            <p>Version 2.1.0 · The zero-dependency browser-based editor for AzLang. Built with plain HTML, CSS, and JavaScript.</p>
             <a class="side-btn" href="docs.html" style="text-decoration:none" target="_blank" rel="noopener">
               <svg class="icon" aria-hidden="true"><use href="#i-book"/></svg>
               Open documentation
@@ -1566,7 +1566,7 @@
       </span>
     </div>
     <div class="status-right">
-      <span class="status-item optional">AzLang 2.0</span>
+      <span class="status-item optional">AzLang 2.1</span>
       <span class="status-item optional" id="statusSpaces">Spaces: 2</span>
       <span class="status-item optional">UTF-8</span>
       <span class="status-item optional">LF</span>
@@ -1682,7 +1682,7 @@
   const STORE_AUTOSAVE = 'azlang.autosave.v2';
 
   const STARTER = [
-    '# Welcome to AzLang 2.0',
+    '# Welcome to AzLang 2.1',
     '# Press Ctrl+Enter to run this program.',
     '',
     'let name = "world"',
@@ -1704,7 +1704,8 @@
     'while', 'for', 'in', 'repeat', 'break', 'continue',
     'fun', 'return', 'true', 'false', 'null', 'and', 'or', 'not',
     'class', 'extends', 'new', 'this', 'super',
-    'try', 'catch', 'throw', 'match', 'case', 'default'
+    'try', 'catch', 'throw', 'match', 'case', 'default',
+    'async', 'await', 'import', 'export'
   ]);
 
   const BUILTINS = new Set([
@@ -1713,15 +1714,30 @@
     'avg', 'clamp', 'random', 'random_float', 'choice',
     'upper', 'lower', 'trim', 'starts', 'ends', 'find', 'replace', 'split', 'join',
     'chars', 'char_code', 'from_char',
+    'strip', 'lstrip', 'rstrip', 'capitalize', 'title', 'pad_left', 'pad_right',
+    'center', 'zfill', 'count_text', 'rfind', 'contains', 'starts_with', 'ends_with',
+    'remove_prefix', 'remove_suffix', 'lines', 'words', 'reverse_text', 'repeat_text',
+    'truncate', 'substring', 'replace_first', 'url_encode', 'url_decode',
+    'base64_encode', 'base64_decode', 'escape_html',
     'append', 'prepend', 'insert', 'remove', 'discard', 'pop', 'sort', 'sorted',
     'reverse', 'reversed', 'slice', 'concat', 'unique', 'flatten', 'index_of',
     'has', 'list', 'keys', 'values', 'items', 'get', 'set', 'update', 'range',
     'enumerate', 'zip', 'map', 'each', 'filter', 'reduce', 'find_item', 'count',
     'any', 'all', 'json_encode', 'json_decode', 'to_json', 'from_json',
+    'first', 'last', 'take', 'drop', 'chunk', 'compact', 'without', 'difference',
+    'intersection', 'union', 'merge', 'has_key', 'pick', 'omit', 'from_entries',
+    'invert', 'flat_map', 'find_index', 'sort_by', 'group_by', 'count_by', 'index_by',
+    'min_by', 'max_by', 'sum_by', 'partition', 'map_values', 'map_keys',
+    'is_null', 'is_missing', 'is_map', 'is_list', 'is_string', 'is_number',
+    'is_bool', 'is_function', 'is_empty', 'coalesce', 'fallback', 'or_else',
+    'get_path', 'get_in', 'has_path', 'ensure_map', 'ensure_list',
+    'http_request', 'http_get', 'http_post', 'http_put', 'http_patch', 'http_delete',
+    'http_get_json', 'http_post_json', 'graphql', 'raise_for_status',
+    'response_json', 'response_text', 'sleep', 'retry', 'net', 'Promise',
     'PI', 'E', 'TAU'
   ]);
 
-  const OPENERS = /^(if|elif|else|while|for|repeat|fun|class|try|catch|match|case|default)\b/;
+  const OPENERS = /^(if|elif|else|while|for|repeat|fun|class|try|catch|match|case|default|async\s+fun)\b/;
 
   const state = {
     view: 'explorer',
@@ -1739,6 +1755,7 @@
     paletteItems: [],
     paletteIndex: 0,
     terminalSession: null,
+    termRunning: false,
     termBuffer: '',
     termHistory: [],
     termHistoryIndex: -1,
@@ -2279,7 +2296,12 @@
     statsEl.textContent = 'Running…';
 
     try {
-      const result = window.AzLang.run(code.value, {
+      const result = await window.AzLang.runAsync(code.value, {
+        filename: location.href,
+        maxTimeMs: 60000,
+        maxRequests: 100,
+        maxResponseBytes: 5 * 1024 * 1024,
+        requestTimeoutMs: 30000,
         onOutput: function (line) {
           addLine(line);
           if (consoleEl.childElementCount > 4000) {
@@ -2697,7 +2719,7 @@
     for (let i = 0; i < lines.length; i += 1) {
       const line = lines[i].replace(/#.*$/, '').trim();
       if (!line) continue;
-      if (/^(if|while|for|repeat|fun|class|try|match)\b/.test(line)) depth += 1;
+      if (/^(if|while|for|repeat|fun|class|try|match|async\s+fun)\b/.test(line)) depth += 1;
       if (/^end\b/.test(line)) depth = Math.max(0, depth - 1);
       if (/^(elif|else|catch|case|default)\b/.test(line)) { /* continuation lines */ }
     }
@@ -2712,6 +2734,7 @@
       return;
     }
     state.terminalSession = window.AzLang.createSession({
+      filename: location.href,
       onOutput: function (text) { terminalPrint(String(text), 'out'); },
       ask: function (question) {
         const answer = window.prompt(question || 'Input:');
@@ -2723,7 +2746,7 @@
         return answer;
       }
     });
-    terminalPrint('AzLang 2.0 — interactive shell', 'note');
+    terminalPrint('AzLang 2.1 - interactive shell', 'note');
     terminalPrint('Type AzLang code and press Enter. Variables persist between lines.', 'note');
     terminalPrint('Commands: help, clear, reset, .exit', 'note');
     terminalPrint('', 'out');
@@ -2741,7 +2764,8 @@
     terminalInput.focus();
   }
 
-  function runTerminalLine(raw) {
+  async function runTerminalLine(raw) {
+    if (state.termRunning) return;
     const value = raw;
     const command = value.trim();
 
@@ -2795,10 +2819,9 @@
     terminalPrompt.textContent = 'az>';
 
     try {
-      const result = state.terminalSession.execute(source);
-      if (result && result.steps && window.AzLang) {
-        // The shell stays quiet about step counts; the output is the point.
-      }
+      state.termRunning = true;
+      terminalInput.disabled = true;
+      await state.terminalSession.executeAsync(source);
     } catch (error) {
       if (error && error.name === 'AzError') {
         terminalPrint('error: ' + error.message + (error.line ? ' (line ' + error.line + ')' : ''), 'err');
@@ -2806,6 +2829,10 @@
       } else {
         terminalPrint('error: ' + String(error && error.message ? error.message : error), 'err');
       }
+    } finally {
+      state.termRunning = false;
+      terminalInput.disabled = false;
+      terminalInput.focus();
     }
     terminalOutput.scrollTop = terminalOutput.scrollHeight;
   }
@@ -3243,8 +3270,8 @@
       case 'download-windows': window.open('https://github.com/TheGreatAzizi/AzLang/releases/latest', '_blank', 'noopener'); break;
       case 'open-github': window.open('https://github.com/TheGreatAzizi/AzLang', '_blank', 'noopener'); break;
       case 'about':
-        showToast('AzLang Studio 2.0.0 — zero dependencies, plain web technology.');
-        setStatus('AzLang Studio 2.0.0', '');
+        showToast('AzLang Studio 2.1.0 — zero dependencies, plain web technology.');
+        setStatus('AzLang Studio 2.1.0', '');
         break;
       case 'fullscreen': toggleFullscreen(); break;
       case 'clear-search':
@@ -3742,6 +3769,16 @@
   }
 
   boot();
+
+  // Tell the local Studio server that a page is still open so it can stop
+  // itself shortly after the last tab closes.
+  if (location.protocol === 'http:' || location.protocol === 'https:') {
+    const ping = function () {
+      fetch('__azlang/ping', { cache: 'no-store' }).catch(function () { /* offline */ });
+    };
+    ping();
+    setInterval(ping, 60000);
+  }
 })();
 
 

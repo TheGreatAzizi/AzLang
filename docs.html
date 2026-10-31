@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AzLang Documentation — Learn the language from scratch</title>
-<meta name="description" content="The complete English guide to AzLang 2.0: syntax, variables, types, loops, functions, collections, classes, exceptions, pattern matching, built-ins, and embedding.">
+<meta name="description" content="The complete English guide to AzLang 2.1: syntax, variables, types, loops, functions, collections, classes, exceptions, pattern matching, async, networking, modules, built-ins, and embedding.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%237c5cff'/%3E%3Cstop offset='1' stop-color='%2321d4b4'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)'/%3E%3Cpath d='M24 18l22 14-22 14z' fill='white'/%3E%3C/svg%3E">
 <style>
   :root {
@@ -666,7 +666,7 @@
   <a class="brand" href="index.html" aria-label="AzLang home">
     <span class="mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.1v13.8c0 .8.9 1.3 1.6.9l10.3-6.9c.6-.4.6-1.3 0-1.7L9.6 4.2C8.9 3.8 8 4.3 8 5.1Z" fill="currentColor"/></svg></span>
     <span class="brand-name">Az<span>Lang</span></span>
-    <span class="doc-tag">Docs 2.0</span>
+    <span class="doc-tag">Docs 2.1</span>
   </a>
   <div class="header-links">
     <a href="index.html">Home</a>
@@ -701,11 +701,14 @@
       <a href="#conditions">Conditions</a>
       <a href="#loops">Loops</a>
       <a href="#functions">Functions</a>
+      <a href="#async">Async &amp; promises</a>
       <a href="#lists">Lists</a>
       <a href="#maps">Maps</a>
+      <a href="#modules">Modules</a>
       <a href="#classes">Classes</a>
       <a href="#exceptions">Exceptions</a>
       <a href="#matching">Pattern matching</a>
+      <a href="#safe-data">Null-safe data</a>
     </div>
 
     <div class="nav-group">
@@ -717,6 +720,7 @@
       <a href="#builtins-collections">· Lists &amp; maps</a>
       <a href="#builtins-functional">· Functional</a>
       <a href="#builtins-json">· JSON</a>
+      <a href="#networking">Networking &amp; APIs</a>
       <a href="#errors">Errors &amp; debugging</a>
       <a href="#embedding">Embedding AzLang</a>
     </div>
@@ -738,7 +742,7 @@
   <div class="doc">
 
     <div class="doc-hero">
-      <span class="pill"><span class="dot"></span> AzLang 2.0 · Language reference</span>
+      <span class="pill"><span class="dot"></span> AzLang 2.1 · Language reference</span>
       <h1>Everything you need to<br><em>write real programs.</em></h1>
       <p>
         This guide starts from the first line of code and goes all the way to classes,
@@ -766,10 +770,10 @@
         an explicit <code>end</code>, so structure is always visible.
       </p>
       <p>
-        Version 2.0 is a complete language: variables, collections, functions, closures,
-        classes and inheritance, exceptions, pattern matching, JSON, and more than seventy
-        built-in functions. The entire runtime is a single dependency-free JavaScript file
-        that runs in Node.js and in any modern browser.
+        Version 2.1 is a complete language: variables, collections, functions, closures,
+        classes and inheritance, exceptions, pattern matching, async/await, modules, HTTP,
+        JSON, and more than 130 built-in functions. The entire runtime is a single
+        dependency-free JavaScript file that runs in Node.js and in any modern browser.
       </p>
 
       <div class="cards">
@@ -787,11 +791,22 @@
         </div>
         <div class="card">
           <h4>Designed to be free</h4>
-          <p>No packages, no build step, no network access. A text editor and a browser are enough — or one <code>node</code> command.</p>
+          <p>No packages, no build step, no npm install. A text editor and a browser are enough — or one <code>node</code> command.</p>
         </div>
       </div>
 
-      <h3>What's new in 2.0</h3>
+      <h3>What's new in 2.1</h3>
+      <ul>
+        <li><strong>Async/await and promises</strong> with <code>async fun</code>, <code>await</code>, <code>Promise.all</code>, <code>Promise.all_settled</code>, <code>sleep</code>, and <code>retry</code>.</li>
+        <li><strong>HTTP and HTTPS</strong> with <code>http_get</code>, <code>http_post</code>, <code>graphql</code>, headers, JSON bodies, timeouts, and response size limits.</li>
+        <li><strong>Modules</strong> with <code>import</code>, <code>export</code>, named imports, default exports, and a built-in <code>net</code> library.</li>
+        <li><strong>Null-safe helpers</strong> such as <code>get_path</code>, <code>coalesce</code>, <code>is_map</code>, and <code>ensure_list</code> for incomplete API data.</li>
+        <li><strong>More strings and collections</strong>: padding, truncation, URL/base64 encoding, grouping, sorting by key, chunking, and set operations.</li>
+        <li><strong>Resource limits</strong> for execution time, request count, response size, and per-request time.</li>
+        <li><strong>A browser-based Studio</strong> served by a tiny local Node.js process instead of a separate desktop executable.</li>
+      </ul>
+
+      <h3>What was new in 2.0</h3>
       <ul>
         <li><strong>Classes and inheritance</strong> with <code>class</code>, <code>extends</code>, <code>new</code>, <code>this</code>, and <code>super</code>.</li>
         <li><strong>Exceptions</strong> with <code>try</code>, <code>catch</code>, and <code>throw</code>.</li>
@@ -815,10 +830,10 @@
     <article class="doc-section" id="install">
       <h2>Install &amp; run</h2>
       <p>
-        AzLang runs in the browser, from a terminal, and as a desktop app. On Windows,
-        the installer puts the <code>azlang</code> command, AzLang Studio, the docs,
-        examples, and a Node.js runtime in one place. The language itself still has zero
-        npm dependencies and no build step.
+        AzLang runs in the browser and from a terminal. On Windows, the installer puts the
+        <code>azlang</code> command, the browser-based AzLang Studio, the docs, examples,
+        and a Node.js runtime in one place. The language itself still has zero npm
+        dependencies and no build step.
       </p>
 
       <h3>Windows installer (recommended)</h3>
@@ -828,8 +843,8 @@
         It installs for the current user, so no administrator rights are required.
       </p>
       <div class="download-links">
-        <a class="primary" href="https://github.com/TheGreatAzizi/AzLang/releases/latest/download/AzLang-2.0.0-Setup.exe">Download Setup.exe</a>
-        <a href="https://github.com/TheGreatAzizi/AzLang/releases/latest/download/AzLang-2.0.0-windows-x64-portable.zip">Portable ZIP</a>
+        <a class="primary" href="https://github.com/TheGreatAzizi/AzLang/releases/latest/download/AzLang-2.1.0-Setup.exe">Download Setup.exe</a>
+        <a href="https://github.com/TheGreatAzizi/AzLang/releases/latest/download/AzLang-2.1.0-windows-x64-portable.zip">Portable ZIP</a>
         <a href="https://github.com/TheGreatAzizi/AzLang/releases/latest">All releases</a>
       </div>
       <ul>
@@ -851,10 +866,17 @@ azlang</code></pre>
 
       <h3>Browser Studio</h3>
       <p>
-        Open <a href="ide.html">AzLang Studio</a> in any modern browser. It needs no
-        installation and works offline once the page is loaded. It includes the same
-        examples, syntax highlighting, output panel, terminal, command palette, search,
-        and autosave as the desktop Studio.
+        Open <a href="ide.html">AzLang Studio</a> in any modern browser. The installed
+        copy starts <code>studio\studio-server.js</code> with the bundled runtime; the
+        server only serves local files and opens your default browser. Unlike a desktop
+        executable, the editor is an ordinary web page, so networking and modules work
+        with normal browser security rules. It needs no extra installation and works
+        offline once the page is loaded.
+      </p>
+      <p>
+        From a source checkout, run <code>node studio-server.js</code> (or
+        <code>IDE.bat</code>) and open the printed URL. The portable ZIP uses
+        <code>studio\AzLang Studio.vbs</code>.
       </p>
 
       <h3>Manual installation</h3>
@@ -868,7 +890,7 @@ node azlang.js --check examples/tour.az
 node azlang.js</code></pre>
       <p>
         The portable ZIP contains the same files as the installed copy. Unzip it and
-        run <code>bin\AzLangStudio.exe</code> or <code>bin\azlang.exe</code>; it does
+        run <code>studio\AzLang Studio.vbs</code> or <code>bin\azlang.exe</code>; it does
         not change PATH, file associations, or the registry.
       </p>
 
@@ -988,16 +1010,21 @@ end</code></pre>
       <pre class="az-code" data-file="terminal" data-lang="Shell"><code>azlang &lt;file.az&gt;
 azlang
 azlang -e "say 6 * 7"
-azlang --check &lt;file.az&gt;</code></pre>
+azlang --check &lt;file.az&gt;
+azlang --timeout 10000 --max-requests 20 examples/network.az</code></pre>
 
       <div class="table-wrap">
         <table>
           <thead><tr><th>Command</th><th>What it does</th></tr></thead>
           <tbody>
-            <tr><td><code>azlang file.az</code></td><td>Runs a program. Exit code is <code>0</code> on success and <code>1</code> on an error. From a checkout, use <code>node azlang.js file.az</code>.</td></tr>
+            <tr><td><code>azlang file.az</code></td><td>Runs a program asynchronously. Exit code is <code>0</code> on success and <code>1</code> on an error. From a checkout, use <code>node azlang.js file.az</code>.</td></tr>
             <tr><td><code>azlang</code></td><td>Starts the interactive shell (REPL). Variables persist between lines.</td></tr>
             <tr><td><code>azlang -e "code"</code></td><td>Runs a snippet directly. Useful for one-liners.</td></tr>
             <tr><td><code>azlang --check file.az</code></td><td>Parses the file and reports syntax errors without running anything.</td></tr>
+            <tr><td><code>azlang --timeout &lt;ms&gt;</code></td><td>Execution time limit. Default 60000; <code>0</code> disables it.</td></tr>
+            <tr><td><code>azlang --request-timeout &lt;ms&gt;</code></td><td>Per-request timeout. Default 30000; <code>0</code> disables it.</td></tr>
+            <tr><td><code>azlang --max-requests &lt;n&gt;</code></td><td>Maximum HTTP requests per run. Default 100; <code>0</code> disables the limit.</td></tr>
+            <tr><td><code>azlang --max-response &lt;bytes&gt;</code></td><td>Maximum response body size. Default 5242880 (5 MiB).</td></tr>
             <tr><td><code>azlang -h</code></td><td>Shows help.</td></tr>
             <tr><td><code>azlang -v</code></td><td>Prints the version.</td></tr>
           </tbody>
@@ -1006,7 +1033,7 @@ azlang --check &lt;file.az&gt;</code></pre>
 
       <h3>The interactive shell</h3>
       <pre class="az-code" data-file="terminal" data-lang="Shell"><code>$ azlang
-AzLang 2.0 - type .exit to quit
+AzLang 2.1 - type .exit to quit
 az&gt; let x = 6 * 7
 az&gt; say x
 42
@@ -1015,6 +1042,8 @@ az&gt; fun double(n)
 ... end
 az&gt; double(21)
 42
+az&gt; say await sleep(10)
+null
 az&gt; .exit</code></pre>
 
       <p>
@@ -1061,8 +1090,8 @@ OK: examples/tour.az (52 top-level statements)</code></pre>
       </p>
 
       <div class="download-links">
-        <a class="primary" href="https://github.com/TheGreatAzizi/AzLang/releases/latest/download/azlang-2.0.0.vsix">Download VSIX</a>
-        <a href="https://github.com/TheGreatAzizi/AzLang/releases/latest/download/AzLang-2.0.0-editors.zip">All editor files</a>
+        <a class="primary" href="https://github.com/TheGreatAzizi/AzLang/releases/latest/download/azlang-2.1.0.vsix">Download VSIX</a>
+        <a href="https://github.com/TheGreatAzizi/AzLang/releases/latest/download/AzLang-2.1.0-editors.zip">All editor files</a>
         <a href="https://github.com/TheGreatAzizi/AzLang/tree/main/editors">Browse on GitHub</a>
       </div>
 
@@ -1071,7 +1100,7 @@ OK: examples/tour.az (52 top-level statements)</code></pre>
         The extension supports VS Code 1.75 and newer and other VS Code-compatible
         editors. Install the VSIX from a terminal:
       </p>
-      <pre class="az-code" data-file="terminal" data-lang="Shell"><code>code --install-extension azlang-2.0.0.vsix</code></pre>
+      <pre class="az-code" data-file="terminal" data-lang="Shell"><code>code --install-extension azlang-2.1.0.vsix</code></pre>
       <p>
         Or open the Extensions view, choose
         <strong>Views and More Actions... &gt; Install from VSIX...</strong>, and select
@@ -1192,7 +1221,8 @@ say شهر</code></pre>
             <tr><td>Output</td><td><code>say</code></td></tr>
             <tr><td>Conditions</td><td><code>if</code> <code>elif</code> <code>else</code> <code>end</code></td></tr>
             <tr><td>Loops</td><td><code>while</code> <code>for</code> <code>in</code> <code>repeat</code> <code>break</code> <code>continue</code></td></tr>
-            <tr><td>Functions</td><td><code>fun</code> <code>return</code></td></tr>
+            <tr><td>Functions</td><td><code>fun</code> <code>return</code> <code>async</code> <code>await</code></td></tr>
+            <tr><td>Modules</td><td><code>import</code> <code>export</code></td></tr>
             <tr><td>Logic</td><td><code>and</code> <code>or</code> <code>not</code></td></tr>
             <tr><td>Classes</td><td><code>class</code> <code>extends</code> <code>new</code> <code>this</code> <code>super</code></td></tr>
             <tr><td>Errors</td><td><code>try</code> <code>catch</code> <code>throw</code></td></tr>
@@ -1245,6 +1275,8 @@ say classify(5)</code></pre>
             <tr><td>Condition</td><td><code>if cond ... elif cond ... else ... end</code></td></tr>
             <tr><td>Loops</td><td><code>while cond ... end</code> · <code>for x in items ... end</code> · <code>repeat n ... end</code></td></tr>
             <tr><td>Function</td><td><code>fun name(params) ... end</code> · <code>return value</code></td></tr>
+            <tr><td>Async function</td><td><code>async fun name(params) ... end</code> · <code>await expression</code></td></tr>
+            <tr><td>Modules</td><td><code>import { name } from "./file.az"</code> · <code>export fun name(...) ... end</code></td></tr>
             <tr><td>Class</td><td><code>class Name ... end</code> · <code>class Name extends Parent ... end</code></td></tr>
             <tr><td>Errors</td><td><code>try ... catch err ... end</code> · <code>throw value</code></td></tr>
             <tr><td>Matching</td><td><code>match value ... case x ... default ... end</code></td></tr>
@@ -1254,8 +1286,8 @@ say classify(5)</code></pre>
       </div>
 
       <div class="note">
-        <span class="note-title">Single-file programs</span>
-        <p>AzLang has no <code>import</code>, no modules, and no package system. A program is one file. This is deliberate: it keeps projects and the mental model small. Build reusable helpers as functions and classes in the same file.</p>
+        <span class="note-title">Programs can span files</span>
+        <p>Use <code>import</code> and <code>export</code> to split code into reusable modules. A module is still ordinary AzLang code; there is no package registry or build step. See <a href="#modules">Modules</a>.</p>
       </div>
     </article>
 
@@ -2081,6 +2113,159 @@ say reduce(numbers, (total, n) =&gt; total + n, 0)</code></pre>
     </article>
 
     <!-- ============================================================
+         ASYNC
+         ============================================================ -->
+    <article class="doc-section" id="async">
+      <h2>Async &amp; promises</h2>
+      <p>
+        Network requests and timers take time. Instead of blocking the whole program,
+        AzLang lets you mark work as <strong>asynchronous</strong>: the function returns a
+        <strong>promise</strong>, and <code>await</code> pauses only the current function until
+        the result is ready.
+      </p>
+
+      <h3>Async functions</h3>
+      <p>
+        Put <code>async</code> before <code>fun</code>. An async function always returns a
+        promise. Calling it starts the work immediately; use <code>await</code> to read the
+        value it produces.
+      </p>
+
+      <pre class="az-code" data-file="async.az"><code>async fun load_user(id)
+  await sleep(100)                  # pretend the server is slow
+  return {id: id, name: "Ada"}
+end
+
+async fun main()
+  say "loading..."
+  let user = await load_user(7)
+  say "Hello, {user.name}!"
+end
+
+await main()</code></pre>
+
+      <p>
+        <code>await</code> works on a promise, on a native JavaScript thenable, or on an
+        ordinary value (in which case it simply returns the value). It can be used inside an
+        async function, an async lambda, and at the top level of a program run with
+        <code>runAsync</code> — which includes the CLI and the Studio.
+      </p>
+
+      <h3>Awaiting several tasks</h3>
+      <p>
+        Starting an async function does not wait for it. You can start several tasks, keep
+        their promises, and wait for all of them together:
+      </p>
+
+      <pre class="az-code" data-file="promise-all.az"><code>async fun fetch_score(name)
+  await sleep(50)
+  return {name: name, score: len(name) * 10}
+end
+
+let jobs = [fetch_score("Ada"), fetch_score("Grace"), fetch_score("Linus")]
+let scores = await Promise.all(jobs)
+
+for item in scores
+  say "{item.name}: {item.score}"
+end</code></pre>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Function</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>await value</code></td><td>Waits for a promise and returns its value. If the promise rejected, the error is thrown at the <code>await</code>.</td></tr>
+            <tr><td><code>Promise.all(list)</code></td><td>Waits for every promise. Returns the values in order. Rejects as soon as one task fails.</td></tr>
+            <tr><td><code>Promise.race(list)</code></td><td>Returns the value of the first task that settles, whether it succeeds or fails.</td></tr>
+            <tr><td><code>Promise.all_settled(list)</code></td><td>Waits for all tasks and never rejects. Returns maps with <code>status</code> and either <code>value</code> or <code>reason</code>. Alias: <code>Promise.allSettled</code>.</td></tr>
+            <tr><td><code>Promise.resolve(value)</code></td><td>A promise that is already fulfilled with <code>value</code>.</td></tr>
+            <tr><td><code>Promise.reject(error)</code></td><td>A promise that is already rejected. Usually <code>throw</code> is clearer.</td></tr>
+            <tr><td><code>sleep(ms)</code></td><td>Waits at least <code>ms</code> milliseconds. Returns <code>null</code>.</td></tr>
+            <tr><td><code>retry(fn, attempts?, delay?)</code></td><td>Calls <code>fn</code> again after a failure, up to <code>attempts</code> times (default 3), waiting <code>delay</code> ms (default 250) between tries. The callback receives the attempt number. The final error is rethrown.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <pre class="az-code" data-file="retry.az"><code>async fun unstable()
+  if random(1, 3) == 1
+    return "ok"
+  end
+  throw "temporary failure"
+end
+
+let result = await retry(unstable, 5, 100)
+say result
+
+let outcomes = await Promise.all_settled([
+  fetch_score("Ada"),
+  Promise.reject("nope")
+])
+say outcomes
+# [{status: "fulfilled", value: {...}}, {status: "rejected", reason: "nope"}]</code></pre>
+
+      <h3>Async lambdas and methods</h3>
+      <p>
+        Arrow lambdas can be async too. Write <code>async x =&gt; await work(x)</code> or
+        <code>async (a, b) =&gt; ...</code>. Class methods use the same
+        <code>async fun</code> spelling inside the class body.
+      </p>
+
+      <pre class="az-code" data-file="async-lambda.az"><code>let load = async url =&gt; await http_get(url)
+let fetch_text = async url =&gt; response_text(await http_get(url))
+
+let response = await load("https://example.com/api")
+let body = await fetch_text("https://example.com/api")
+
+class Fetcher
+  fun init(base)
+    this.base = base
+  end
+
+  async fun get(path)
+    return await http_get(this.base + path)
+  end
+end</code></pre>
+
+      <div class="note">
+        <span class="note-title">Lambdas are expressions</span>
+        <p>An arrow lambda has a single expression body. For several statements, use a named <code>async fun</code> instead. Async lambdas are still useful for callbacks that must perform one awaited operation.</p>
+      </div>
+
+      <h3>Errors in async code</h3>
+      <p>
+        A rejected promise behaves like an exception at the point where you <code>await</code>
+        it, so ordinary <code>try</code> / <code>catch</code> works:
+      </p>
+
+      <pre class="az-code" data-file="async-errors.az"><code>async fun load(url)
+  try
+    let response = await http_get(url, {timeout_ms: 5000})
+    raise_for_status(response)
+    return response_json(response)
+  catch err
+    say "Request failed: {err.message}"
+    return null
+  end
+end
+
+let data = await load("https://example.com/api")
+if is_null(data)
+  say "Using cached data instead."
+end</code></pre>
+
+      <div class="note warn">
+        <span class="note-title">Synchronous embedding cannot wait</span>
+        <p><code>az.run()</code> and <code>session.execute()</code> are synchronous and cannot wait for a promise. Calling an async function, <code>sleep</code>, or an HTTP helper from them raises an error that tells you to use <code>az.runAsync()</code> / <code>session.executeAsync()</code>. The CLI and Studio already use the async path.</p>
+      </div>
+
+      <p>
+        A promise that is never awaited may still fail. AzLang marks such rejections as
+        handled so Node does not terminate the process, but the error is not silently
+        repaired: if you later await the same promise, the failure is thrown. Await or catch
+        work you start.
+      </p>
+    </article>
+
+    <!-- ============================================================
          LISTS
          ============================================================ -->
     <article class="doc-section" id="lists">
@@ -2317,6 +2502,128 @@ end</code></pre>
         nested lists and maps) into text, and <code>json_decode</code> turns text back into
         maps and lists. See <a href="#builtins-json">JSON</a>.
       </p>
+    </article>
+
+    <!-- ============================================================
+         MODULES
+         ============================================================ -->
+    <article class="doc-section" id="modules">
+      <h2>Modules</h2>
+      <p>
+        A module is an AzLang file that exports names for other files to use. Modules keep
+        programs organized without a package manager, a build step, or a registry: the
+        <code>import</code> path points directly at the file (or URL).
+      </p>
+
+      <h3>Importing</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Form</th><th>What it does</th></tr></thead>
+          <tbody>
+            <tr><td><code>import "./setup.az"</code></td><td>Runs the module for its side effects and discards its exports.</td></tr>
+            <tr><td><code>import math from "./mathlib.az"</code></td><td>Imports the module as a namespace map: <code>math.add</code>, <code>math.Circle</code>, <code>math.default</code>.</td></tr>
+            <tr><td><code>import { add, average } from "./mathlib.az"</code></td><td>Imports just the named exports into the current scope.</td></tr>
+            <tr><td><code>import { add as plus } from "./mathlib.az"</code></td><td>Imports an export under a different local name.</td></tr>
+            <tr><td><code>import net from "net"</code></td><td>Loads the built-in network library. It can also be used directly without an import.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>
+        The module path must be a plain string. It is resolved relative to the importing
+        file, then relative to the current working directory. When the path has no extension,
+        AzLang also tries <code>.az</code> and <code>index.az</code>. A path with a URL
+        scheme (<code>https://…</code>) is fetched over HTTP in Node and in the browser.
+      </p>
+
+      <pre class="az-code" data-file="app.az"><code>import math from "./examples/mathlib.az"
+import { add, average, Circle } from "./examples/mathlib.az"
+
+say math.version
+say add(2, 3)
+say average([4, 8, 15, 16, 23, 42])
+
+let circle = new Circle(3)
+say circle.area()</code></pre>
+
+      <h3>Exporting</h3>
+      <p>
+        Declarations are private unless they are exported. Put <code>export</code> before
+        <code>fun</code>, <code>async fun</code>, <code>class</code>, <code>let</code>, or
+        <code>const</code>, or export existing names with a list.
+      </p>
+
+      <pre class="az-code" data-file="mathlib.az"><code>export const version = "1.0"
+
+export fun add(a, b)
+  return a + b
+end
+
+export async fun fetch_data(url)
+  return await http_get(url)
+end
+
+fun private_helper(x)
+  return x * 2
+end
+
+export { private_helper as double }
+
+export default {
+  name: "mathlib",
+  version: version
+}</code></pre>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Form</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td><code>export fun f(...) ... end</code></td><td>Exports a function. <code>export async fun</code> works too.</td></tr>
+            <tr><td><code>export class C ... end</code></td><td>Exports a class.</td></tr>
+            <tr><td><code>export let x = 1</code> / <code>export const X = 1</code></td><td>Exports a variable or constant.</td></tr>
+            <tr><td><code>export { a, b as c }</code></td><td>Exports existing local names, optionally renamed.</td></tr>
+            <tr><td><code>export default expression</code></td><td>Stores a value under the key <code>"default"</code>.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>
+        A default export is reached through a namespace import:
+        <code>import tools from "./tools.az"</code> then <code>tools.default</code>. Named
+        imports use the exported keys, so <code>export { add as plus }</code> is imported as
+        <code>import { plus } from …</code>.
+      </p>
+
+      <h3>Loading rules</h3>
+      <ul>
+        <li>Each module runs once per interpreter. Later imports reuse the same exports map, so module-level state is shared.</li>
+        <li>Named imports are checked: importing a name the module does not export is an error that lists the available exports.</li>
+        <li>A module can import other modules. Its own imports resolve relative to its file, not the main program.</li>
+        <li><code>export</code> is only valid at the top level of an imported module. A script you run directly cannot export.</li>
+        <li>Errors raised while a module loads keep their own line numbers and gain a hint naming the module.</li>
+        <li>Cycles are allowed but risky: an import that is still running sees only the exports defined before the cycle. Prefer a one-way dependency graph.</li>
+      </ul>
+
+      <h3>Remote modules</h3>
+      <p>
+        A module URL can be imported directly. This is useful for sharing small libraries
+        without installing them:
+      </p>
+
+      <pre class="az-code" data-file="remote.az"><code>import { greet } from "https://example.com/az/greet.az"
+
+say greet("Ada")</code></pre>
+
+      <p>
+        In a browser, the server must allow cross-origin reads (CORS). The Studio is served
+        over <code>http://127.0.0.1</code> rather than opened as a <code>file://</code> page,
+        so relative and remote module imports work normally.
+      </p>
+
+      <div class="note tip">
+        <span class="note-title">Modules are just files</span>
+        <p>There is no package registry and no dependency installation. Copy a <code>.az</code> file into your project, import it by path, and commit it with the rest of your code. This keeps projects readable and offline-friendly.</p>
+      </div>
     </article>
 
     <!-- ============================================================
@@ -2724,12 +3031,110 @@ say render({a: 1})</code></pre>
     </article>
 
     <!-- ============================================================
+         NULL-SAFE DATA
+         ============================================================ -->
+    <article class="doc-section" id="safe-data">
+      <h2>Null-safe data</h2>
+      <p>
+        API responses are rarely complete. A field may be absent, <code>null</code>, or the
+        wrong type, and a direct chain such as <code>response.user.profile.name</code> stops
+        with an error at the first missing link. AzLang provides helpers that read through
+        missing values and return a default instead.
+      </p>
+
+      <h3>Reading a path</h3>
+      <p>
+        <code>get_path(value, path, default?)</code> walks maps and lists. A path is a string
+        using dots and brackets, or a list of keys. If any step is missing, the default is
+        returned (<code>null</code> when no default is given).
+      </p>
+
+      <pre class="az-code" data-file="safe-read.az"><code>let payload = {
+  user: {name: "Ada", email: null},
+  posts: [{title: "Hello"}, {body: "No title here"}],
+  meta: {}
+}
+
+say get_path(payload, "user.name")                     # Ada
+say get_path(payload, "user.email", "unknown")         # null is a value, so this prints null
+say get_path(payload, "user.phone", "unknown")         # unknown
+say get_path(payload, "posts[1].title", "(untitled)")
+say get_path(payload, ["posts", 0, "title"])
+
+say has_path(payload, "user.name")                     # true
+say has_path(payload, "user.phone")                    # false</code></pre>
+
+      <div class="note">
+        <span class="note-title">Present but null</span>
+        <p><code>get_path</code> returns a key that exists even when its value is <code>null</code>. Use <code>coalesce</code> or <code>fallback</code> when <code>null</code> should also fall back to a default.</p>
+      </div>
+
+      <h3>Defaults and type checks</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Function</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>get_path(value, path, default?)</code></td><td>Safe nested read. Accepts <code>"a.b[0].c"</code> or <code>["a", "b", 0, "c"]</code>. Alias: <code>get_in</code>.</td></tr>
+            <tr><td><code>has_path(value, path)</code></td><td><code>true</code> only if every step exists, even when the final value is <code>null</code>.</td></tr>
+            <tr><td><code>coalesce(a, b, ...)</code></td><td>First argument that is not <code>null</code>. Returns <code>null</code> if all are null.</td></tr>
+            <tr><td><code>fallback(value, default)</code></td><td>Returns <code>default</code> when <code>value</code> is <code>null</code>. Alias: <code>or_else</code>.</td></tr>
+            <tr><td><code>is_null(value)</code> / <code>is_missing(value)</code></td><td><code>true</code> for <code>null</code>. Both names are provided for readability.</td></tr>
+            <tr><td><code>is_map</code>, <code>is_list</code>, <code>is_string</code>, <code>is_number</code>, <code>is_bool</code>, <code>is_function</code></td><td>Type predicates. Useful when a response can contain any shape.</td></tr>
+            <tr><td><code>is_empty(value)</code></td><td><code>true</code> for <code>null</code>, <code>""</code>, <code>[]</code>, and <code>{}</code>.</td></tr>
+            <tr><td><code>ensure_map(value)</code></td><td>Returns the value if it is a map, otherwise an empty map.</td></tr>
+            <tr><td><code>ensure_list(value)</code></td><td>Returns the value if it is a list, otherwise an empty list.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>A tolerant API reader</h3>
+      <pre class="az-code" data-file="tolerant.az"><code>async fun profiles(url)
+  let response = await http_get(url)
+  raise_for_status(response)
+  let data = response_json(response)
+
+  let items = ensure_list(get_path(data, "items"))
+  let result = []
+
+  for item in items
+    let profile = ensure_map(item)
+    append(result, {
+      name: coalesce(get_path(profile, "name"), "anonymous"),
+      city: get_path(profile, "address.city", "unknown"),
+      tags: ensure_list(get_path(profile, "tags")),
+      active: get_path(profile, "active", false)
+    })
+  end
+
+  return result
+end
+
+for person in await profiles("https://example.com/api/people")
+  let tag_text = join(person.tags, ", ")
+  say "{person.name} ({person.city})"
+  say "  tags: {tag_text}"
+end</code></pre>
+
+      <p>
+        The same idea works for ordinary maps, configuration files, and JSON read from disk.
+        Reading a missing key directly with <code>map[key]</code> is still an error — that is
+        deliberate, because it usually indicates a bug. Use <code>get_path</code> when the
+        data is genuinely optional.
+      </p>
+
+      <div class="note tip">
+        <span class="note-title">Small defaults beat deep nesting</span>
+        <p>Prefer a shallow <code>get_path</code> with a sensible default over a long chain of <code>if is_map(...)</code> checks. If every field needs a different fallback, normalize the response once at the edge of your program, then use plain maps internally.</p>
+      </div>
+    </article>
+
+    <!-- ============================================================
          BUILTINS
          ============================================================ -->
     <article class="doc-section" id="builtins">
       <h2>Built-in functions</h2>
       <p>
-        AzLang ships with more than seventy built-ins for everyday work. They are ordinary
+        AzLang ships with more than 130 built-ins for everyday work. They are ordinary
         functions: call them with arguments in parentheses. Built-ins are defined as
         read-only names; shadowing one with your own variable is possible but not
         recommended.
@@ -2837,6 +3242,28 @@ say PI, E, TAU</code></pre>
             <tr><td><code>chars(s)</code></td><td>List of characters (code points).</td></tr>
             <tr><td><code>char_code(s)</code></td><td>Unicode code point of a single-character string.</td></tr>
             <tr><td><code>from_char(code)</code></td><td>Character for a Unicode code point.</td></tr>
+            <tr><td><code>strip(s)</code> / <code>lstrip(s)</code> / <code>rstrip(s)</code></td><td>Removes whitespace from both ends, the left, or the right. <code>strip</code> is an alias for <code>trim</code>.</td></tr>
+            <tr><td><code>capitalize(s)</code></td><td>Uppercases the first character and lowercases the rest.</td></tr>
+            <tr><td><code>title(s)</code></td><td>Uppercases the first character of each whitespace-separated word.</td></tr>
+            <tr><td><code>pad_left(s, width, pad?)</code></td><td>Pads on the left to a minimum width. Padding defaults to a space.</td></tr>
+            <tr><td><code>pad_right(s, width, pad?)</code></td><td>Pads on the right to a minimum width.</td></tr>
+            <tr><td><code>center(s, width, pad?)</code></td><td>Centers the text inside a field of the given width.</td></tr>
+            <tr><td><code>zfill(s, width)</code></td><td>Pads a number-like string with leading zeros, keeping a minus sign first.</td></tr>
+            <tr><td><code>count_text(s, part)</code></td><td>Number of non-overlapping occurrences.</td></tr>
+            <tr><td><code>rfind(s, part)</code></td><td>Index of the last occurrence, or <code>-1</code>.</td></tr>
+            <tr><td><code>contains(s, part)</code></td><td><code>true</code> if the text contains <code>part</code>.</td></tr>
+            <tr><td><code>starts_with(s, prefix)</code> / <code>ends_with(s, suffix)</code></td><td>Prefix and suffix tests. Aliases: <code>starts</code>, <code>ends</code>.</td></tr>
+            <tr><td><code>remove_prefix(s, prefix)</code> / <code>remove_suffix(s, suffix)</code></td><td>Removes the prefix or suffix when present; otherwise returns the text unchanged.</td></tr>
+            <tr><td><code>lines(s)</code></td><td>Splits text into lines on <code>\n</code> or <code>\r\n</code>. Empty text gives an empty list.</td></tr>
+            <tr><td><code>words(s)</code></td><td>Splits on runs of whitespace and drops empty pieces.</td></tr>
+            <tr><td><code>reverse_text(s)</code></td><td>Reverses by Unicode code point.</td></tr>
+            <tr><td><code>repeat_text(s, n)</code></td><td>Repeats text <code>n</code> times. Negative counts are errors.</td></tr>
+            <tr><td><code>truncate(s, max, suffix?)</code></td><td>Shortens to at most <code>max</code> characters, adding <code>"..."</code> by default.</td></tr>
+            <tr><td><code>substring(s, start?, end?)</code></td><td>Character slice with negative indexes. The end is exclusive.</td></tr>
+            <tr><td><code>replace_first(s, old, new)</code></td><td>Replaces only the first occurrence.</td></tr>
+            <tr><td><code>url_encode(s)</code> / <code>url_decode(s)</code></td><td>Percent-encodes or decodes text for URLs.</td></tr>
+            <tr><td><code>base64_encode(s)</code> / <code>base64_decode(s)</code></td><td>Encodes UTF-8 text as base64, or decodes it back.</td></tr>
+            <tr><td><code>escape_html(s)</code></td><td>Escapes <code>&amp;</code>, <code>&lt;</code>, <code>&gt;</code>, quotes, and apostrophes.</td></tr>
           </tbody>
         </table>
       </div>
@@ -2891,6 +3318,20 @@ say from_char(66)                 # B</code></pre>
             <tr><td><code>get(map, key, default?)</code></td><td>Value for a key, or the default (or <code>null</code>) when missing.</td></tr>
             <tr><td><code>set(map, key, value)</code></td><td>Sets a key and returns the map.</td></tr>
             <tr><td><code>update(map, other)</code></td><td>Copies all keys from <code>other</code> into <code>map</code> and returns it.</td></tr>
+            <tr><td><code>first(sequence, default?)</code></td><td>First item or character, or the default (<code>null</code> when omitted) for an empty sequence.</td></tr>
+            <tr><td><code>last(sequence, default?)</code></td><td>Last item or character, or the default.</td></tr>
+            <tr><td><code>take(list, n)</code> / <code>drop(list, n)</code></td><td>First <code>n</code> items, or everything after the first <code>n</code>. Negative counts clamp to zero.</td></tr>
+            <tr><td><code>chunk(list, size)</code></td><td>Splits into lists of at most <code>size</code> items. Size must be at least 1.</td></tr>
+            <tr><td><code>compact(list)</code></td><td>Removes <code>null</code> values.</td></tr>
+            <tr><td><code>without(list, value)</code></td><td>Copy without any item equal to <code>value</code>.</td></tr>
+            <tr><td><code>difference(a, b)</code></td><td>Items in <code>a</code> that are not in <code>b</code>.</td></tr>
+            <tr><td><code>intersection(a, b)</code></td><td>Unique items present in both lists.</td></tr>
+            <tr><td><code>union(a, b, ...)</code></td><td>Unique items from all lists, keeping the first occurrence.</td></tr>
+            <tr><td><code>merge(a, b, ...)</code></td><td>New map with all keys. Later maps overwrite earlier ones.</td></tr>
+            <tr><td><code>has_key(map, key)</code></td><td><code>true</code> when the key exists, even if its value is <code>null</code>.</td></tr>
+            <tr><td><code>pick(map, keys)</code> / <code>omit(map, keys)</code></td><td>New map containing only the listed keys, or everything except them.</td></tr>
+            <tr><td><code>from_entries(pairs)</code></td><td>Builds a map from a list of <code>[key, value]</code> pairs.</td></tr>
+            <tr><td><code>invert(map)</code></td><td>Swaps keys and stringified values.</td></tr>
           </tbody>
         </table>
       </div>
@@ -2930,6 +3371,17 @@ say get(settings, "missing", "fallback")</code></pre>
             <tr><td><code>count(list, test)</code></td><td>Number of items that satisfy a predicate or equal a value.</td></tr>
             <tr><td><code>any(list, fn?)</code></td><td><code>true</code> if at least one item is truthy (or passes the predicate).</td></tr>
             <tr><td><code>all(list, fn?)</code></td><td><code>true</code> if every item is truthy (or passes the predicate).</td></tr>
+            <tr><td><code>flat_map(list, fn)</code></td><td>Maps each item to a list, then flattens one level.</td></tr>
+            <tr><td><code>find_index(list, test)</code></td><td>Index of the first matching item, or <code>-1</code>. Accepts a predicate or a value.</td></tr>
+            <tr><td><code>sort_by(list, fn, direction?)</code></td><td>Copy sorted by the key returned from <code>fn(item)</code>. Direction is <code>"asc"</code> or <code>"desc"</code>; sorting is stable.</td></tr>
+            <tr><td><code>group_by(list, fn)</code></td><td>Map from each key to the list of items that produced it.</td></tr>
+            <tr><td><code>count_by(list, fn)</code></td><td>Map from each key to the number of items that produced it.</td></tr>
+            <tr><td><code>index_by(list, fn)</code></td><td>Map from each key to its item. Later items win on duplicate keys.</td></tr>
+            <tr><td><code>min_by(list, fn)</code> / <code>max_by(list, fn)</code></td><td>Item with the smallest or largest key. The list must not be empty.</td></tr>
+            <tr><td><code>sum_by(list, fn)</code></td><td>Sum of the numeric keys returned by <code>fn</code>.</td></tr>
+            <tr><td><code>partition(list, fn)</code></td><td>Two lists: items that pass, then items that fail.</td></tr>
+            <tr><td><code>map_values(map, fn)</code></td><td>New map with the same keys and transformed values. The callback receives only the value.</td></tr>
+            <tr><td><code>map_keys(map, fn)</code></td><td>New map with transformed keys and the original values.</td></tr>
           </tbody>
         </table>
       </div>
@@ -2949,6 +3401,12 @@ say find_item(["x", "y"], "y")         # y
 say count(numbers, n =&gt; n % 2 == 0)    # 5
 say any(numbers, n =&gt; n &gt; 9)           # true
 say all(numbers, n =&gt; n &gt; 0)           # true</code></pre>
+
+      <p>
+        Callbacks may be asynchronous. A helper such as <code>map</code>, <code>filter</code>,
+        or <code>sort_by</code> waits for each async callback in turn when the surrounding
+        function is async.
+      </p>
 
       <h3 id="builtins-json">JSON</h3>
       <div class="table-wrap">
@@ -2991,6 +3449,246 @@ say raw.items[1], raw.ok</code></pre>
     </article>
 
     <!-- ============================================================
+         NETWORKING
+         ============================================================ -->
+    <article class="doc-section" id="networking">
+      <h2>Networking &amp; APIs</h2>
+      <p>
+        HTTP and HTTPS are built in. The same functions work in Node.js 18+ and in modern
+        browsers, using the platform's native <code>fetch</code>; no npm package is needed.
+        Requests are asynchronous, so call them from an async function or with top-level
+        <code>await</code> under <code>runAsync</code>, the CLI, or the Studio.
+      </p>
+
+      <h3>Quick start</h3>
+      <pre class="az-code" data-file="http.az"><code>let response = await http_get("https://api.github.com/repos/TheGreatAzizi/AzLang", {
+  headers: {"User-Agent": "AzLang-demo"},
+  timeout_ms: 10000
+})
+
+raise_for_status(response)
+
+say response.status
+say response.content_type
+
+let repo = response_json(response)
+say repo.full_name
+say repo.stargazers_count</code></pre>
+
+      <h3>Request helpers</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Function</th><th>Returns</th></tr></thead>
+          <tbody>
+            <tr><td><code>http_request(url, options?)</code></td><td>The full response map. Use this for custom methods or advanced options.</td></tr>
+            <tr><td><code>http_get(url, options?)</code></td><td>Response map for a GET request.</td></tr>
+            <tr><td><code>http_post(url, body?, options?)</code></td><td>Response map for a POST request. A map or list body is encoded as JSON automatically.</td></tr>
+            <tr><td><code>http_put(url, body?, options?)</code></td><td>Response map for a PUT request.</td></tr>
+            <tr><td><code>http_patch(url, body?, options?)</code></td><td>Response map for a PATCH request.</td></tr>
+            <tr><td><code>http_delete(url, options?)</code></td><td>Response map for a DELETE request.</td></tr>
+            <tr><td><code>http_get_json(url, options?)</code></td><td>Parsed JSON. Throws on a non-2xx status or invalid JSON.</td></tr>
+            <tr><td><code>http_post_json(url, body?, options?)</code></td><td>Parsed JSON from a POST. Sets <code>Content-Type: application/json</code>.</td></tr>
+            <tr><td><code>graphql(url, query, variables?, options?)</code></td><td>The <code>data</code> field of a GraphQL response.</td></tr>
+            <tr><td><code>raise_for_status(response)</code></td><td>Throws when <code>response.ok</code> is false. Otherwise returns the response map, so calls can be chained.</td></tr>
+            <tr><td><code>response_json(response, fallback?)</code></td><td>Parsed JSON, or the fallback only when you pass one and the body is not JSON.</td></tr>
+            <tr><td><code>response_text(response)</code></td><td>The raw response body as text.</td></tr>
+            <tr><td><code>sleep(ms)</code> / <code>retry(fn, attempts?, delay?)</code></td><td>Asynchronous delay and retry helpers. See <a href="#async">Async &amp; promises</a>.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>
+        The <code>net</code> module exposes the same helpers under a namespace. Both lines
+        below are equivalent:
+      </p>
+
+      <pre class="az-code" data-file="net-namespace.az"><code>let a = await http_get("https://example.com")
+let b = await net.get("https://example.com")
+
+# net also provides:
+# net.request, net.get, net.post, net.put, net.patch, net.delete
+# net.get_json, net.post_json, net.graphql
+# net.raise_for_status, net.json, net.text
+# net.retry, net.sleep, net.build_query</code></pre>
+
+      <h3>Request options</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Option</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td><code>method</code></td><td>HTTP method for <code>http_request</code>. Default <code>"GET"</code>.</td></tr>
+            <tr><td><code>headers</code></td><td>Map of header names to values. Header names are case-insensitive.</td></tr>
+            <tr><td><code>query</code></td><td>Map of query parameters. Lists become repeated parameters; <code>null</code> values are skipped.</td></tr>
+            <tr><td><code>body</code></td><td>A string is sent as-is. A map or list is encoded as JSON and gets a JSON <code>Content-Type</code> unless you set one.</td></tr>
+            <tr><td><code>json</code></td><td>A value to encode as JSON. Takes precedence over <code>body</code>. Sets a JSON <code>Content-Type</code> when none is given.</td></tr>
+            <tr><td><code>timeout_ms</code></td><td>Per-request timeout. Defaults to the run's request timeout (30,000 ms). <code>0</code> disables it.</td></tr>
+            <tr><td><code>max_bytes</code></td><td>Maximum response size for this request. Defaults to the run limit (5 MiB). <code>0</code> disables it.</td></tr>
+            <tr><td><code>redirect</code></td><td><code>"follow"</code> (default), <code>"error"</code>, or <code>"manual"</code>.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>The response map</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Field</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td><code>ok</code></td><td><code>true</code> for a 2xx status.</td></tr>
+            <tr><td><code>status</code></td><td>Numeric HTTP status, such as <code>200</code> or <code>404</code>.</td></tr>
+            <tr><td><code>status_text</code></td><td>Reason phrase, such as <code>"OK"</code>.</td></tr>
+            <tr><td><code>url</code></td><td>Final URL after redirects.</td></tr>
+            <tr><td><code>headers</code></td><td>Map of lowercase response header names to values.</td></tr>
+            <tr><td><code>content_type</code></td><td>The <code>Content-Type</code> header, or <code>""</code>.</td></tr>
+            <tr><td><code>body</code></td><td>Response body as text.</td></tr>
+            <tr><td><code>has_json</code></td><td><code>true</code> when the body parsed as JSON.</td></tr>
+            <tr><td><code>json</code></td><td>The parsed JSON value, or <code>null</code>.</td></tr>
+            <tr><td><code>json_error</code></td><td>Parser message when the body was not valid JSON, otherwise <code>null</code>.</td></tr>
+            <tr><td><code>elapsed_ms</code></td><td>Wall-clock time spent on the request.</td></tr>
+            <tr><td><code>method</code></td><td>The method that was used.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Sending JSON</h3>
+      <pre class="az-code" data-file="post-json.az"><code>let payload = {
+  title: "Hello",
+  body: "From AzLang",
+  tags: ["azlang", "api"]
+}
+
+let created = await http_post_json("https://example.com/posts", payload, {
+  headers: {"Authorization": "Bearer " + token},
+  timeout_ms: 15000
+})
+
+say created.id
+
+# The explicit json option is equivalent and works with http_request:
+let raw = await http_request("https://example.com/posts", {
+  method: "POST",
+  json: payload,
+  headers: {"Accept": "application/json"}
+})
+raise_for_status(raw)
+say raw.status</code></pre>
+
+      <h3>GraphQL</h3>
+      <p>
+        <code>graphql</code> sends a POST request with a JSON body, checks the HTTP status,
+        rejects invalid JSON, and throws when the response contains GraphQL errors. It
+        returns the <code>data</code> field directly.
+      </p>
+
+      <pre class="az-code" data-file="graphql.az"><code>let query = r"
+  query Repo($owner: String!, $name: String!) {
+    repository(owner: $owner, name: $name) {
+      name
+      stargazerCount
+      description
+    }
+  }
+"
+
+try
+  let data = await graphql("https://api.github.com/graphql", query, {
+    owner: "TheGreatAzizi",
+    name: "AzLang"
+  }, {
+    headers: {"Authorization": "Bearer " + github_token},
+    operation_name: "Repo"
+  })
+
+  say data.repository.name
+  say data.repository.stargazerCount
+catch err
+  say "GraphQL failed: {err.message}"
+  if err.kind == "graphql"
+    say err.errors
+  end
+end</code></pre>
+
+      <p>
+        Use a raw string (<code>r"..."</code>) for the query so its braces are not read as
+        interpolation. Pass <code>raise_errors: false</code> in the options to receive the
+        whole payload (including <code>data</code> and <code>errors</code>) instead of an
+        exception.
+      </p>
+
+      <h3>API and network errors</h3>
+      <p>
+        HTTP failures are ordinary AzLang errors, so <code>try</code> / <code>catch</code>
+        handles them. The catch map contains the usual <code>message</code>, <code>line</code>,
+        <code>kind</code>, and <code>hint</code>, plus fields that depend on the failure:
+      </p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th><code>kind</code></th><th>When it happens</th><th>Extra fields</th></tr></thead>
+          <tbody>
+            <tr><td><code>"http"</code></td><td>A non-2xx response passed through <code>raise_for_status</code> or a JSON helper.</td><td><code>status</code>, <code>url</code>, <code>body</code>, <code>response</code></td></tr>
+            <tr><td><code>"graphql"</code></td><td>The GraphQL response contains <code>errors</code>.</td><td><code>errors</code>, <code>data</code>, <code>status</code>, <code>url</code>, <code>response</code></td></tr>
+            <tr><td><code>"invalid-response"</code></td><td>The body was expected to be JSON but could not be parsed, or a GraphQL response was not an object.</td><td><code>status</code>, <code>url</code>, <code>body</code>, <code>response</code></td></tr>
+            <tr><td><code>"timeout"</code></td><td>The request or the whole execution exceeded its time limit.</td><td><code>url</code> for requests</td></tr>
+            <tr><td><code>"limit"</code></td><td>The response was larger than <code>max_bytes</code>, or the request count limit was reached.</td><td>—</td></tr>
+            <tr><td><code>"network"</code></td><td>DNS, TLS, connection, or CORS failure. <code>cause</code> holds the original error.</td><td><code>url</code>, <code>cause</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <pre class="az-code" data-file="api-errors.az"><code>try
+  let res = await http_get(url)
+  raise_for_status(res)
+  say response_json(res)
+catch err
+  if err.kind == "http" and err.status == 404
+    say "Not found: {err.url}"
+  elif err.kind == "timeout"
+    say "The server was too slow."
+  elif err.kind == "invalid-response"
+    say "Expected JSON, got: {truncate(err.body, 120)}"
+  else
+    say "Request failed: {err.message}"
+  end
+end</code></pre>
+
+      <div class="note warn">
+        <span class="note-title">Browsers enforce CORS</span>
+        <p>In the Studio, a request to another origin succeeds only when that server sends the appropriate CORS headers. Node.js has no such restriction. This is a browser security rule, not an AzLang limitation.</p>
+      </div>
+
+      <h3>Resource limits</h3>
+      <p>
+        Limits keep a runaway program or a huge response from exhausting the machine. Each
+        run has its own counter and clock; the CLI and Studio set the defaults below, and the
+        embedding API can change them.
+      </p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Limit</th><th>Default</th><th>Configure with</th></tr></thead>
+          <tbody>
+            <tr><td>Total execution time</td><td>60,000 ms</td><td><code>maxTimeMs</code> · CLI <code>--timeout</code></td></tr>
+            <tr><td>Requests per run</td><td>100</td><td><code>maxRequests</code> · CLI <code>--max-requests</code></td></tr>
+            <tr><td>Response size</td><td>5 MiB (5,242,880 bytes)</td><td><code>maxResponseBytes</code> · CLI <code>--max-response</code></td></tr>
+            <tr><td>Time per request</td><td>30,000 ms</td><td><code>requestTimeoutMs</code> · CLI <code>--request-timeout</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>
+        Set any numeric limit to <code>0</code> to disable it. Per-request
+        <code>timeout_ms</code> and <code>max_bytes</code> can only tighten or override the
+        run's values for that request. The execution clock also bounds <code>sleep</code> and
+        pending requests.
+      </p>
+
+      <div class="note tip">
+        <span class="note-title">A safe request pattern</span>
+        <p>Set a timeout, call <code>raise_for_status</code>, read with <code>response_json</code>, and normalize optional fields with <code>get_path</code>. That combination turns almost every API failure into either a caught error or a usable default.</p>
+      </div>
+    </article>
+
+    <!-- ============================================================
          ERRORS
          ============================================================ -->
     <article class="doc-section" id="errors">
@@ -3012,7 +3710,7 @@ error on line 6: Cannot divide by zero
         <li>a plain-English <strong>message</strong>,</li>
         <li>the exact <strong>line number</strong>,</li>
         <li>a <strong>hint</strong> when a specific fix is likely,</li>
-        <li>a <strong>kind</strong> (<code>"syntax"</code> or <code>"runtime"</code>).</li>
+        <li>a <strong>kind</strong>, such as <code>"syntax"</code>, <code>"runtime"</code>, <code>"http"</code>, or <code>"timeout"</code>.</li>
       </ul>
 
       <h3>Common errors and their fixes</h3>
@@ -3033,7 +3731,12 @@ error on line 6: Cannot divide by zero
             <tr><td>Cannot compare number with string</td><td>Ordering values of different types</td><td>Convert with <code>num()</code> or <code>str()</code> first</td></tr>
             <tr><td>Cannot call class "A" directly</td><td>Missing <code>new</code></td><td>Write <code>new A(...)</code></td></tr>
             <tr><td>Too many nested function calls</td><td>Recursion without a base case</td><td>Add a base case; check the loop condition</td></tr>
-            <tr><td>Execution stopped: the program ran for too long</td><td>Infinite loop</td><td>Fix the loop condition; did you update the counter?</td></tr>
+            <tr><td>Execution stopped: the program ran for too long</td><td>Infinite loop or step limit</td><td>Fix the loop condition, or raise <code>maxSteps</code></td></tr>
+            <tr><td>Async function "f" needs asynchronous execution</td><td>Async code ran through <code>az.run</code> or <code>session.execute</code></td><td>Use <code>az.runAsync</code> / <code>session.executeAsync</code>; the CLI and Studio already do</td></tr>
+            <tr><td>Module "…" does not export "x"</td><td>A named import does not exist</td><td>Check the export list in the module; the hint lists available names</td></tr>
+            <tr><td>Could not load module "…"</td><td>Wrong path, missing file, or a failed remote fetch</td><td>Check the path relative to the importing file</td></tr>
+            <tr><td>HTTP 404 Not Found for …</td><td><code>raise_for_status</code> or a JSON helper saw a non-2xx response</td><td>Inspect <code>err.status</code>, or handle <code>res.ok</code> before raising</td></tr>
+            <tr><td>Request timed out after … ms</td><td>The server did not answer in time</td><td>Raise <code>timeout_ms</code>, or catch <code>err.kind == "timeout"</code></td></tr>
           </tbody>
         </table>
       </div>
@@ -3055,9 +3758,13 @@ error on line 6: Cannot divide by zero
           <thead><tr><th>Limit</th><th>Value</th></tr></thead>
           <tbody>
             <tr><td>Interpreter steps per run</td><td>5,000,000 (configurable through the embedding API)</td></tr>
+            <tr><td>Total execution time per run</td><td>60,000 ms (configurable; <code>0</code> disables)</td></tr>
             <tr><td>Nested function calls</td><td>256</td></tr>
             <tr><td><code>range</code> length</td><td>1,000,000 items</td></tr>
             <tr><td><code>repeat</code> count</td><td>10,000,000 iterations</td></tr>
+            <tr><td>HTTP requests per run</td><td>100 (configurable; <code>0</code> disables)</td></tr>
+            <tr><td>Response body size</td><td>5 MiB (configurable; <code>0</code> disables)</td></tr>
+            <tr><td>Time per HTTP request</td><td>30,000 ms (configurable; <code>0</code> disables)</td></tr>
             <tr><td>Studio output lines</td><td>4,000 displayed lines per run</td></tr>
           </tbody>
         </table>
@@ -3065,7 +3772,7 @@ error on line 6: Cannot divide by zero
 
       <div class="note tip">
         <span class="note-title">Errors are values</span>
-        <p>Inside <code>catch</code>, a runtime error is a map with <code>message</code>, <code>line</code>, <code>kind</code>, and <code>hint</code>. You can inspect it, log it, wrap it, or throw it again.</p>
+        <p>Inside <code>catch</code>, a runtime error is a map with <code>message</code>, <code>line</code>, <code>kind</code>, and <code>hint</code>. HTTP and GraphQL errors add fields such as <code>status</code>, <code>url</code>, <code>body</code>, <code>errors</code>, <code>data</code>, and <code>response</code>. You can inspect it, log it, wrap it, or throw it again.</p>
       </div>
     </article>
 
@@ -3101,6 +3808,12 @@ console.log(result.ms);    // wall-clock milliseconds</code></pre>
             <tr><td><code>onOutput(text)</code></td><td>Called once per output line. The newline is not included.</td></tr>
             <tr><td><code>ask(question)</code></td><td>Called by <code>input()</code>. Return a string; return <code>null</code> or <code>''</code> for no input.</td></tr>
             <tr><td><code>maxSteps</code></td><td>Step limit for this run. Defaults to 5,000,000.</td></tr>
+            <tr><td><code>maxTimeMs</code></td><td>Total execution time limit in milliseconds. Defaults to 60,000; <code>0</code> disables it.</td></tr>
+            <tr><td><code>maxRequests</code></td><td>Maximum HTTP requests per run. Defaults to 100; <code>0</code> disables it.</td></tr>
+            <tr><td><code>maxResponseBytes</code></td><td>Maximum response body size in bytes. Defaults to 5 MiB; <code>0</code> disables it.</td></tr>
+            <tr><td><code>requestTimeoutMs</code></td><td>Default per-request timeout. Defaults to 30,000; <code>0</code> disables it.</td></tr>
+            <tr><td><code>filename</code></td><td>Name used for the main file, for module resolution and error messages.</td></tr>
+            <tr><td><code>moduleLoader(spec, from)</code></td><td>Custom module loader. Return a source string, <code>{id, source}</code>, or <code>{exports}</code>. May return a promise in async runs.</td></tr>
           </tbody>
         </table>
       </div>
@@ -3116,6 +3829,37 @@ console.log(result.ms);    // wall-clock milliseconds</code></pre>
           </tbody>
         </table>
       </div>
+
+      <h3>Async programs</h3>
+      <p>
+        <code>az.run()</code> is synchronous and remains the simplest choice for programs
+        without network or timer work. When a program uses <code>await</code>, use
+        <code>az.runAsync()</code>; it returns a promise that resolves to the same
+        <code>{output, steps, ms}</code> shape and rejects with an <code>AzError</code>.
+      </p>
+
+      <pre class="js-code" data-file="embed-async.js" data-lang="JavaScript"><code>const az = require('./azlang.js');
+
+az.runAsync(`
+  let response = await http_get("https://example.com/api")
+  raise_for_status(response)
+  say response_json(response).title
+`, {
+  maxTimeMs: 15000,
+  maxRequests: 10,
+  requestTimeoutMs: 5000,
+  onOutput: (line) =&gt; console.log(line)
+}).then((result) =&gt; {
+  console.log('steps:', result.steps, 'ms:', result.ms);
+}).catch((err) =&gt; {
+  console.error(err.kind, err.message);
+});</code></pre>
+
+      <p>
+        Calling async work through <code>run()</code> raises an error with a hint pointing to
+        <code>runAsync</code>. This keeps the synchronous API honest instead of silently
+        dropping unfinished work.
+      </p>
 
       <h3>Sessions and the REPL</h3>
       <p>
@@ -3141,24 +3885,49 @@ session.execute('say total');       // prints 42</code></pre>
         <code>kind</code>, and <code>hint</code>.
       </p>
 
+      <pre class="js-code" data-file="session-async.js" data-lang="JavaScript"><code>const session = az.createSession({
+  onOutput: (line) =&gt; console.log(line),
+  requestTimeoutMs: 5000
+});
+
+await session.executeAsync('let res = await http_get("https://example.com")');
+await session.executeAsync('say res.status');</code></pre>
+
+      <p>
+        <code>session.executeAsync(source)</code> is the asynchronous counterpart. It returns
+        the same step counts and preserves variables between calls, so a REPL can mix sync
+        and async lines. The CLI REPL uses this path.
+      </p>
+
       <h3>In the browser</h3>
       <pre class="js-code" data-file="browser.html" data-lang="HTML"><code>&lt;script src="azlang.js"&gt;&lt;/script&gt;
 &lt;script&gt;
-  const output = [];
   AzLang.run('say "Hello from the browser"', {
-    onOutput: (line) =&gt; output.push(line)
+    onOutput: (line) =&gt; console.log(line)
   });
-  console.log(output);
+
+  AzLang.runAsync(
+    'let res = await http_get("https://example.com/api")\n' +
+    'say res.status',
+    {onOutput: (line) =&gt; console.log(line)}
+  ).then((result) =&gt; console.log(result.steps));
 &lt;/script&gt;</code></pre>
+
+      <p>
+        In a browser, relative imports are fetched from the page's origin and remote imports
+        need CORS. The Studio server exists partly to give modules a normal
+        <code>http://</code> origin instead of <code>file://</code>.
+      </p>
 
       <h3>API summary</h3>
       <div class="table-wrap">
         <table>
           <thead><tr><th>Export</th><th>Purpose</th></tr></thead>
           <tbody>
-            <tr><td><code>AzLang.version</code></td><td>Version string, currently <code>"2.0.0"</code>.</td></tr>
-            <tr><td><code>AzLang.run(source, options?)</code></td><td>Parse and execute a complete program in a fresh environment.</td></tr>
-            <tr><td><code>AzLang.createSession(options?)</code></td><td>Create a persistent REPL-style session.</td></tr>
+            <tr><td><code>AzLang.version</code></td><td>Version string, currently <code>"2.1.0"</code>.</td></tr>
+            <tr><td><code>AzLang.run(source, options?)</code></td><td>Parse and execute a synchronous program in a fresh environment. Async operations raise an error.</td></tr>
+            <tr><td><code>AzLang.runAsync(source, options?)</code></td><td>Execute a program that may use <code>await</code>. Returns a promise for the result.</td></tr>
+            <tr><td><code>AzLang.createSession(options?)</code></td><td>Create a persistent REPL-style session with <code>execute</code> and <code>executeAsync</code>.</td></tr>
             <tr><td><code>AzLang.Session</code></td><td>The session class, if you prefer <code>new</code>.</td></tr>
             <tr><td><code>AzLang.parse(source)</code></td><td>Return the AST without executing. Throws on syntax errors.</td></tr>
             <tr><td><code>AzLang.tokenize(source)</code></td><td>Return the token list. Useful for editors and syntax highlighting.</td></tr>
@@ -3170,7 +3939,7 @@ session.execute('say total');       // prints 42</code></pre>
 
       <div class="note danger">
         <span class="note-title">Not a security sandbox</span>
-        <p>The interpreter limits steps and recursion, but it is not designed to run hostile code. There is no file, network, or operating-system access from the language itself, but embedding code runs in your JavaScript process. Only execute programs you trust.</p>
+        <p>The interpreter limits steps, time, and network resources, but those limits are reliability features, not a security boundary. AzLang programs can make arbitrary HTTP requests, and modules can be loaded from local files or URLs. A browser applies its own CORS and same-origin rules, while Node.js does not. Only run programs and import modules you trust.</p>
       </div>
     </article>
 
@@ -3180,8 +3949,9 @@ session.execute('say total');       // prints 42</code></pre>
     <article class="doc-section" id="examples">
       <h2>Example programs</h2>
       <p>
-        Eight complete programs live in the <code>examples/</code> folder and are bundled into
-        the Studio's Examples window. Each one focuses on a different part of the language.
+        Eleven complete programs and libraries live in the <code>examples/</code> folder and
+        are bundled into the Studio's Examples window. Each one focuses on a different part
+        of the language.
       </p>
 
       <div class="table-wrap">
@@ -3196,6 +3966,10 @@ session.execute('say total');       // prints 42</code></pre>
             <tr><td><code>word-count.az</code></td><td>Strings, maps, lambdas, manual sorting, filtering.</td></tr>
             <tr><td><code>bank.az</code></td><td>Objects with state, validation, custom error maps, history.</td></tr>
             <tr><td><code>shapes.az</code></td><td>Inheritance, <code>super</code>, polymorphism, reducing objects.</td></tr>
+            <tr><td><code>network.az</code></td><td>Async requests, headers, timeouts, status checks, JSON, API errors.</td></tr>
+            <tr><td><code>modules.az</code></td><td>Namespace imports, named imports, and a reusable module.</td></tr>
+            <tr><td><code>mathlib.az</code></td><td>A library file with exported functions, a constant, and a class.</td></tr>
+            <tr><td><code>safe-data.az</code></td><td>Optional fields, nested paths, defaults, and type checks for API data.</td></tr>
           </tbody>
         </table>
       </div>
@@ -3203,7 +3977,10 @@ session.execute('say total');       // prints 42</code></pre>
       <p>Run any of them from the command line:</p>
       <pre class="az-code" data-file="terminal" data-lang="Shell"><code>azlang examples/hello.az
 azlang examples/tour.az
-azlang examples/fibonacci.az</code></pre>
+azlang examples/fibonacci.az
+azlang examples/modules.az
+azlang examples/safe-data.az
+azlang examples/network.az</code></pre>
 
       <h3>Hello, world</h3>
       <pre class="az-code" data-file="examples/hello.az"><code># Hello, world!
@@ -3368,12 +4145,18 @@ let grand_total = reduce(prices, add_prices, 0)</code></pre>
       <h3>Is AzLang just Python with different keywords?</h3>
       <p>
         It is inspired by Python's readability, but it is an independent language with its own
-        parser and runtime. There are no imports, no objects from Python, no list
-        comprehensions, and blocks use <code>end</code> instead of indentation.
+        parser and runtime. There are no Python objects, no list comprehensions, and blocks use
+        <code>end</code> instead of indentation. AzLang has its own small module system, but no
+        package registry.
       </p>
 
-      <h3>Can I use Python libraries?</h3>
-      <p>No. AzLang is self-contained and has no module system. Its standard library is the set of built-in functions documented above.</p>
+      <h3>Can I use Python or npm libraries?</h3>
+      <p>
+        No. AzLang is self-contained and has no third-party package ecosystem. Its standard
+        library is the set of built-in functions documented above plus the built-in
+        <code>net</code> module. You can split your own code into <code>.az</code> modules and
+        import them by path.
+      </p>
 
       <h3>Does it support Persian?</h3>
       <p>
@@ -3397,16 +4180,34 @@ let grand_total = reduce(prices, add_prices, 0)</code></pre>
 
       <h3>Do I need to install Node.js?</h3>
       <p>
-        No on Windows. The installer includes its own Node.js runtime, and the browser
-        Studio needs no runtime at all. Install Node.js 18 or newer only when you run
-        <code>node azlang.js</code> from a source checkout on another platform.
+        No on Windows. The installer includes its own Node.js runtime and starts the browser
+        Studio through a small local server. Install Node.js 18 or newer only when you run
+        <code>node azlang.js</code> or <code>node studio-server.js</code> from a source
+        checkout on another platform.
       </p>
 
       <h3>Can I split code across files?</h3>
-      <p>There are no imports or modules. A program is one file. For larger projects, organize the file with clear sections, functions, and classes. The embedding API can run separate chunks in one <code>Session</code> if a host application needs that.</p>
+      <p>
+        Yes. Use <code>import</code> and <code>export</code> to create modules. Paths resolve
+        relative to the importing file, and a module may itself import other modules. See
+        <a href="#modules">Modules</a>.
+      </p>
+
+      <h3>Can I call web APIs?</h3>
+      <p>
+        Yes. <code>http_get</code>, <code>http_post</code>, and the other network helpers work
+        in Node and in the browser. Use <code>await</code>, check the status with
+        <code>raise_for_status</code>, and read optional fields with <code>get_path</code>.
+        See <a href="#networking">Networking &amp; APIs</a>.
+      </p>
 
       <h3>Can I read or write files from an AzLang program?</h3>
-      <p>No. The language has no file or network access. The CLI reads the source file; <code>input()</code> reads standard input; <code>say</code> writes output. Use the embedding API if a host application needs to exchange data.</p>
+      <p>
+        There is no general file API. The CLI reads the source file and imported modules;
+        <code>input()</code> reads standard input; <code>say</code> writes output. HTTP is
+        available. A host application can expose file access through a custom
+        <code>moduleLoader</code> or by extending the runtime.
+      </p>
 
       <h3>Does it have static methods or private fields?</h3>
       <p>No. Classes have instance fields and methods only. All fields are public.</p>
@@ -3441,6 +4242,23 @@ let grand_total = reduce(prices, add_prices, 0)</code></pre>
          ============================================================ -->
     <article class="doc-section" id="changelog">
       <h2>Changelog</h2>
+
+      <h3>2.1.0 — October 2026</h3>
+      <ul>
+        <li>Async functions, async lambdas, async methods, <code>await</code>, and top-level await through <code>runAsync</code>.</li>
+        <li>Promises: <code>Promise.all</code>, <code>race</code>, <code>all_settled</code>, <code>resolve</code>, <code>reject</code>, plus <code>sleep</code> and <code>retry</code>.</li>
+        <li>HTTP and HTTPS with headers, query parameters, JSON bodies, redirects, timeouts, and streamed response-size checks.</li>
+        <li>HTTP helpers: <code>http_get</code>, <code>post</code>, <code>put</code>, <code>patch</code>, <code>delete</code>, JSON variants, <code>graphql</code>, and response readers.</li>
+        <li>Structured API errors for HTTP status, GraphQL errors, invalid JSON, timeouts, network failures, and limits.</li>
+        <li>Modules with <code>import</code>, namespace and named imports, <code>export</code>, default exports, caching, and remote URLs.</li>
+        <li>Built-in <code>net</code> library plus global network helpers.</li>
+        <li>Null-safe access with <code>get_path</code>, <code>has_path</code>, <code>coalesce</code>, type predicates, and <code>ensure_map</code> / <code>ensure_list</code>.</li>
+        <li>More text helpers: padding, truncation, URL/base64 encoding, HTML escaping, line and word splitting.</li>
+        <li>More collection helpers: chunking, set operations, map picking, grouping, indexing, sorting by key, and aggregation.</li>
+        <li>Resource limits for execution time, request count, response size, and per-request time, configurable in the CLI and embedding API.</li>
+        <li>The Studio is now a browser page served by a tiny local Node process; the separate desktop executable was removed.</li>
+        <li>167 automated tests, eleven examples, updated editor grammars, and a revised installer and portable build.</li>
+      </ul>
 
       <h3>2.0.0 — October 2026</h3>
       <ul>
@@ -3477,7 +4295,7 @@ let grand_total = reduce(prices, add_prices, 0)</code></pre>
       </div>
 
       <div class="doc-footer">
-        <span>AzLang 2.0 · MIT licensed</span>
+        <span>AzLang 2.1 · MIT licensed</span>
         <span class="grow"></span>
         <a href="index.html">Home</a>
         <a href="ide.html">Studio</a>
