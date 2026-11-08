@@ -11,8 +11,8 @@ using System.Windows.Forms;
 [assembly: AssemblyProduct("AzLang")]
 [assembly: AssemblyCompany("TheGreatAzizi")]
 [assembly: AssemblyCopyright("MIT License")]
-[assembly: AssemblyVersion("2.1.0.0")]
-[assembly: AssemblyFileVersion("2.1.0.0")]
+[assembly: AssemblyVersion("2.1.1.0")]
+[assembly: AssemblyFileVersion("2.1.1.0")]
 
 internal sealed class InstallerForm : Form
 {

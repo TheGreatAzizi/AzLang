@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.1.1
+
+- Fixed the hosted Studio sending heartbeat requests to static hosts.
+- Matched the extension version to the AzLang 2.1.1 patch release.
+
 ## 2.1.0
 
 - Added highlighting for `async`, `await`, `import`, and `export`.

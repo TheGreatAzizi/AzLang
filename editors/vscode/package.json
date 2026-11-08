@@ -2,7 +2,7 @@
   "name": "azlang",
   "displayName": "AzLang",
   "description": "AzLang language support: syntax highlighting, snippets, and Run commands for async, networking, and modules in VS Code, Cursor, Windsurf, and VSCodium.",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "publisher": "thegreatazizi",
   "license": "MIT",
   "icon": "icon.png",

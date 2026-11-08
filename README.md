@@ -56,7 +56,7 @@ say "{info.name} has {info.stars} stars"
 
 ### Windows installer (recommended)
 
-Download `AzLang-2.1.0-Setup.exe` from the
+Download `AzLang-2.1.1-Setup.exe` from the
 [latest release](https://github.com/TheGreatAzizi/AzLang/releases/latest) and run
 it. Setup installs for the current user, so no administrator rights are required.
 
@@ -73,7 +73,7 @@ autosaved Studio code is kept.
 
 ### Portable ZIP
 
-Download `AzLang-2.1.0-windows-x64-portable.zip`, unzip it anywhere, and run
+Download `AzLang-2.1.1-windows-x64-portable.zip`, unzip it anywhere, and run
 `studio\AzLang Studio.vbs` or `bin\azlang.exe`. The Studio launcher starts the
 local server and opens your default browser. The portable ZIP does not change
 PATH, file associations, or the registry.
@@ -81,7 +81,7 @@ PATH, file associations, or the registry.
 Every release also includes `SHA256SUMS.txt`. Verify a download with:
 
 ```powershell
-Get-FileHash .\AzLang-2.1.0-Setup.exe -Algorithm SHA256
+Get-FileHash .\AzLang-2.1.1-Setup.exe -Algorithm SHA256
 ```
 
 ### Browser
@@ -372,7 +372,7 @@ All integrations are dependency-free and share the same grammar.
 Install the VS Code extension from the latest release:
 
 ```bash
-code --install-extension azlang-2.1.0.vsix
+code --install-extension azlang-2.1.1.vsix
 ```
 
 The extension provides **AzLang: Run File** (<kbd>Ctrl</kbd> + <kbd>Alt</kbd> +
@@ -448,14 +448,14 @@ editors, and writes these files to `dist/`:
 
 | File | What it is |
 | --- | --- |
-| `AzLang-2.1.0-Setup.exe` | Per-user Windows installer with a bundled Node.js runtime. |
-| `AzLang-2.1.0-windows-x64-portable.zip` | Portable build; unzip, then run `studio\AzLang Studio.vbs`. |
-| `AzLang-2.1.0-editors.zip` | TextMate, Sublime Text, Vim, Neovim, and JetBrains files. |
-| `azlang-2.1.0.vsix` | VS Code extension. |
+| `AzLang-2.1.1-Setup.exe` | Per-user Windows installer with a bundled Node.js runtime. |
+| `AzLang-2.1.1-windows-x64-portable.zip` | Portable build; unzip, then run `studio\AzLang Studio.vbs`. |
+| `AzLang-2.1.1-editors.zip` | TextMate, Sublime Text, Vim, Neovim, and JetBrains files. |
+| `azlang-2.1.1.vsix` | VS Code extension. |
 | `azlang.js` | Standalone runtime. |
 | `SHA256SUMS.txt` | SHA-256 checksums for every artifact. |
 
-Pass `--expect-tag v2.1.0` to fail the build when the tag does not match the
+Pass `--expect-tag v2.1.1` to fail the build when the tag does not match the
 version in `azlang.js`. The release workflow uses this check.
 
 ## Tests
@@ -547,8 +547,8 @@ Releases are built on Windows by `.github/workflows/release.yml`. Push a tag
 that matches the version in `azlang.js`:
 
 ```bash
-git tag v2.1.0
-git push origin v2.1.0
+git tag v2.1.1
+git push origin v2.1.1
 ```
 
 The workflow runs the tests, regenerates generated files, builds the artifacts

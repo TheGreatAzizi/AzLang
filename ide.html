@@ -1380,7 +1380,7 @@
             <div>
               <h3>AzLang for VS Code</h3>
               <p>Syntax highlighting, indentation, snippets, and a Run command for VS Code, Cursor, Windsurf, and VSCodium.</p>
-              <div class="ext-meta"><span>2.1.0</span><span>·</span><span>Included in every release</span></div>
+              <div class="ext-meta"><span>2.1.1</span><span>·</span><span>Included in every release</span></div>
             </div>
           </div>
           <div class="side-list">
@@ -1435,7 +1435,7 @@
           <div class="setting-note">Settings are stored locally in your browser. The Studio never sends code anywhere.</div>
           <div class="side-card">
             <h3>About AzLang Studio</h3>
-            <p>Version 2.1.0 · The zero-dependency browser-based editor for AzLang. Built with plain HTML, CSS, and JavaScript.</p>
+            <p>Version 2.1.1 · The zero-dependency browser-based editor for AzLang. Built with plain HTML, CSS, and JavaScript.</p>
             <a class="side-btn" href="docs.html" style="text-decoration:none" target="_blank" rel="noopener">
               <svg class="icon" aria-hidden="true"><use href="#i-book"/></svg>
               Open documentation
@@ -3270,8 +3270,8 @@
       case 'download-windows': window.open('https://github.com/TheGreatAzizi/AzLang/releases/latest', '_blank', 'noopener'); break;
       case 'open-github': window.open('https://github.com/TheGreatAzizi/AzLang', '_blank', 'noopener'); break;
       case 'about':
-        showToast('AzLang Studio 2.1.0 — zero dependencies, plain web technology.');
-        setStatus('AzLang Studio 2.1.0', '');
+        showToast('AzLang Studio 2.1.1 — zero dependencies, plain web technology.');
+        setStatus('AzLang Studio 2.1.1', '');
         break;
       case 'fullscreen': toggleFullscreen(); break;
       case 'clear-search':
@@ -3771,8 +3771,13 @@
   boot();
 
   // Tell the local Studio server that a page is still open so it can stop
-  // itself shortly after the last tab closes.
-  if (location.protocol === 'http:' || location.protocol === 'https:') {
+  // itself shortly after the last tab closes. Static copies (such as the one
+  // on GitHub Pages) have no server endpoint, so skip the request there
+  // instead of producing a 404 in the browser console every minute.
+  const studioHost = String(location.hostname || '').toLowerCase();
+  const localStudio = studioHost === '127.0.0.1' || studioHost === 'localhost' ||
+    studioHost === '::1' || studioHost === '[::1]' || studioHost === '0.0.0.0';
+  if (localStudio && (location.protocol === 'http:' || location.protocol === 'https:')) {
     const ping = function () {
       fetch('__azlang/ping', { cache: 'no-store' }).catch(function () { /* offline */ });
     };

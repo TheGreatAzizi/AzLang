@@ -843,8 +843,8 @@
         It installs for the current user, so no administrator rights are required.
       </p>
       <div class="download-links">
-        <a class="primary" href="https://github.com/TheGreatAzizi/AzLang/releases/latest/download/AzLang-2.1.0-Setup.exe">Download Setup.exe</a>
-        <a href="https://github.com/TheGreatAzizi/AzLang/releases/latest/download/AzLang-2.1.0-windows-x64-portable.zip">Portable ZIP</a>
+        <a class="primary" href="https://github.com/TheGreatAzizi/AzLang/releases/latest/download/AzLang-2.1.1-Setup.exe">Download Setup.exe</a>
+        <a href="https://github.com/TheGreatAzizi/AzLang/releases/latest/download/AzLang-2.1.1-windows-x64-portable.zip">Portable ZIP</a>
         <a href="https://github.com/TheGreatAzizi/AzLang/releases/latest">All releases</a>
       </div>
       <ul>
@@ -1090,8 +1090,8 @@ OK: examples/tour.az (52 top-level statements)</code></pre>
       </p>
 
       <div class="download-links">
-        <a class="primary" href="https://github.com/TheGreatAzizi/AzLang/releases/latest/download/azlang-2.1.0.vsix">Download VSIX</a>
-        <a href="https://github.com/TheGreatAzizi/AzLang/releases/latest/download/AzLang-2.1.0-editors.zip">All editor files</a>
+        <a class="primary" href="https://github.com/TheGreatAzizi/AzLang/releases/latest/download/azlang-2.1.1.vsix">Download VSIX</a>
+        <a href="https://github.com/TheGreatAzizi/AzLang/releases/latest/download/AzLang-2.1.1-editors.zip">All editor files</a>
         <a href="https://github.com/TheGreatAzizi/AzLang/tree/main/editors">Browse on GitHub</a>
       </div>
 
@@ -1100,7 +1100,7 @@ OK: examples/tour.az (52 top-level statements)</code></pre>
         The extension supports VS Code 1.75 and newer and other VS Code-compatible
         editors. Install the VSIX from a terminal:
       </p>
-      <pre class="az-code" data-file="terminal" data-lang="Shell"><code>code --install-extension azlang-2.1.0.vsix</code></pre>
+      <pre class="az-code" data-file="terminal" data-lang="Shell"><code>code --install-extension azlang-2.1.1.vsix</code></pre>
       <p>
         Or open the Extensions view, choose
         <strong>Views and More Actions... &gt; Install from VSIX...</strong>, and select
@@ -3924,7 +3924,7 @@ await session.executeAsync('say res.status');</code></pre>
         <table>
           <thead><tr><th>Export</th><th>Purpose</th></tr></thead>
           <tbody>
-            <tr><td><code>AzLang.version</code></td><td>Version string, currently <code>"2.1.0"</code>.</td></tr>
+            <tr><td><code>AzLang.version</code></td><td>Version string, currently <code>"2.1.1"</code>.</td></tr>
             <tr><td><code>AzLang.run(source, options?)</code></td><td>Parse and execute a synchronous program in a fresh environment. Async operations raise an error.</td></tr>
             <tr><td><code>AzLang.runAsync(source, options?)</code></td><td>Execute a program that may use <code>await</code>. Returns a promise for the result.</td></tr>
             <tr><td><code>AzLang.createSession(options?)</code></td><td>Create a persistent REPL-style session with <code>execute</code> and <code>executeAsync</code>.</td></tr>
@@ -4242,6 +4242,11 @@ let grand_total = reduce(prices, add_prices, 0)</code></pre>
          ============================================================ -->
     <article class="doc-section" id="changelog">
       <h2>Changelog</h2>
+
+      <h3>2.1.1 — October 2026</h3>
+      <ul>
+        <li>Fixed the hosted Studio sending local heartbeat requests to static hosts, which produced a 404 in the browser console. The local installed Studio still uses the heartbeat to shut down after the last tab closes.</li>
+      </ul>
 
       <h3>2.1.0 — October 2026</h3>
       <ul>

@@ -19,7 +19,7 @@ internal sealed class InstallOptions
 internal static class AzInstall
 {
     public const string DisplayName = "AzLang";
-    public const string DisplayVersion = "2.1.0";
+    public const string DisplayVersion = "2.1.1";
     public const string Publisher = "TheGreatAzizi";
     public const string Website = "https://github.com/TheGreatAzizi/AzLang";
     public const string UninstallKey = @"Software\Microsoft\Windows\CurrentVersion\Uninstall\AzLang";
