@@ -4853,6 +4853,41 @@
       return [];
     });
 
+    /* ---------- Result and Option types ---------- */
+    def('ok', function (it, args, node) {
+      need(args, 1, 'ok', node.line);
+      return { _tag: 'ok', value: args[0] };
+    });
+    def('err', function (it, args, node) {
+      need(args, 1, 'err', node.line);
+      return { _tag: 'err', error: args[0] };
+    });
+    def('some', function (it, args, node) {
+      need(args, 1, 'some', node.line);
+      return { _tag: 'some', value: args[0] };
+    });
+    def('none', function (it, args, node) {
+      need(args, 0, 'none', node.line);
+      return { _tag: 'none' };
+    });
+    def('is_ok', function (it, args, node) {
+      need(args, 1, 'is_ok', node.line);
+      const v = args[0];
+      return isMap(v) && v._tag === 'ok';
+    });
+    def('is_err', function (it, args, node) {
+      need(args, 1, 'is_err', node.line);
+      const v = args[0];
+      return isMap(v) && v._tag === 'err';
+    });
+    def('unwrap', function (it, args, node) {
+      need(args, 1, 'unwrap', node.line);
+      const v = args[0];
+      if (isMap(v) && v._tag === 'ok') return v.value;
+      if (isMap(v) && v._tag === 'err') throw new AzError('unwrap on err: ' + display(v.error), node.line);
+      throw new AzError('unwrap expects a Result', node.line);
+    });
+
     /* ---------- testing helpers ---------- */
     def('assert_eq', function (it, args, node) {
       need(args, 2, 'assert_eq', node.line);
