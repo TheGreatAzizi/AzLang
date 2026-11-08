@@ -4790,6 +4790,26 @@
       return a - b;
     });
 
+    /* ---------- string formatting ---------- */
+    def('format', function (it, args, node) {
+      need(args, 1, 'format', node.line);
+      const template = wantString(args[0], 'format', node.line);
+      const values = args.slice(1).map(v => display(v));
+      return template.replace(/\{(\d+)\}/g, (m, idx) => {
+        const i = Number(idx);
+        return i >= 0 && i < values.length ? values[i] : m;
+      });
+    });
+    def('format_named', function (it, args, node) {
+      need(args, 2, 'format_named', node.line);
+      const template = wantString(args[0], 'format_named', node.line);
+      const map = wantMap(args[1], 'format_named', node.line);
+      return template.replace(/\{([a-zA-Z_][a-zA-Z0-9_]*)\}/g, (m, key) => {
+        if (key in map) return display(map[key]);
+        return m;
+      });
+    });
+
     /* ---------- bitwise helpers ---------- */
     def('bit_and', function (it, args, node) {
       need(args, 2, 'bit_and', node.line);
