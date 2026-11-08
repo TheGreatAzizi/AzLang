@@ -4764,6 +4764,32 @@
       }
     });
 
+    /* ---------- date & time ---------- */
+    def('date_now', function (it, args, node) {
+      need(args, 0, 'date_now', node.line);
+      return Date.now();
+    });
+    def('date_iso', function (it, args, node) {
+      needBetween(args, 0, 1, 'date_iso', node.line);
+      const ms = args.length === 1 ? wantNum(args[0], 'date_iso', node.line) : Date.now();
+      return new Date(ms).toISOString();
+    });
+    def('date_parse', function (it, args, node) {
+      need(args, 1, 'date_parse', node.line);
+      const s = wantString(args[0], 'date_parse', node.line);
+      const ms = Date.parse(s);
+      if (Number.isNaN(ms)) {
+        throw new AzError('date_parse error: invalid date string', node.line);
+      }
+      return ms;
+    });
+    def('date_diff', function (it, args, node) {
+      need(args, 2, 'date_diff', node.line);
+      const a = wantNum(args[0], 'date_diff', node.line);
+      const b = wantNum(args[1], 'date_diff', node.line);
+      return a - b;
+    });
+
     env.define('net', buildNetNamespace(), true);
 
     const promiseObject = Object.create(null);
