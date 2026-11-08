@@ -4713,6 +4713,57 @@
       return Object.prototype.hasOwnProperty.call(process.env, name);
     });
 
+    /* ---------- regular expressions ---------- */
+    const regexBuiltin = function (name, fn) {
+      return def(name, fn);
+    };
+    def('regex_match', function (it, args, node) {
+      needBetween(args, 2, 3, 'regex_match', node.line);
+      const pattern = wantString(args[0], 'regex_match', node.line);
+      const text = wantString(args[1], 'regex_match', node.line);
+      const flags = args.length === 3 ? wantString(args[2], 'regex_match', node.line) : '';
+      try {
+        return new RegExp(pattern, flags).test(text);
+      } catch (e) {
+        throw new AzError('regex_match error: ' + e.message, node.line);
+      }
+    });
+    def('regex_search', function (it, args, node) {
+      needBetween(args, 2, 3, 'regex_search', node.line);
+      const pattern = wantString(args[0], 'regex_search', node.line);
+      const text = wantString(args[1], 'regex_search', node.line);
+      const flags = args.length === 3 ? wantString(args[2], 'regex_search', node.line) : '';
+      try {
+        const m = new RegExp(pattern, flags).exec(text);
+        return m ? m[0] : null;
+      } catch (e) {
+        throw new AzError('regex_search error: ' + e.message, node.line);
+      }
+    });
+    def('regex_replace', function (it, args, node) {
+      needBetween(args, 3, 4, 'regex_replace', node.line);
+      const pattern = wantString(args[0], 'regex_replace', node.line);
+      const repl = String(args[1]);
+      const text = wantString(args[2], 'regex_replace', node.line);
+      const flags = args.length === 4 ? wantString(args[3], 'regex_replace', node.line) : 'g';
+      try {
+        return text.replace(new RegExp(pattern, flags), repl);
+      } catch (e) {
+        throw new AzError('regex_replace error: ' + e.message, node.line);
+      }
+    });
+    def('regex_split', function (it, args, node) {
+      needBetween(args, 2, 3, 'regex_split', node.line);
+      const pattern = wantString(args[0], 'regex_split', node.line);
+      const text = wantString(args[1], 'regex_split', node.line);
+      const flags = args.length === 3 ? wantString(args[2], 'regex_split', node.line) : '';
+      try {
+        return Array.from(text.split(new RegExp(pattern, flags)));
+      } catch (e) {
+        throw new AzError('regex_split error: ' + e.message, node.line);
+      }
+    });
+
     env.define('net', buildNetNamespace(), true);
 
     const promiseObject = Object.create(null);
