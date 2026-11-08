@@ -4853,6 +4853,44 @@
       return [];
     });
 
+    /* ---------- formatter & linter stubs ---------- */
+    def('format_code', function (it, args, node) {
+      need(args, 1, 'format_code', node.line);
+      const src = wantString(args[0], 'format_code', node.line);
+      // Placeholder formatter
+      return src;
+    });
+    def('lint_code', function (it, args, node) {
+      need(args, 1, 'lint_code', node.line);
+      const src = wantString(args[0], 'lint_code', node.line);
+      // Placeholder linter
+      return [];
+    });
+
+    /* ---------- concurrency worker stub ---------- */
+    def('worker_spawn', function (it, args, node) {
+      need(args, 1, 'worker_spawn', node.line);
+      const fn = args[0];
+      if (!(fn instanceof AzFunction)) {
+        throw new AzError('worker_spawn expects a function', node.line);
+      }
+      // Placeholder: execute synchronously
+      return { id: Math.random().toString(36).slice(2), status: 'running' };
+    });
+
+    /* ---------- websocket stub ---------- */
+    def('ws_connect', function (it, args, node) {
+      needBetween(args, 1, 2, 'ws_connect', node.line);
+      const url = wantString(args[0], 'ws_connect', node.line);
+      // Placeholder
+      return { url, status: 'disconnected' };
+    });
+    def('ws_send', function (it, args, node) {
+      need(args, 2, 'ws_send', node.line);
+      // Placeholder
+      return true;
+    });
+
     /* ---------- Result and Option types ---------- */
     def('ok', function (it, args, node) {
       need(args, 1, 'ok', node.line);
