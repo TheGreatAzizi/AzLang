@@ -4790,6 +4790,36 @@
       return a - b;
     });
 
+    /* ---------- bitwise helpers ---------- */
+    def('bit_and', function (it, args, node) {
+      need(args, 2, 'bit_and', node.line);
+      return wantInt(args[0], 'bit_and', node.line) & wantInt(args[1], 'bit_and', node.line);
+    });
+    def('bit_or', function (it, args, node) {
+      need(args, 2, 'bit_or', node.line);
+      return wantInt(args[0], 'bit_or', node.line) | wantInt(args[1], 'bit_or', node.line);
+    });
+    def('bit_xor', function (it, args, node) {
+      need(args, 2, 'bit_xor', node.line);
+      return wantInt(args[0], 'bit_xor', node.line) ^ wantInt(args[1], 'bit_xor', node.line);
+    });
+    def('bit_not', function (it, args, node) {
+      need(args, 1, 'bit_not', node.line);
+      return ~wantInt(args[0], 'bit_not', node.line);
+    });
+    def('bit_shl', function (it, args, node) {
+      need(args, 2, 'bit_shl', node.line);
+      return wantInt(args[0], 'bit_shl', node.line) << wantInt(args[1], 'bit_shl', node.line);
+    });
+    def('bit_shr', function (it, args, node) {
+      need(args, 2, 'bit_shr', node.line);
+      return wantInt(args[0], 'bit_shr', node.line) >> wantInt(args[1], 'bit_shr', node.line);
+    });
+    def('bit_ushr', function (it, args, node) {
+      need(args, 2, 'bit_ushr', node.line);
+      return wantInt(args[0], 'bit_ushr', node.line) >>> wantInt(args[1], 'bit_ushr', node.line);
+    });
+
     env.define('net', buildNetNamespace(), true);
 
     const promiseObject = Object.create(null);
