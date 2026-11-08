@@ -200,6 +200,7 @@
       if (isDigit(ch)) {
         let j = i;
         let dot = false;
+        let exp = false;
         let text = '';
         while (j < n) {
           const c = source[j];
@@ -208,10 +209,21 @@
             j += 1;
             continue;
           }
-          if (c === '.' && !dot && isDigit(source[j + 1] || '')) {
+          if (c === '.' && !dot && !exp && isDigit(source[j + 1] || '')) {
             dot = true;
             text += '.';
             j += 1;
+            continue;
+          }
+          if ((c === 'e' || c === 'E') && !exp) {
+            exp = true;
+            text += c;
+            j += 1;
+            const next = source[j];
+            if (next === '+' || next === '-') {
+              text += next;
+              j += 1;
+            }
             continue;
           }
           break;
