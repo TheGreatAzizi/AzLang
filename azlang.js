@@ -4602,6 +4602,117 @@
     def('sleep', sleepBuiltin);
     def('retry', retryBuiltin);
 
+    /* ---------- file system ---------- */
+    const ensureFs = function (node) {
+      const modules = getNodeModules();
+      if (!modules) {
+        throw new AzError('File system built-ins are available in Node.js only', node.line);
+      }
+      return modules.fs;
+    };
+    def('read_file', function (it, args, node) {
+      need(args, 1, 'read_file', node.line);
+      const path = wantString(args[0], 'read_file', node.line);
+      const fs = ensureFs(node);
+      try {
+        return fs.readFileSync(path, 'utf8');
+      } catch (e) {
+        throw new AzError('read_file error: ' + e.message, node.line);
+      }
+    });
+    def('write_file', function (it, args, node) {
+      need(args, 2, 'write_file', node.line);
+      const path = wantString(args[0], 'write_file', node.line);
+      const data = String(args[1]);
+      const fs = ensureFs(node);
+      try {
+        fs.writeFileSync(path, data, 'utf8');
+        return true;
+      } catch (e) {
+        throw new AzError('write_file error: ' + e.message, node.line);
+      }
+    });
+    def('append_file', function (it, args, node) {
+      need(args, 2, 'append_file', node.line);
+      const path = wantString(args[0], 'append_file', node.line);
+      const data = String(args[1]);
+      const fs = ensureFs(node);
+      try {
+        fs.appendFileSync(path, data, 'utf8');
+        return true;
+      } catch (e) {
+        throw new AzError('append_file error: ' + e.message, node.line);
+      }
+    });
+    def('file_exists', function (it, args, node) {
+      need(args, 1, 'file_exists', node.line);
+      const path = wantString(args[0], 'file_exists', node.line);
+      const fs = ensureFs(node);
+      try {
+        return fs.existsSync(path);
+      } catch (e) {
+        return false;
+      }
+    });
+    def('make_dir', function (it, args, node) {
+      needBetween(args, 1, 2, 'make_dir', node.line);
+      const path = wantString(args[0], 'make_dir', node.line);
+      const fs = ensureFs(node);
+      try {
+        const recursive = args.length === 2 && truthy(args[1]);
+        fs.mkdirSync(path, { recursive: !!recursive });
+        return true;
+      } catch (e) {
+        throw new AzError('make_dir error: ' + e.message, node.line);
+      }
+    });
+    def('list_dir', function (it, args, node) {
+      needBetween(args, 1, 2, 'list_dir', node.line);
+      const path = wantString(args[0], 'list_dir', node.line);
+      const fs = ensureFs(node);
+      try {
+        const withFiles = args.length === 2 && truthy(args[1]);
+        const entries = fs.readdirSync(path, { withFileTypes: true });
+        if (withFiles) {
+          return entries.map(e => e.name);
+        }
+        return entries.map(e => ({ name: e.name, is_dir: e.isDirectory() }));
+      } catch (e) {
+        throw new AzError('list_dir error: ' + e.message, node.line);
+      }
+    });
+    def('remove_file', function (it, args, node) {
+      need(args, 1, 'remove_file', node.line);
+      const path = wantString(args[0], 'remove_file', node.line);
+      const fs = ensureFs(node);
+      try {
+        fs.unlinkSync(path);
+        return true;
+      } catch (e) {
+        throw new AzError('remove_file error: ' + e.message, node.line);
+      }
+    });
+
+    /* ---------- environment variables ---------- */
+    def('env_get', function (it, args, node) {
+      needBetween(args, 1, 2, 'env_get', node.line);
+      const name = wantString(args[0], 'env_get', node.line);
+      if (typeof process === 'undefined' || !process.env) {
+        throw new AzError('env_get is available in Node.js only', node.line);
+      }
+      const value = process.env[name];
+      if (value === undefined) {
+        return args.length === 2 ? args[1] : null;
+      }
+      return value;
+    });
+    def('env_has', function (it, args, node) {
+      need(args, 1, 'env_has', node.line);
+      const name = wantString(args[0], 'env_has', node.line);
+      if (typeof process === 'undefined' || !process.env) return false;
+      return Object.prototype.hasOwnProperty.call(process.env, name);
+    });
+
     env.define('net', buildNetNamespace(), true);
 
     const promiseObject = Object.create(null);
