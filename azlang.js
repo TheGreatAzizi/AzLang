@@ -4802,6 +4802,99 @@
       return a - b;
     });
 
+    /* ---------- http server ---------- */
+    def('http_server_start', function (it, args, node) {
+      needBetween(args, 1, 2, 'http_server_start', node.line);
+      const port = wantInt(args[0], 'http_server_start', node.line);
+      const handler = args[1];
+      const modules = getNodeModules();
+      if (!modules) {
+        throw new AzError('http_server_start is available in Node.js only', node.line);
+      }
+      const http = require('http');
+      const server = http.createServer((req, res) => {
+        const resultMap = { url: req.url, method: req.method, headers: req.headers };
+        const callResult = it.invokeFunction(handler, [resultMap], node, null, null);
+        if (callResult instanceof AzPromise) {
+          callResult.promise.then(r => {
+            res.writeHead(200, { 'Content-Type': 'text/plain' });
+            res.end(String(r ?? ''));
+          }).catch(err => {
+            res.writeHead(500);
+            res.end('Error: ' + String(err.message || err));
+          });
+        } else {
+          res.writeHead(200, { 'Content-Type': 'text/plain' });
+          res.end(String(callResult ?? ''));
+        }
+      });
+      server.listen(port);
+      return server;
+    });
+    def('http_server_close', function (it, args, node) {
+      need(args, 1, 'http_server_close', node.line);
+      const server = args[0];
+      if (server && typeof server.close === 'function') {
+        server.close();
+        return true;
+      }
+      throw new AzError('http_server_close expects a server object', node.line);
+    });
+
+    /* ---------- package manager stub ---------- */
+    def('pkg_load', function (it, args, node) {
+      need(args, 1, 'pkg_load', node.line);
+      const name = wantString(args[0], 'pkg_load', node.line);
+      // Placeholder for future package manager
+      throw new AzError('pkg_load is not implemented yet: ' + name, node.line);
+    });
+    def('pkg_list', function (it, args, node) {
+      need(args, 0, 'pkg_list', node.line);
+      return [];
+    });
+
+    /* ---------- testing helpers ---------- */
+    def('assert_eq', function (it, args, node) {
+      need(args, 2, 'assert_eq', node.line);
+      if (args[0] !== args[1] && !(Array.isArray(args[0]) && Array.isArray(args[1]) && JSON.stringify(args[0]) === JSON.stringify(args[1]))) {
+        if (isMap(args[0]) && isMap(args[1]) && JSON.stringify(args[0]) === JSON.stringify(args[1])) {
+          return true;
+        }
+        throw new AzError('assert_eq failed: ' + display(args[0]) + ' != ' + display(args[1]), node.line);
+      }
+      return true;
+    });
+    def('assert_true', function (it, args, node) {
+      need(args, 1, 'assert_true', node.line);
+      if (!truthy(args[0])) {
+        throw new AzError('assert_true failed: value is falsy', node.line);
+      }
+      return true;
+    });
+    def('assert_false', function (it, args, node) {
+      need(args, 1, 'assert_false', node.line);
+      if (truthy(args[0])) {
+        throw new AzError('assert_false failed: value is truthy', node.line);
+      }
+      return true;
+    });
+    def('test', function (it, args, node) {
+      need(args, 2, 'test', node.line);
+      const name = wantString(args[0], 'test', node.line);
+      const fn = args[1];
+      if (!(fn instanceof AzFunction)) {
+        throw new AzError('test expects a function as second argument', node.line);
+      }
+      try {
+        it.invokeFunction(fn, [], node, null, null);
+        it.output(name + ': PASS');
+        return true;
+      } catch (e) {
+        it.output(name + ': FAIL - ' + e.message);
+        return false;
+      }
+    });
+
     /* ---------- string formatting ---------- */
     def('format', function (it, args, node) {
       need(args, 1, 'format', node.line);
