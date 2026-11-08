@@ -108,6 +108,7 @@ node azlang.js examples/hello.az
 - **Learnable in an afternoon.** One keyword per idea, blocks that close with `end`, no semicolons, no braces around blocks.
 - **Modern where it matters.** Classes, inheritance, `super`, closures, default parameters, arrow lambdas, destructuring loops, pattern matching, async/await, promises, and modules.
 - **Batteries included.** Strings, lists, maps, math, sorting, higher-order helpers, random numbers, JSON, null-safe path access, HTTP/HTTPS, GraphQL, and a standard `net` library.
+- **New built-ins.** File system `read_file`/`write_file`, environment `env_get`, regex `regex_match`/`regex_replace`, date/time `date_now`/`date_iso`, bitwise helpers `bit_and`/`bit_or`, string formatting `format`/`format_named`, testing `assert_eq`/`test`, HTTP server `http_server_start`, Result/Option `ok`/`err`/`some`/`none`, formatter/linter stubs `format_code`/`lint_code`, worker `worker_spawn`, websocket stubs `ws_connect`.
 - **Errors that teach.** Plain-English messages with line numbers, hints, and “did you mean?” suggestions. API failures carry status, URL, body, and GraphQL error fields.
 - **Truly portable.** No packages, no build step, no external services. A text editor and Node.js — or just a browser — are enough.
 - **Safe by default.** Execution time, request count, response size, and per-request time are bounded, and can be adjusted per run.

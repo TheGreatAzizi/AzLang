@@ -4813,5 +4813,24 @@ let grand_total = reduce(prices, add_prices, 0)</code></pre>
 })();
 </script>
 
+<section id="new-builtins" class="docs-section">
+  <h2>New Built-ins 2026</h2>
+  <p>The following built-ins have been added in the 2.1.x development cycle:</p>
+  <ul>
+    <li><code>read_file</code>, <code>write_file</code>, <code>append_file</code>, <code>file_exists</code>, <code>make_dir</code>, <code>list_dir</code>, <code>remove_file</code> — Node.js file system helpers.</li>
+    <li><code>env_get</code>, <code>env_has</code> — environment variable access.</li>
+    <li><code>regex_match</code>, <code>regex_search</code>, <code>regex_replace</code>, <code>regex_split</code> — regular expression helpers.</li>
+    <li><code>date_now</code>, <code>date_iso</code>, <code>date_parse</code>, <code>date_diff</code> — date and time.</li>
+    <li><code>bit_and</code>, <code>bit_or</code>, <code>bit_xor</code>, <code>bit_not</code>, <code>bit_shl</code>, <code>bit_shr</code>, <code>bit_ushr</code> — bitwise helpers.</li>
+    <li><code>format</code>, <code>format_named</code> — string formatting.</li>
+    <li><code>assert_eq</code>, <code>assert_true</code>, <code>assert_false</code>, <code>test</code> — testing helpers.</li>
+    <li><code>http_server_start</code>, <code>http_server_close</code> — tiny HTTP server.</li>
+    <li><code>ok</code>, <code>err</code>, <code>some</code>, <code>none</code>, <code>is_ok</code>, <code>is_err</code>, <code>unwrap</code> — Result / Option.</li>
+    <li><code>format_code</code>, <code>lint_code</code> — formatter / linter stubs.</li>
+    <li><code>worker_spawn</code> — concurrency worker stub.</li>
+    <li><code>ws_connect</code>, <code>ws_send</code> — WebSocket stubs.</li>
+  </ul>
+</section>
+
 </body>
 </html>

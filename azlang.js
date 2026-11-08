@@ -4857,14 +4857,31 @@
     def('format_code', function (it, args, node) {
       need(args, 1, 'format_code', node.line);
       const src = wantString(args[0], 'format_code', node.line);
-      // Placeholder formatter
-      return src;
+      const lines = src.split(/\r?\n/);
+      const out = [];
+      let indent = 0;
+      const inc = new Set(['fun','class','if','elif','while','for','try','match','elif']);
+      const dec = new Set(['end']);
+      for (let raw of lines) {
+        const line = raw.trim();
+        if (!line) { out.push(''); continue; }
+        const first = line.split(/\s+/)[0];
+        if (dec.has(first)) indent = Math.max(0, indent - 2);
+        out.push(' '.repeat(indent) + line);
+        if (inc.has(first)) indent += 2;
+      }
+      return out.join('\n');
     });
     def('lint_code', function (it, args, node) {
       need(args, 1, 'lint_code', node.line);
       const src = wantString(args[0], 'lint_code', node.line);
-      // Placeholder linter
-      return [];
+      const warnings = [];
+      const lines = src.split(/\r?\n/);
+      lines.forEach((l, i) => {
+        if (l.length > 120) warnings.push({ line: i + 1, message: 'Line too long' });
+        if (/[ \t]$/.test(l)) warnings.push({ line: i + 1, message: 'Trailing whitespace' });
+      });
+      return warnings;
     });
 
     /* ---------- concurrency worker stub ---------- */
